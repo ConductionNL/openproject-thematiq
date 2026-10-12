@@ -1,0 +1,28 @@
+/* Controls. Canon: button, input and select. */
+
+/* secondary button: 40 px high, padding 0 14px, 1 px field border, surface background, 14 px weight 600 */
+.toolbar-items .button, .toolbar-items button.button, .button.-primary {
+  height: 40px; line-height: 38px; padding: 0 14px; font-size: 14px; font-weight: 600;
+  border-radius: var(--thematiq-radius); border: 1px solid var(--thematiq-field);
+  background: var(--thematiq-surface); color: var(--thematiq-ink);
+  box-sizing: border-box;
+}
+
+/* primary button: the same size, action background, 1 px action-deep border */
+.toolbar-items .button.-primary, .button.-primary {
+  background: var(--thematiq-action); border-color: var(--thematiq-action-deep); color: var(--thematiq-on-action);
+}
+
+/* icon only button: 40 x 40 */
+.toolbar-items .button.toolbar-icon { width: 40px; padding: 0; }
+
+/* Primer buttons: radius, weight 600. Their 40 px height comes from --control-medium-size */
+.Button, .Button--medium { border-radius: var(--thematiq-radius); }
+.Button--primary, .Button--secondary, .Button--default { font-weight: 600; }
+
+/* input and select: 40 px high, 1 px field border, radius-lg, 15 px text */
+.FormControl-input, .FormControl-select, .form--text-field, .form--select, input.advanced-filters--text-field {
+  height: 40px; border-radius: var(--thematiq-radius-lg); border: 1px solid var(--thematiq-field);
+  background: var(--thematiq-surface);
+  padding-top: 0; padding-bottom: 0; font-size: 15px;
+}

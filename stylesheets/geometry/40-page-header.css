@@ -1,0 +1,16 @@
+/* Page frame and page header. Canon: page frame and type scale. */
+
+/* main: ground background, padding 24px 28px. OpenProject adds 16 px inside, so 12 + 16 = 28 on the left */
+#content-wrapper { background: var(--thematiq-ground); padding: 24px 28px 24px 12px; font-family: var(--thematiq-font); }
+#content-wrapper #content { background: transparent; padding: 0; }
+
+/* toolbar: as high as its 40 px buttons, 20 px gap below */
+.toolbar-container { min-height: 40px; margin-bottom: 20px; }
+.toolbar-container .toolbar { min-height: 40px; }
+.toolbar-items .toolbar-item { height: 40px; }
+
+/* page title: 28 px weight 700, line-height 1.2 */
+.toolbar-title--container, .toolbar-container .editable-toolbar-title--input,
+.toolbar-container h2, .PageHeader-title, .PageHeader-title h1 {
+  font-size: 28px !important; font-weight: 700 !important; line-height: 34px !important;
+}

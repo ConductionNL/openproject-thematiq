@@ -69,4 +69,4 @@ Then run the `docker run` command again.
 
 `lib/open_project/thematiq/shell/` and `app/views/thematiq/shell/` are reserved for the shared top bar and project menu.
 
-Next, read [tokens.md](tokens.md) for how the tokens reach the page.
+Next, read [tokens.md](tokens.md) for how the tokens reach the page and [geometry.md](geometry.md) for the sizes.
