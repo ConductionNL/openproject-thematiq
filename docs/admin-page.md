@@ -40,7 +40,7 @@ Your design system stays in the list as "Custom". You can pick another design sy
 
 - The preview does not follow your typing. It is drawn again when you select **Preview**.
 - There is one custom design system, not several.
-- A font you name must be on the reader's device. The plugin loads no font files.
+- A font you name is loaded when it is one of the 13 families in the plugin. Any other font must be on the reader's device. [logos-and-fonts.md](logos-and-fonts.md) lists the families.
 - You cannot upload a logo.
 
 ## Export and import a design system

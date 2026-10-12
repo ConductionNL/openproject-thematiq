@@ -29,6 +29,20 @@
   <%= t("thematiq.admin.active_now_html", name: active.name) %>
 </p>
 
+<% assets = OpenProject::Thematiq::Assets.bundled %>
+<% named_font = assets.named_family(active) %>
+<% if named_font %>
+  <p class="color-fg-muted" data-test-selector="thematiq-font-note">
+    <% if assets.bundled_family?(named_font) %>
+      <%= t("thematiq.fonts.loaded", family: named_font) %>
+    <% elsif assets.faces(active).any? %>
+      <%= t("thematiq.fonts.next_loaded", family: named_font, next_family: assets.faces(active).first.family) %>
+    <% else %>
+      <%= t("thematiq.fonts.not_loaded", family: named_font) %>
+    <% end %>
+  </p>
+<% end %>
+
 <%= form_with(url: admin_thematiq_path, method: :get, data: { turbo: false }, id: "thematiq-search-form",
               class: "thematiq-picker__search", role: "search") do %>
   <%= render(Primer::Alpha::TextField.new(

@@ -43,7 +43,7 @@ en:
       kind_hint:
         color: "A colour, for example #1a67a3 or rgb(26, 103, 163)."
         length: "A length, for example 8px or 0.5rem."
-        font_family: "A font stack, for example 'Fira Sans', system-ui, sans-serif. The font must be on the reader's device."
+        font_family: "A font stack, for example 'Fira Sans', system-ui, sans-serif. A font that does not come with the plugin must be on the reader's device."
       reset_token: "Reset"
       reset_token_label: "Reset %{token}"
       reset_all: "Reset all"
@@ -84,6 +84,10 @@ en:
         muted-on-ground: "muted text on the page background"
         link-on-white: "links on white"
         primary-deep-on-primary-light: "the selected menu item"
+    fonts:
+      loaded: "The font %{family} comes with the plugin."
+      next_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see %{next_family}, which does."
+      not_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see the next font in the list that is on their device."
     transfer:
       export: "Export"
       export_label: "Export %{name} as a file"

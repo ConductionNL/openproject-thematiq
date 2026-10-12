@@ -14,7 +14,8 @@ module OpenProject
     class Catalogue
       DIRECTORY = File.expand_path("../../../data/catalogue", __dir__)
       FILE = File.join(DIRECTORY, "shell-catalogue.json")
-      LOGO_DIRECTORY = File.join(DIRECTORY, "logos")
+      # The logos sit in public/, because the plugin serves them as static files.
+      LOGO_DIRECTORY = File.expand_path("../../../public/thematiq/logos", __dir__)
 
       SUPPORTED_VERSION = 1
       DEFAULT_ID = "cunningham"

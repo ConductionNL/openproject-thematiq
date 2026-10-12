@@ -24,6 +24,7 @@ module OpenProject
     require "open_project/thematiq/custom_draft"
     require "open_project/thematiq/transfer"
     require "open_project/thematiq/contrast"
+    require "open_project/thematiq/assets"
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
 
@@ -35,6 +36,17 @@ module OpenProject
     # The CSS the head hook inlines on every page that uses the base layout.
     def self.stylesheet
       Stylesheet.css(active_token_set)
+    end
+
+    # The CSS that names files the plugin serves: the fonts and the logo of the active design system.
+    # root is the path OpenProject is mounted under, empty when it runs at the top of its host.
+    def self.asset_stylesheet(root: "")
+      token_set = active_token_set
+      assets = Assets.bundled
+      logo = assets.logo_url(token_set, root:)
+      rules = [assets.font_face_css(token_set, root:)]
+      rules << ".op-app-header .op-logo--link { background-image: url(#{logo}); }" if logo
+      rules.reject(&:empty?).join("\n")
     end
 
     require "open_project/thematiq/engine" if defined?(::Rails::Engine)
