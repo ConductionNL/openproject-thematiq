@@ -86,7 +86,7 @@ The plugin lives in your image, so a new OpenProject needs a new image.
 2. Build the image again with the command from step 3.
 3. Start OpenProject on the new image.
 
-The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in.
+The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar and the project menu also lean on eight files of OpenProject itself; when one of them changed, the plugin turns those parts off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) tells you what to do then.
 
 ### Remove the plugin
 

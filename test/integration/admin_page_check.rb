@@ -75,7 +75,8 @@ begin
   check("an admin gets 200") { admin.response.status == 200 }
   body = admin.response.body
   check("the admin menu has the item") { body.include?("Thematiq design") }
-  check("the page names the active design system") { body.include?("Active design system") && body.include?("Cunningham") }
+  default_name = OpenProject::Thematiq::Catalogue.bundled.default.name
+  check("the page names the active design system") { body.include?("Active now: <strong>#{ERB::Util.html_escape(default_name)}</strong>") }
   check("the head style carries the Cunningham primary colour") { head_style(admin).include?("--header-bg-color: #{OpenProject::Thematiq::Catalogue.bundled.default['primary']};") }
 
   # 1b. Which pages carry the style tags
@@ -112,7 +113,7 @@ begin
   check("the catalogue in the gem loads without an error") { catalogue.error.nil? && catalogue.skipped.zero? }
   check("the picker lists every design system") { catalogue.sets.all? { |set| body.include?(%(id="thematiq-set-#{set.id}")) } }
   check("the picker has one small picture per design system") { body.scan('class="thematiq-thumb"').size == catalogue.sets.size }
-  check("the picker says which one is active") { body.include?("Active now: <strong>Cunningham</strong>") }
+  check("the picker marks the active one") { body.include?('id="thematiq-set-cunningham"') && body.scan(/Label[^>]*>\s*Active\s*</).size == 1 }
   check("the picker has a labelled search field") { body.include?('id="thematiq-search"') && body.include?("Search design systems") }
   check("the picker counts the sets") { body.include?("#{catalogue.sets.size} of #{catalogue.sets.size} design systems") }
 
@@ -143,6 +144,8 @@ begin
 
   # 4. The editor
   default = catalogue.default
+  # OpenProject ended the non-admin's session when its post without a token was refused, so it signs in again.
+  as_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
   as_member.get "/admin/thematiq/custom"
   check("a non-admin cannot open the editor") { as_member.response.status == 403 }
 
@@ -168,7 +171,7 @@ begin
   check("a hostile value is refused with 422") { admin.response.status == 422 && body.include?("This is not a colour the plugin accepts") }
   check("the refused value is not stored") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
   check("the refused value is shown escaped, in its field only") do
-    body.include?(CGI.escapeHTML(hostile)) && !head_style(admin).include?("display:none") && body.scan(hostile).empty?
+    body.scan(hostile).size == 1 && body.include?(%(value="#{hostile}")) && !head_style(admin).include?("display:none")
   end
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
@@ -268,6 +271,23 @@ begin
   check("the custom design system exports and imports back to the same tokens") do
     OpenProject::Thematiq::Transfer.import(admin.response.body).tokens == OpenProject::Thematiq::Store.new.custom_set.tokens
   end
+
+  # 6. The Nextcloud address for the app switcher
+  shell_post = lambda do |value|
+    token = form_token(admin, "/admin/thematiq", "thematiq-shell-form")
+    admin.post "/admin/thematiq/shell", params: { nextcloud_url: value, authenticity_token: token }
+    admin.follow_redirect!
+    admin.response.body
+  end
+  body = shell_post.call("https://cloud.example.org/")
+  check("the Nextcloud address is saved and the shell reads it") { OpenProject::Thematiq::Shell.nextcloud_url == "https://cloud.example.org" }
+  check("the field shows the saved address") { body.include?('value="https://cloud.example.org"') }
+  body = shell_post.call("javascript:alert(1)")
+  check("an address that is not http is refused and the old one stays") do
+    body.include?("Enter a full address") && OpenProject::Thematiq::Shell.nextcloud_url == "https://cloud.example.org"
+  end
+  shell_post.call("")
+  check("an empty address clears it") { OpenProject::Thematiq::Shell.nextcloud_url.nil? }
 ensure
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy
