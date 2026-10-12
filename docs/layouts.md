@@ -1,6 +1,6 @@
 # Which pages are styled
 
-OpenProject renders its pages through a handful of layouts. This page lists them and says which ones the plugin reaches. The list comes from reading OpenProject 17's source. It was not checked page by page in a browser.
+OpenProject renders its pages through a handful of layouts. This page lists them and says which ones the plugin reaches. The list comes from reading OpenProject 17's source. Three pages were then checked in a running OpenProject 17.9.1: the work package table, the sign in page and a page that does not exist. The sign in page had the full look with a 68 px top bar. The missing page had the colours, the font and the logo, with OpenProject's own 55 px top bar.
 
 ## The two hooks
 
