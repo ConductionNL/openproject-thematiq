@@ -37,7 +37,19 @@ module OpenProject
           "app/components/header/project_select_component.rb" =>
             "8fd803f931972c6fbec7bd9ac8d927d6bbd414b1e12aa4c44018a229dd13ca0f",
           "app/components/header/project_select_component.html.erb" =>
-            "04bbbc96f85f3e37ce71eeafa4cd72f87da2da1098601b3a25e98f65eb1716e5"
+            "04bbbc96f85f3e37ce71eeafa4cd72f87da2da1098601b3a25e98f65eb1716e5",
+          # The two-layer menu shows core's nested list in place. It leans on the classes this
+          # controller toggles from the arrow button (open and closed, on the list and on the row),
+          "frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts" =>
+            "f024c5a86bf083571199ed16b0ec4ba9485c3f036e85e7baf2a5cba98ceb7d36",
+          # on the rules that hide and show rows in those two states,
+          "frontend/src/global_styles/layout/_main_menu.sass" =>
+            "503996781a59c04192dcfc1a2c3d9443c621ae82c220fd3ce5ce24a49340fa4c",
+          # and on the markup and layout of the submenu core loads into a module's frame.
+          "app/components/open_project/common/submenu_component.html.erb" =>
+            "fc3e917aeacff24a9979e778460b307b694178a68d54777ca6ffdec5441dfa57",
+          "app/components/open_project/common/submenu_component.sass" =>
+            "ce4271bce0fe31b726cc2c71e2fbb2e5a9ab94f1f67059473fa1388a8e4242d0"
         }.freeze
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
@@ -53,7 +65,11 @@ module OpenProject
             "lib/redmine/menu_manager/top_menu/projects_menu.rb",
             "app/components/header/project_select_component.rb",
             "app/components/header/project_select_component.html.erb",
-            "app/views/layouts/base.html.erb"
+            "app/views/layouts/base.html.erb",
+            "frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts",
+            "frontend/src/global_styles/layout/_main_menu.sass",
+            "app/components/open_project/common/submenu_component.html.erb",
+            "app/components/open_project/common/submenu_component.sass"
           ]
         }.freeze
 

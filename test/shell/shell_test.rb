@@ -84,6 +84,22 @@ class ShellTest < Minitest::Test
     assert_equal Shell::CoreGuard::FILES.keys.sort, Shell::CoreGuard::PARTS.values.flatten.uniq.sort
   end
 
+  def test_the_menu_script_cannot_close_its_script_tag
+    script = Shell::ProjectMenu.script
+
+    refute_empty script
+    refute_match(%r{</script}i, script)
+    refute_includes script, "<!--"
+  end
+
+  def test_the_nested_menu_only_applies_while_the_overrides_are_on
+    css = File.read(File.expand_path("../../stylesheets/shell/30-nested-menu.css", __dir__)).gsub(%r{/\*.*?\*/}m, "")
+    selectors = css.gsub(/@media[^{]*\{/, "").scan(/([^{}]+)\{/).flatten.flat_map { |list| list.split(",") }.map(&:strip).reject(&:empty?)
+
+    refute_empty selectors
+    selectors.each { |selector| assert_includes selector, "#main-menu:has(.thematiq-project--initials)", selector }
+  end
+
   private
 
   def changed(files, root)

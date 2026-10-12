@@ -1,0 +1,111 @@
+/* openproject-thematiq, shell layer: the two-layer project menu (design: OpNav, nested).
+ *
+ * OpenProject already renders the second level of a module as a ul inside the module's li.
+ * It shows it by swapping the sidebar: the list gets the class "closed", every other row is
+ * hidden and the open row fills the column. Here the list always stays, and the second level
+ * shows under its row. Core's own arrow button still opens and closes it: it toggles "open" on
+ * the row, and that class is all these rules look at. docs/shell-structure.md has the details.
+ *
+ * Every rule is scoped to a menu that holds .thematiq-project--initials. The project switcher
+ * override renders those, and it is only installed when the core files match. On another
+ * OpenProject version the initials are not there, none of this applies and core's menu is back.
+ *
+ * Sizes of level two are provisional until the design for the nested state is in the canon.
+ */
+
+/* ---------- The list stays in both of core's states ---------- */
+
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed { overflow: visible; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li { display: list-item; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li.open { height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li.open > .main-item-wrapper { display: flex; }
+
+/* The back arrow and the repeated item name belong to the swapped sidebar. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-menu--children-menu-header { display: none; }
+
+/* Core hides the block under the menu while a submenu shows. */
+#main-menu:has(.thematiq-project--initials) #sidebar.-hidden { display: block; }
+
+/* ---------- Level two, under an open row. No height of its own, so no inner scrollbar. ---------- */
+
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children {
+  display: block;
+  height: auto;
+  margin: 0;
+  padding: 2px 0 8px;
+  overflow: visible;
+}
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li:not(.open) > ul.main-menu--children { display: none; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children li { display: list-item; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children > li.partial { height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-submenu { display: block; height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-submenu--body { flex: none; overflow: visible; padding-bottom: 0; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-sidemenu-filterable-tree { height: auto; overflow: visible; }
+
+/* A row of level two: a plain menu child (Project settings, Backlogs) or a link in a module's frame. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 36px;
+  height: auto;
+  padding: 0 10px 0 42px;
+  border-radius: var(--thematiq-radius);
+  color: var(--thematiq-ink);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: normal;
+}
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a:hover,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action:hover { background: var(--thematiq-soft); color: var(--thematiq-ink); }
+
+/* The current page. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a.selected,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action.selected {
+  background: var(--thematiq-primary-light);
+  color: var(--thematiq-primary-deep);
+  font-weight: 600;
+}
+
+/* No icons on level two. Marks that carry meaning, the favourite star and the Enterprise mark, stay. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a > svg:first-child,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-icon { display: none; }
+
+/* What core puts around the links in a frame: the search field, the group headers, the create button. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--search { position: static; padding: 4px 0 4px 32px; }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--title { margin-top: 6px; padding-left: 42px; }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer { padding: 8px 0 0 32px; text-align: left; }
+
+/* ---------- The parent row ---------- */
+
+/* Contains the current page: the name in the primary colour, without the filled background. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li:has(> ul.main-menu--children .selected) > .main-item-wrapper > a.selected {
+  background: transparent;
+  color: var(--thematiq-primary-deep);
+  font-weight: 600;
+}
+
+/* A chevron instead of the arrow. It points down when closed and up when open. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler > svg { display: none; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler { border-radius: var(--thematiq-radius); color: var(--thematiq-muted); }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: var(--shell-icon-chevron) center / contain no-repeat;
+  mask: var(--shell-icon-chevron) center / contain no-repeat;
+}
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > .main-item-wrapper > .toggler::before { transform: rotate(180deg); }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { transition: transform 0.15s; }
+}
+
+@media (forced-colors: active) {
+  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { background: CanvasText; }
+}
