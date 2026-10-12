@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
-  scope "admin/thematiq", as: "admin_thematiq", controller: "thematiq/admin" do
-    get "/", action: :show, as: ""
-    post "/", action: :update
-    post "refresh", action: :refresh, as: "refresh"
-  end
+  get "admin/thematiq", to: "thematiq/admin#show", as: :admin_thematiq
+  post "admin/thematiq", to: "thematiq/admin#update"
+  post "admin/thematiq/refresh", to: "thematiq/admin#refresh", as: :admin_thematiq_refresh
 end
