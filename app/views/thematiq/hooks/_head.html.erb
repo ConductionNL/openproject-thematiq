@@ -1,0 +1,4 @@
+<%# The asset precompile step does nothing for plugins on the official image, so the CSS is inlined. %>
+<style id="openproject-thematiq" data-plugin-version="<%= OpenProject::Thematiq::VERSION %>">
+<%= raw OpenProject::Thematiq.stylesheet %>
+</style>
