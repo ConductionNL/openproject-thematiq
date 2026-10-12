@@ -6,6 +6,7 @@ require "fileutils"
 require "open_project/thematiq/shell/core_guard"
 require "open_project/thematiq/shell/logo"
 require "open_project/thematiq/shell/nextcloud_apps"
+require "open_project/thematiq/shell/project_menu"
 
 class ShellTest < Minitest::Test
   Shell = OpenProject::Thematiq::Shell
@@ -58,6 +59,29 @@ class ShellTest < Minitest::Test
     [nil, "", "   ", "javascript:alert(1)", "cloud.example.org", 'https://cloud.example.org/"onclick="x'].each do |value|
       assert_nil Shell::NextcloudApps.normalize(value), value.inspect
     end
+  end
+
+  def test_menu_items_fall_into_the_groups_of_the_design
+    menu = Shell::ProjectMenu
+
+    assert_equal :plan, menu.group_for(:work_packages)
+    assert_equal :together, menu.group_for(:"wiki-project-handbook")
+    assert_equal :bottom, menu.group_for(:settings)
+    assert_nil menu.group_for(:an_item_of_another_plugin)
+  end
+
+  def test_project_initials
+    assert_equal "NR", Shell::ProjectMenu.initials("Northwind rollout Lyon")
+    assert_equal "D", Shell::ProjectMenu.initials("demo")
+    assert_equal "2A", Shell::ProjectMenu.initials("(2026) audit")
+    assert_equal "", Shell::ProjectMenu.initials(nil)
+  end
+
+  def test_every_guarded_part_names_files_with_a_checksum
+    Shell::CoreGuard::PARTS.each_value do |paths|
+      assert_empty paths - Shell::CoreGuard::FILES.keys
+    end
+    assert_equal Shell::CoreGuard::FILES.keys.sort, Shell::CoreGuard::PARTS.values.flatten.uniq.sort
   end
 
   private
