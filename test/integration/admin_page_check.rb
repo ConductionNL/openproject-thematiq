@@ -76,7 +76,7 @@ begin
   body = admin.response.body
   check("the admin menu has the item") { body.include?("Thematiq design") }
   check("the page names the active design system") { body.include?("Active design system") && body.include?("Cunningham") }
-  check("the head style carries the Cunningham primary colour") { head_style(admin).include?("--header-bg-color: #1a67a3;") }
+  check("the head style carries the Cunningham primary colour") { head_style(admin).include?("--header-bg-color: #{OpenProject::Thematiq::Catalogue.bundled.default['primary']};") }
 
   # 2. The removed link stays removed
   check("no background job of the plugin is scheduled") { Rails.application.config.good_job.cron.keys.grep(/Thematiq/).empty? }

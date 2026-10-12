@@ -23,6 +23,7 @@ module OpenProject
     require "open_project/thematiq/preview"
     require "open_project/thematiq/custom_draft"
     require "open_project/thematiq/transfer"
+    require "open_project/thematiq/contrast"
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
 

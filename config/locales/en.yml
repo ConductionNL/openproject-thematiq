@@ -75,6 +75,15 @@ en:
         row_one: "Organise the conference"
         row_two: "Send the invitations"
         footnote: "Sample content"
+    contrast:
+      low: "Low contrast, under 4.5 to 1: %{pairs}."
+      pairs:
+        on-primary: "white text on the top bar"
+        on-action: "white text on the main button"
+        ink-on-ground: "main text on the page background"
+        muted-on-ground: "muted text on the page background"
+        link-on-white: "links on white"
+        primary-deep-on-primary-light: "the selected menu item"
     transfer:
       export: "Export"
       export_label: "Export %{name} as a file"

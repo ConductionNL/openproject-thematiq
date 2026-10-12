@@ -72,6 +72,12 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: @custom.overrides.size, name: @custom.base.name) %></span>
+              <% low = OpenProject::Thematiq::Contrast.failures(custom_set) %>
+              <% if low.any? %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
+                  <%= t("thematiq.contrast.low", pairs: low.map { |pair| t("thematiq.contrast.pairs.#{pair}") }.to_sentence) %>
+                </span>
+              <% end %>
             </span>
           </label>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path)) { t("thematiq.admin.edit_tokens") } %>
@@ -95,6 +101,12 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+              <% low = OpenProject::Thematiq::Contrast.failures(token_set) %>
+              <% if low.any? %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
+                  <%= t("thematiq.contrast.low", pairs: low.map { |pair| t("thematiq.contrast.pairs.#{pair}") }.to_sentence) %>
+                </span>
+              <% end %>
             </span>
           </label>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(from: token_set.id),
