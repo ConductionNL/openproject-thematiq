@@ -305,7 +305,79 @@ begin
   end
   shell_post.call("")
   check("an empty address clears it") { OpenProject::Thematiq::Shell.nextcloud_url.nil? }
+
+  # 7. The public endpoint for uploaded files. The rows are stored through the model here,
+  #    so this part checks the table, the model and the endpoint without the admin form.
+  require_relative "../uploads/samples"
+  uploads = OpenProject::Thematiq::Uploads
+  check_set = "custom-9999"
+  check("the table of the plugin exists") { Thematiq::Upload.ready? && Thematiq::Upload.column_names.include?("data") }
+  Thematiq::Upload.remove_set(check_set)
+
+  stored = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("logo", UploadSamples.svg("hostile-script")), label: "x.svg")
+  logo = stored.to_record
+  check("a stored file gets an id of 64 hex characters") { logo && uploads::TOKEN.match?(logo.token) }
+
+  fresh = session_for
+  fresh.get logo.url
+  served = fresh.response
+  check("a file is served without a sign in") { served.status == 200 && served.body.bytesize == logo.byte_size }
+  check("the endpoint sets no cookie") { served.headers["Set-Cookie"].blank? }
+  check("the served SVG is the rebuilt one, without script") { served.body.include?("<rect") && !served.body.include?("script") }
+  check("the content type is the one decided at upload") { served.headers["Content-Type"] == "image/svg+xml" }
+  check("the answer says nosniff") { served.headers["X-Content-Type-Options"] == "nosniff" }
+  check("the answer has its own content security policy, with no script") do
+    served.headers["Content-Security-Policy"] == uploads::Response::POLICY
+  end
+  check("the answer may be cached and carries an ETag") do
+    served.headers["Cache-Control"].to_s.include?("max-age=31536000") && served.headers["ETag"] == %("#{logo.sha256}")
+  end
+  check("the download name is fixed") { served.headers["Content-Disposition"] == %(inline; filename="logo.svg") }
+  fresh.get logo.url, headers: { "If-None-Match" => served.headers["ETag"] }
+  check("a browser that holds the file gets 304 and no body") { fresh.response.status == 304 && fresh.response.body.empty? }
+  fresh.head logo.url
+  check("a HEAD request gets the headers and no body") { fresh.response.status == 200 && fresh.response.body.empty? }
+
+  png = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("favicon", UploadSamples.png(32, 32))).to_record
+  fresh.get png.url
+  check("a PNG comes back byte for byte") do
+    fresh.response.headers["Content-Type"] == "image/png" && fresh.response.body.b == UploadSamples.png(32, 32)
+  end
+
+  replaced = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("logo", UploadSamples.png(200, 50))).to_record
+  check("a replaced file gets a new address") { replaced.token != logo.token && Thematiq::Upload.records_for(check_set).count { |r| r.kind == "logo" } == 1 }
+  fresh.get logo.url
+  check("the old address stops answering") { fresh.response.status == 404 }
+
+  ["/thematiq/files/#{'0' * 64}", "/thematiq/files/#{replaced.token.upcase}", "/thematiq/files/#{replaced.token}/",
+   "/thematiq/files/#{replaced.token}.svg", "/thematiq/files/#{replaced.token[0, 63]}", "/thematiq/files/#{replaced.token}0",
+   "/thematiq/files/..%2F..%2F..%2Fconfig%2Fdatabase.yml", "/thematiq/files/../../config/database.yml",
+   "/thematiq/files/%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/thematiq/files/#{replaced.id}", "/thematiq/files/",
+   "/thematiq/files/#{replaced.token}%00", "/thematiq/files/#{replaced.token}/../../../config/database.yml",
+   "/thematiq/files/' OR '1'='1"].each do |path|
+    begin
+      fresh.get path
+      status = fresh.response.status
+      body = fresh.response.body
+    rescue StandardError => e
+      status = e.class.name
+      body = ""
+    end
+    check("#{path[0, 60]} serves nothing (#{status})") do
+      status != 200 && !body.include?("adapter:") && !body.include?("root:") && !body.start_with?("\x89PNG".b)
+    end
+  end
+  fresh.post replaced.url
+  check("the endpoint takes no POST") { fresh.response.status != 200 }
+
+  Thematiq::Upload.where(set_id: check_set, kind: "logo").update_all(kind: "export_logo")
+  fresh.get replaced.url
+  check("a row that is not one of the kinds is not served") { fresh.response.status == 404 }
+  Thematiq::Upload.remove_set(check_set)
+  fresh.get png.url
+  check("a removed file is gone") { fresh.response.status == 404 }
 ensure
+  Thematiq::Upload.remove_set("custom-9999") if defined?(Thematiq::Upload)
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy
 end

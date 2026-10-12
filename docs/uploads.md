@@ -65,6 +65,33 @@ Why the database and not OpenProject's attachment storage:
 
 What it costs: the database serves the file. A file is read once per browser, because its address can be cached for a year. A browser that asks again with the file's tag gets a short answer, and the bytes stay in the database.
 
+## How a file is served
+
+Each file has one address: `/thematiq/files/` and 64 hex characters. The characters come from the system's random source when the file is stored. A replaced file gets a new address and the old one answers 404.
+
+Anyone can open the address, signed in or not. The sign in page and the browser tab need the files. The endpoint reads no session and sets no cookie.
+
+It serves these files and nothing else:
+
+- The address only matches 64 hex characters. A dot, a slash or a percent sign never reaches the code.
+- The characters are looked up as a value in one column of `thematiq_uploads`. They are never part of a path. The endpoint opens no file on disk.
+- A row whose kind is not in the table above, or whose type does not fit its kind, is not served.
+- Only an administrator can add a file, on the admin page, after the checks above.
+
+Every answer carries the same headers:
+
+| Header | Value | Why |
+|---|---|---|
+| `Content-Type` | The type the plugin found in the content | The browser gets no say |
+| `X-Content-Type-Options` | `nosniff` | The browser does not guess another type |
+| `Content-Security-Policy` | `default-src 'none'; style-src 'unsafe-inline'; img-src data:; sandbox` | An SVG file opened directly runs no script and loads nothing |
+| `Content-Disposition` | `inline` with a fixed name such as `logo.svg` | The name you uploaded is never sent |
+| `Cross-Origin-Resource-Policy` | `same-origin` | Another site cannot use your OpenProject as its file host |
+| `Cache-Control` | `public, max-age=31536000, immutable` | The address changes when the file does |
+| `ETag` | The SHA-256 of the file | A browser that holds the file gets a 304 |
+
+`app/controllers/thematiq/files_controller.rb` is the endpoint. `lib/open_project/thematiq/uploads/response.rb` builds the headers.
+
 ## Install and upgrade
 
 The table comes with a migration. OpenProject runs it when it starts after you install the plugin. To run it by hand:
