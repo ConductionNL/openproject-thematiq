@@ -6,18 +6,31 @@ module OpenProject
   # Gives OpenProject the same shell as a Nextcloud themed with thematiq.
   #
   # Layout of this namespace:
-  #   OpenProject::Thematiq::Engine  the Rails engine and plugin registration
-  #   OpenProject::Thematiq::Hooks   the view hooks (page head)
-  #   OpenProject::Thematiq::Shell   reserved for the shared top bar and project menu
+  #   OpenProject::Thematiq::Engine      the Rails engine and plugin registration
+  #   OpenProject::Thematiq::Hooks       the view hooks (page head)
+  #   OpenProject::Thematiq::Tokens      the token source: fetch, validate, bundled default
+  #   OpenProject::Thematiq::Variables   the variable layer: tokens to CSS variables
+  #   OpenProject::Thematiq::Stylesheet  the variable layer plus the static layers in stylesheets/
+  #   OpenProject::Thematiq::Store       what the plugin keeps in OpenProject's settings
+  #   OpenProject::Thematiq::Shell       reserved for the shared top bar and project menu
   module Thematiq
     ROOT = File.expand_path("../..", __dir__)
     STYLESHEET_DIR = File.join(ROOT, "stylesheets")
 
-    # The CSS the head hook inlines on every page that uses the base layout.
-    def self.stylesheet
-      @stylesheet ||= Dir[File.join(STYLESHEET_DIR, "*.css")].map { |path| File.read(path) }.join("\n")
+    require "open_project/thematiq/tokens"
+    require "open_project/thematiq/variables/generator"
+    require "open_project/thematiq/stylesheet"
+
+    # The token set the pages are styled with right now. Reads settings only, never the network.
+    def self.active_token_set
+      Store.new.active_token_set
     end
 
-    require "open_project/thematiq/engine"
+    # The CSS the head hook inlines on every page that uses the base layout.
+    def self.stylesheet
+      Stylesheet.css(active_token_set)
+    end
+
+    require "open_project/thematiq/engine" if defined?(::Rails::Engine)
   end
 end
