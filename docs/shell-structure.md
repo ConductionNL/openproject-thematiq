@@ -105,6 +105,77 @@ The plugin does the second. It takes two small changes to what core returns: the
 
 This applies to the items in `ProjectMenu::STAY_ON_PROJECT_MENU`, which holds `work_packages` only. Gantt, Boards, Meetings, Wiki, Members and Project settings keep core's behaviour: on their pages the submenu shows. Their submenus are how you move between boards or between settings pages, so hiding them behind a click costs more there. Add a name to the list to change one.
 
+## Two-layer project menu: where each submenu comes from
+
+The design keeps the project menu in the sidebar on every project page. The module you are in opens in place and shows its own items under it. This section says where each module's second level comes from in OpenProject 17.9.1, read from the source in the image.
+
+### What core already renders
+
+Every project menu item with a submenu is rendered by `render_menu_node_with_children` in `lib/redmine/menu_manager/menu_helper.rb`, in this shape:
+
+```
+li[data-name]                      .open when the item or one of its children is the current page
+  div.main-item-wrapper            the item link, then a button.toggler
+  div.main-menu--children-menu-header   a back arrow and the item name again
+  ul.main-menu--children           the second level
+```
+
+So the second level is already a real `ul` inside the parent's `li`. Core hides it and shows it by swapping the whole sidebar: the list gets the class `closed`, every other row is hidden, and the open row fills the column. The Stimulus controller `menus--main` (`frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts`) does that swap from the arrow button: `descend` toggles `open` and `closed` on the list and on the row.
+
+What differs per module is what sits inside `ul.main-menu--children`.
+
+### Per module
+
+No submenu in the project menu is drawn by the Angular frontend. That includes the saved work package queries: since the frontend rewrite they are a server-rendered Turbo frame.
+
+| Menu item | What fills the second level | Rendered on the server with the page? | Mechanism |
+|---|---|---|---|
+| Project settings (`settings`) | Plain menu children `settings_*` from `config/initializers/menus.rb` and from modules. Rendered by `render_visible_children_list` | Yes, by core's menu and permission helpers | 1: core's own nested list, shown in place |
+| Backlogs (`backlogs`) | Plain menu children `backlog` and `all_sprints` | Yes, the same way | 1 |
+| Work packages (`work_packages`) | Child `work_packages_query_select` with the partial `work_packages/menus/menu`: a lazy Turbo frame `work_packages_sidemenu`. `WorkPackages::MenusController#show` authorises, builds the items with `WorkPackages::Menu` (queries through `Query.visible`), renders `OpenProject::Common::SubmenuComponent` | No. The frame loads when it becomes visible | 2: core's frame, shown in place |
+| Gantt (`gantt`) | Lazy frame `gantt_menu`, `Gantt::MenusController`, `Gantt::Menu` | No | 2 |
+| Boards (`boards`) | Lazy frame `boards_sidemenu`, `Boards::MenusController`, `Boards::Menu`. Adds a "create board" button for a user who may manage boards | No | 2 |
+| Calendar (`calendar_view`) | Lazy frame `calendar_sidemenu`, `Calendar::MenusController`, `Calendar::Menu` | No | 2 |
+| Team planner (`team_planner_view`) | Lazy frame `team_planner_sidemenu`, `TeamPlanner::MenusController`, `TeamPlanner::Menu` | No | 2 |
+| Meetings (`meetings`) | Lazy frame `meeting_sidemenu`, `Meetings::MenusController`, `Meetings::Menu` | No | 2 |
+| Time and costs (`costs`) | Lazy frame `cost_reports_sidemenu`, `CostReports::MenusController`, `CostReports::Menu` | No | 2 |
+| Documents (`documents`) | Lazy frame `documents_sub_menu`, `Documents::MenusController`, `Documents::Menu` | No | 2 |
+| Members (`members`) | Lazy frame `members_menu`, `Members::MenusController`, `Members::Menu`: filters by role, group and status | No | 2 |
+| Activity (`activity`) | Lazy frame `activity_menu`, `ActivitiesController#menu`: a form with filters, not a list of links | No | 2 |
+| Wiki (`wiki-<slug>`) | Child `wiki_menu_partial` with the partial `wiki/menu_pages_tree`: a frame with `OpenProject::Sidemenu::FilterableTreeComponent`, a Primer tree view that loads the page tree | No | 2 |
+| Resource management | Lazy frame `resource_planners_sidemenu`. Only with an Enterprise token | No | 2, not tried: it needs the Enterprise edition |
+| Project home, News, Budgets, Roadmap, Forums, Repository | No submenu | | Nothing to nest |
+
+### Why not render the frame modules on the server
+
+Each `Menu` class is plain Ruby with a public `menu_items`, so the page could call it and print the links itself. That was weighed and dropped:
+
+- Each menus controller authorises on its own, passes its own parameters (`on_work_package_path`, `current_href`, `id`, `filters`) and some add a create button or a search field. Printing the links from the page means copying all of that for eleven modules, and guarding eleven more files.
+- It runs the module's queries on every project page, where core runs them only when the submenu is on screen.
+- The frame is core's own element. Shown in place it keeps core's search, group headers, create button and permission checks, with nothing copied.
+
+So mechanism 1 and mechanism 2 come down to the same move: show core's `ul.main-menu--children` under its parent row instead of in a swapped sidebar. For Project settings and Backlogs the list is there with the page. For the others the frame inside it loads when the row opens.
+
+### What the in-place menu needs
+
+| Need | How |
+|---|---|
+| The project menu always stays | CSS shows every row in both states of the list, `open` and `closed`. No markup changes |
+| The current module opens in place | Core already marks its row `open`. CSS shows `ul.main-menu--children` under an open row |
+| Expand and collapse from the parent | Core's own arrow button and `menus--main#descend`. The call toggles `open` on the row, which is all the CSS looks at |
+| No back arrow | CSS hides `div.main-menu--children-menu-header` |
+| A chevron on the parent | CSS mask on the arrow button |
+| `aria-expanded` on the parent control | Core does not set it. A small script sets it on the arrow button and keeps it in step |
+| `aria-current="page"` on the current child | Core marks the current link with the class `selected` only. The same script adds the attribute |
+| The parent as "contains the current page" | CSS: a selected parent with a selected link below it |
+| No icons on level two | CSS hides the icon in a submenu row |
+| No inner scrollbar | CSS lets the list grow. The sidebar scrolls as a whole, as core's `#menu-sidebar` already does |
+
+### Not reachable
+
+- **"Show all N" after the first items.** The number is only known after the frame has loaded, and the link target does not exist for every module. Boards, Meetings, Calendar and Team planner have an index page that lists everything. Work packages and Gantt do not: their index page is the table, so a cut list would hide saved queries with no other way to them. The lists are shown in full. Core's search field at the top of a submenu stays, and is how you find an entry in a long list.
+- **Arrow keys through the list.** Core's lists are plain links, so Tab moves through them. The wiki tree is a Primer tree view and has arrow keys of its own. Nothing traps Escape.
+
 ## Icons
 
 OpenProject draws icons from three places:
