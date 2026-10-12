@@ -203,6 +203,55 @@ The CSS only applies while the project menu overrides are on. Every rule is scop
 - **The wiki tree is not shortened.** It is a tree, not a list, and has its own filter.
 - **Resource management** was not tried. Its submenu needs the Enterprise edition.
 
+## Home and My page as one page
+
+### How each is built in 17.9.1
+
+| | Home (`/`) | My page (`/my/page`) |
+|---|---|---|
+| Controller | `HomescreenController#index`, open to anonymous visitors when the instance allows them | `My::PageController#show`, signed in users only |
+| Content | Fixed blocks, the same for everyone, each with a condition: welcome text, favourite projects, new features, meetings, account, news, community, administration, upsell. Then a row of links | A grid of widgets per user, stored through the API |
+| Rendered by | The server. Each block is a view component under `Homescreen::Blocks`, in `Grids::WidgetGridComponent` | The Angular element `opce-my-page`. The server renders a page header and that one tag |
+| Who changes it | An administrator sets the welcome text. Nobody arranges the blocks | The user adds, moves and removes widgets |
+| A plugin can add | A block: push a name to `OpenProject::Static::Homescreen.manage :blocks` and ship a component `Homescreen::Blocks::<Name>`. No frontend build | A widget type needs two halves: `Grids::Configuration.register_widget` on the server, and an Angular component in the frontend bundle. The second half needs a frontend build |
+
+Two facts decide what is possible:
+
+- `opce-my-page` always loads the grid of the My page. It asks for the scope `myPagePath()`, not for the page it sits on. So the tag shows the user's own grid on any page.
+- A widget type cannot be added without a frontend build. That goes for the "turbo" widgets too: each still has its own compiled component.
+
+### Options
+
+| Option | What it takes | What it costs |
+|---|---|---|
+| a. Home renders the user's grid, with the welcome text above it and the other Home blocks below | An override of `HomescreenController#index` that renders a plugin template for a signed in user. No frontend build | The Home blocks stay server blocks. A user cannot move or remove them like widgets |
+| b. Home redirects to My page | One redirect | An anonymous visitor has no landing page, and the administrator's welcome text is gone for everyone |
+| c. Every Home block becomes a real widget in the grid | A frontend build with one Angular component per block, in step with every OpenProject release | That is the fork this plugin avoids |
+
+### What is built: option a
+
+For a signed in user, Home is one page without a sidebar:
+
+1. A greeting, and "Create work package" for a user who may create one in any project.
+2. The instance announcement, when there is one.
+3. The administrator's welcome text, when it is switched on. The same component and the same setting as before.
+4. The user's own grid of widgets, drawn by `opce-my-page`. Adding, moving and removing widgets works as on My page, because it is that element.
+5. "More on this instance": every other Home block and the row of links, each with core's own condition.
+
+The address `/my/page` leads to Home. The item "My page" is taken out of the app switcher, the global menu and the account menu, so there is one item.
+
+An anonymous visitor gets OpenProject's own Home, unchanged. My page needs a user.
+
+Nothing a user or an administrator had is gone: every Home block is on the page, the welcome text is set in the same place, and the grid is the same grid.
+
+### Differences from the design
+
+- **Widgets are two across**, as the user's grid stores them. The design draws three. The grid's columns belong to the user and the Angular element.
+- **The welcome text is a block above the grid**, not a widget in it. A widget type needs a frontend build.
+- **No "Edit page" button.** The grid is always editable: its controls show on hover and focus.
+- **Which widgets a new user starts with** is core's default: assigned to me, created by me. "Due this week", "my projects" and "my time this week" exist as widget types and a user can add them. Changing the default set is a small change in a later round.
+- **The two Nextcloud widgets are not built.** Each would need a widget type, so a frontend build, and a server side that calls Nextcloud for the signed in user: recent files through WebDAV or the files API, unread mail through the Mail app's API, with a token per user. OpenProject's own Nextcloud integration holds such tokens for file storages and could be the base.
+
 ## Icons
 
 OpenProject draws icons from three places:
@@ -240,9 +289,12 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 | `lib/redmine/menu_manager/top_menu/projects_menu.rb` | `Shell::ProjectMenu::Helper#render_projects_top_menu_node` | Checksum in `core_guard.rb` |
 | `app/components/header/project_select_component.rb` and `.html.erb` | `Shell::ProjectMenu::Switcher#trigger_label`, which the template prints inside the button | Checksum in `core_guard.rb` |
 
+| `app/controllers/homescreen_controller.rb`, `app/views/homescreen/index.html.erb`, `app/components/homescreen/blocks_grid_component.rb`, `config/initializers/homescreen.rb` | `Shell::Home::HomePage#index`, and the plugin's Home template, which renders everything core's Home view renders | Checksum in `core_guard.rb` |
+| `modules/my_page/app/controllers/my/page_controller.rb` | `Shell::Home::MyPage#show`, a redirect to Home | Checksum in `core_guard.rb` |
+
 `lib/open_project/thematiq/shell/core_guard.rb` records the SHA-256 of each file in OpenProject 17.9.1.
 
-- **At boot** the plugin compares them, for the top bar and for the project menu apart. If a file of one part differs, the overrides of that part are not installed. Core's own top bar or project menu renders, and the log has an error that names the files.
+- **At boot** the plugin compares them, for the top bar, the project menu and the home page apart. If a file of one part differs, the overrides of that part are not installed. Core's own top bar or project menu renders, and the log has an error that names the files.
 - **In a check** you run `script/check-core.rb` inside the image. It exits 1 and prints the files that changed.
 
 ```bash
@@ -262,6 +314,7 @@ You notice it in one of three ways: `script/check-core.rb` exits 1, the log says
 2. Open each one next to the override that leans on it. The table above says which.
    - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `more_top_menu_items` still returns the menu items of the app switcher, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
    - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still sets `@menu`, `render_menu_node` still returns one `<li>` per item, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
+   - For `lib/open_project/thematiq/shell/home.rb`: compare core's `homescreen/index.html.erb` with `app/views/thematiq/shell/home.html.erb`. Whatever core's view renders, the plugin's must render too. While this part is off, Home and My page are two pages again and "My page" is back in the menus.
    - For `stylesheets/shell/30-nested-menu.css` and the script: a row with a submenu is still `li` with `div.main-item-wrapper` and `ul.main-menu--children`, the arrow button still toggles `open` on the row, and a module's frame still uses the `op-submenu--*` classes.
 3. If they hold, nothing in the plugin needs to change. Update the checksum and `CORE_VERSION` in `core_guard.rb`.
 4. If one moved, change the override to fit, then update the checksum.
