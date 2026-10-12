@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = ">= 3.3"
 
-  s.files = Dir["{app,config,data,lib,public,stylesheets}/**/*", "LICENSE", "README.md"]
+  s.files = Dir["{app,config,data,db,lib,public,stylesheets}/**/*", "LICENSE", "README.md"]
   s.require_paths = ["lib"]
 
   s.metadata["source_code_uri"] = s.homepage
