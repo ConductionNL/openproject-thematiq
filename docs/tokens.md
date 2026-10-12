@@ -22,7 +22,7 @@ A token value ends up inside a `<style>` tag. So the plugin accepts a value only
 
 A value that fails falls back to the last resort value for that token, in `lib/open_project/thematiq/tokens/defaults.rb`. A file that ships with the plugin gets the same check as any other input.
 
-The last resort values have no `accent`, `text` and `chip`. The variables for those three are then left out, so OpenProject's own values apply.
+The last resort values are Cunningham's, the default design system. A test keeps them the same as Cunningham in the catalogue.
 
 ## How the tokens reach the page
 

@@ -58,6 +58,11 @@ class CatalogueTest < Minitest::Test
     assert_equal 64, Catalogue.bundled.sets.size
   end
 
+  def test_the_last_resort_values_are_cunningham_from_the_catalogue
+    assert_equal Catalogue.bundled.find("cunningham").tokens, Defaults::TOKENS
+    assert_equal Catalogue.bundled.find("cunningham").name, Defaults::NAME
+  end
+
   def test_every_bundled_set_has_all_eighteen_tokens
     Catalogue.bundled.sets.each do |token_set|
       assert_equal OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys, token_set.tokens.keys, token_set.id

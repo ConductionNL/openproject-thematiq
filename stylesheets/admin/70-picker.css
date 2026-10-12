@@ -5,6 +5,9 @@
 .thematiq-picker__status { margin: 0 0 16px; }
 .thematiq-picker__search { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 .thematiq-picker__search-actions { display: flex; gap: 8px; }
+/* Primer gives the field the full width, which pushed the button to the next line. The field takes what
+ * is left beside the button instead. !important because Primer's width utility is !important too. */
+.thematiq-picker__search > .FormControl { flex: 0 1 360px; width: auto !important; min-width: 0; }
 
 /* one design system: radio, picture and name in one label, then the link to the editor */
 .thematiq-picker__option {

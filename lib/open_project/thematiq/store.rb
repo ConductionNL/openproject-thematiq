@@ -114,6 +114,19 @@ module OpenProject
         true
       end
 
+      # --- settings left by the version that fetched from thematiq ---
+
+      LEGACY_KEYS = %w[base_url token_set fetched_at checked_at last_error last_error_detail].freeze
+
+      # Removes what the plugin stored while it had a live link to thematiq: the address and the fetched
+      # token set. Nothing reads those keys any more. Returns the keys it removed.
+      def remove_legacy_settings
+        current = data
+        found = LEGACY_KEYS & current.keys
+        @backend.write(current.except(*found)) if found.any?
+        found
+      end
+
       private
 
       def data

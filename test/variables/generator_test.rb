@@ -61,22 +61,13 @@ class GeneratorTest < Minitest::Test
   end
 
   def test_a_missing_token_leaves_its_variables_out
-    css = Generator.new(TokenSet.fallback).css
-    light = blocks(css)[Generator::LIGHT_SCOPE]
+    partial = TokenSet.new(id: "t", name: "T", tokens: { "primary" => "#1a67a3" }, base: {})
+    light = blocks(Generator.new(partial).css)[Generator::LIGHT_SCOPE]
 
     refute_includes light, "--thematiq-accent"
     refute_includes light, "--thematiq-chip"
+    refute_includes light, "--primary-button-color"
     assert_includes light, "  --header-bg-color: #1a67a3;"
-  end
-
-  def test_the_fallback_set_gives_the_values_the_spike_had
-    light = blocks(Generator.new(TokenSet.fallback).css)[Generator::LIGHT_SCOPE]
-    spike = File.read(File.expand_path("../../spike/theme.css", __dir__))
-    spike_values = spike.scan(/^  (--[\w-]+): ([^;]+);$/).to_h
-
-    Generator::OPENPROJECT_COLORS.merge(Generator::PRIMER_COLORS).each_key do |variable|
-      assert_includes light, "  #{variable}: #{spike_values.fetch(variable)};"
-    end
   end
 
   def test_hostile_values_never_reach_the_css

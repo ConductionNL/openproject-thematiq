@@ -6,15 +6,9 @@ module OpenProject
   module Thematiq
     # Inline styles for a small picture of a design system: a top bar, a primary button and a row.
     # No images. Every colour, length and font comes out of a TokenSet, so it has passed the Validator.
-    # A token the set does not have gets a neutral literal, never a value from outside.
+    # A token the set does not have gets the last resort value, never a value from outside.
     class Preview
-      NEUTRAL = {
-        "primary" => "#1a67a3", "primary-deep" => "#124872", "primary-light" => "#ebf3f7",
-        "action" => "#1f883d", "action-deep" => "#197032", "link" => "#175a8e",
-        "ink" => "#1f2328", "muted" => "#59636e", "line" => "#eaeaea", "soft" => "#f6f8fa",
-        "ground" => "#f6f8fa", "field" => "#d1d9e0", "radius" => "3px", "radius-lg" => "6px",
-        "font-family" => "sans-serif"
-      }.freeze
+      NEUTRAL = Tokens::Defaults::TOKENS
 
       def initialize(token_set)
         @token_set = token_set

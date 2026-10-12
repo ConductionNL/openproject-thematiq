@@ -106,7 +106,7 @@ class TransferTest < Minitest::Test
   def test_a_null_token_is_a_missing_token
     imported = Transfer.import(JSON.generate(set_hash("accent" => nil)))
 
-    assert_nil imported["accent"]
+    assert_equal OpenProject::Thematiq::Tokens::Defaults::TOKENS["accent"], imported["accent"]
   end
 
   def test_a_hostile_logo_reference_is_dropped_not_followed

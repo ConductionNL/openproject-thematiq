@@ -127,6 +127,9 @@ module Thematiq
 
     def load_state
       @store = OpenProject::Thematiq::Store.new
+      # An installation that ran the first version still holds a thematiq address and a fetched token set.
+      # They are removed the first time an administrator opens this page.
+      @store.remove_legacy_settings
     end
   end
 end
