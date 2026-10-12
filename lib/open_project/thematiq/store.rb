@@ -1,80 +1,128 @@
 # frozen_string_literal: true
 
-require "time"
 require "open_project/thematiq/tokens"
+require "open_project/thematiq/catalogue"
+require "open_project/thematiq/custom_draft"
+require "open_project/thematiq/shell/nextcloud_apps"
 
 module OpenProject
   module Thematiq
-    # Keeps the base URL, the last good token set and the outcome of the last fetch
-    # in the plugin's settings. Settings live in the database, so the web and worker
-    # processes share them, and reading them costs no HTTP request.
+    # What the plugin remembers: which design system is active.
+    # It keeps that in OpenProject's settings, which live in the database, so every process shares it.
+    # Nothing here reads the network. What comes back out of the settings is checked again.
     class Store
       SETTING = :plugin_openproject_thematiq
 
-      def base_url
-        data["base_url"].to_s
+      # Reads and writes the plugin's settings hash. The tests pass a hash backed stand-in.
+      class SettingsBackend
+        def read
+          value = Setting.public_send(SETTING)
+          value.respond_to?(:to_h) ? value.to_h.deep_stringify_keys : {}
+        end
+
+        def write(data)
+          Setting.public_send(:"#{SETTING}=", data)
+        end
       end
 
-      def base_url=(value)
-        write("base_url" => value.to_s.strip)
+      attr_reader :catalogue
+
+      def initialize(backend: SettingsBackend.new, catalogue: Catalogue.bundled)
+        @backend = backend
+        @catalogue = catalogue
       end
 
-      # The stored token set, checked again by the validator on the way out. nil when there is none.
-      def token_set
-        payload = data["token_set"]
-        return nil unless payload.is_a?(Hash)
-
-        Tokens::TokenSet.from_payload(payload.deep_stringify_keys)
-      rescue Tokens::TokenSet::InvalidPayload
-        nil
+      # The id of the chosen set. nil on a fresh install.
+      def active_id
+        id = data["active_id"]
+        id.is_a?(String) ? id : nil
       end
 
-      # What the pages are styled with: the stored set, or the bundled one.
+      # What the pages are styled with: the custom set when it is in use, else the chosen set,
+      # else the default.
       def active_token_set
-        (base_url.empty? ? nil : token_set) || Tokens::TokenSet.bundled
+        (custom_active? ? custom_set : nil) || catalogue.find(active_id) || catalogue.default
       end
 
-      def fetched_at = time("fetched_at")
-      def checked_at = time("checked_at")
+      # Makes a design system the active one: a set of the catalogue, or the custom set.
+      # Returns the set, or nil when the id is unknown.
+      def activate(id)
+        if id == CustomDraft::ID
+          token_set = custom_set
+          write("use_custom" => true) if token_set
+          return token_set
+        end
 
-      def last_error
-        data["last_error"].presence
+        token_set = catalogue.find(id)
+        return nil unless token_set
+
+        write("active_id" => token_set.id, "use_custom" => false)
+        token_set
       end
 
-      def last_error_detail
-        data["last_error_detail"].presence
+      # --- the custom set: a base design system plus overrides ---
+
+      def custom_active?
+        data["use_custom"] == true && !custom_draft.nil?
       end
 
-      # token_set is nil when thematiq answered "not modified".
-      def record_success(token_set, at:)
-        changes = { "checked_at" => at.iso8601, "last_error" => nil, "last_error_detail" => nil }
-        changes.merge!("token_set" => token_set.to_payload, "fetched_at" => at.iso8601) if token_set
-        write(changes)
+      # The stored custom set as a draft, checked again on the way out. nil when there is none.
+      def custom_draft
+        stored = data["custom"]
+        return nil unless stored.is_a?(Hash) && stored["overrides"].is_a?(Hash)
+
+        base = catalogue.find(stored["based_on"]) || catalogue.default
+        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"])
+        draft.name ? draft : nil
       end
 
-      def record_failure(error, detail, at:)
-        write("checked_at" => at.iso8601, "last_error" => error.to_s, "last_error_detail" => detail.to_s.first(200))
+      def custom_set
+        custom_draft&.token_set
       end
 
-      def forget_token_set
-        write("token_set" => nil, "fetched_at" => nil, "checked_at" => nil, "last_error" => nil, "last_error_detail" => nil)
+      # Stores a valid draft. Returns false and stores nothing when the draft has errors.
+      def save_custom(draft)
+        return false unless draft.valid?
+
+        write("custom" => draft.definition)
+        true
+      end
+
+      def delete_custom
+        write("custom" => nil, "use_custom" => false)
+      end
+
+      # --- the Nextcloud address for the app switcher links ---
+      #
+      # The key and the check are the shell's: Shell::NEXTCLOUD_URL_SETTING, read by Shell.nextcloud_url
+      # and checked by Shell::NextcloudApps.normalize. The plugin never opens this address. It only links to it.
+
+      NEXTCLOUD_URL_KEY = "nextcloud_url"
+
+      def nextcloud_url
+        Shell::NextcloudApps.normalize(data[NEXTCLOUD_URL_KEY])
+      end
+
+      # Stores the address, or clears it when the value is empty. Returns false and stores nothing
+      # when the value is not an http or https address.
+      def save_nextcloud_url(value)
+        text = value.to_s.strip
+        normalized = Shell::NextcloudApps.normalize(text)
+        return false if !text.empty? && (normalized.nil? || text.length > 500)
+
+        write(NEXTCLOUD_URL_KEY => normalized)
+        true
       end
 
       private
 
       def data
-        value = Setting.public_send(SETTING)
-        value.respond_to?(:to_h) ? value.to_h.stringify_keys : {}
+        value = @backend.read
+        value.is_a?(Hash) ? value : {}
       end
 
       def write(changes)
-        Setting.public_send(:"#{SETTING}=", data.merge(changes))
-      end
-
-      def time(key)
-        Time.iso8601(data[key].to_s)
-      rescue ArgumentError
-        nil
+        @backend.write(data.merge(changes))
       end
     end
   end

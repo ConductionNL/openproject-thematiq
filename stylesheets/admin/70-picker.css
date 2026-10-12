@@ -1,0 +1,42 @@
+/* The "Thematiq design" admin page: the list of design systems.
+ * Layout only. The colours of each small picture are inline styles built from validated tokens. */
+
+.thematiq-picker { border: 0; margin: 0 0 16px; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.thematiq-picker__status { margin: 0 0 16px; }
+.thematiq-picker__search { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.thematiq-picker__search-actions { display: flex; gap: 8px; }
+
+/* one design system: radio, picture and name in one label, then the link to the editor */
+.thematiq-picker__option {
+  display: flex; align-items: center; gap: 16px; padding: 16px;
+  background: var(--thematiq-surface); border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius-lg);
+}
+.thematiq-picker__option:has(.thematiq-picker__radio:checked) { border-color: var(--thematiq-primary); box-shadow: 0 0 0 1px var(--thematiq-primary); }
+/* the focus ring goes on the card, where a keyboard user looks for it */
+.thematiq-picker__option:has(.thematiq-picker__radio:focus-visible) { outline: 2px solid var(--focus-outlineColor, currentColor); outline-offset: 2px; }
+.thematiq-picker__label { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 16px; cursor: pointer; }
+.thematiq-picker__radio { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--thematiq-primary); }
+.thematiq-picker__text { display: block; min-width: 0; }
+.thematiq-picker__name { font-size: 16px; font-weight: 700; color: var(--thematiq-ink); }
+.thematiq-picker__meta { display: block; margin-top: 4px; font-size: 13px; color: var(--thematiq-muted); }
+.thematiq-picker__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 12px 0; background: var(--thematiq-ground); }
+
+/* the small picture: 200 x 86, a top bar over a sidebar and a content area */
+.thematiq-thumb { flex: 0 0 200px; width: 200px; height: 86px; overflow: hidden; box-sizing: border-box; }
+.thematiq-thumb__bar { height: 20px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; }
+.thematiq-thumb__mark { width: 28px; height: 5px; border-radius: 3px; }
+.thematiq-thumb__search { width: 60px; height: 9px; box-sizing: border-box; }
+.thematiq-thumb__body { display: flex; height: 66px; }
+.thematiq-thumb__side { flex: 0 0 56px; display: flex; flex-direction: column; gap: 5px; padding: 7px 6px; box-sizing: border-box; }
+.thematiq-thumb__button { height: 11px; box-sizing: border-box; }
+.thematiq-thumb__item { height: 6px; }
+.thematiq-thumb__main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 5px; padding: 8px; }
+.thematiq-thumb__title { width: 64px; height: 7px; opacity: .3; }
+.thematiq-thumb__row { height: 9px; box-sizing: border-box; }
+
+/* On a narrow screen a card stacks: radio and picture, then the name, then the links. */
+@media screen and (max-width: 700px) {
+  .thematiq-picker__option { flex-wrap: wrap; gap: 12px; }
+  .thematiq-picker__label { flex: 1 1 100%; flex-wrap: wrap; gap: 12px; }
+  .thematiq-picker__text { flex: 1 1 100%; }
+}

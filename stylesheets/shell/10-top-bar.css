@@ -160,23 +160,14 @@
  * pushes the switcher under the search button on a phone. */
 @media screen and (max-width: 850px) {
   .op-app-header .op-app-menu > .op-logo--icon { width: 56px; }
-  /* Core hides the wide logo here and shows the mark. The geometry layer's display rule undid that. */
-  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { display: none; }
 }
 
-/* Below 1012 px OpenProject uses its compact header. The texts do not fit there, and the fixed
- * desktop columns of the geometry layer would push the right side off the screen. */
+/* Below 1012 px OpenProject uses its compact header. The texts do not fit there.
+ * The geometry layer gives the header its compact columns below that width itself (geometry/20-top-bar.css). */
 @media screen and (max-width: 1011px) {
   .thematiq-app-name,
   .thematiq-account,
   .op-app-header--end > button.op-app-menu--item .Button-label::after { display: none; }
-
-  .op-app-header { grid-template-columns: minmax(0, auto) 1fr auto; padding: 0 6px; }
-  .op-app-header--start { width: auto; }
-  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; min-width: 0; margin: 0 8px 0 0; }
-  .op-app-header--center { flex: 1 1 auto; width: auto; justify-content: flex-end; }
-  .op-app-header .op-app-search,
-  .op-app-header opce-global-search { display: flex; width: auto; }
 }
 
 /* ---------- Desktop ---------- */
