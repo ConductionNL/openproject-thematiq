@@ -18,6 +18,7 @@ module OpenProject
 
       SUPPORTED_VERSION = 1
       DEFAULT_ID = "cunningham"
+      RESERVED_ID = "custom"
       MAX_BYTES = 4 * 1024 * 1024
       MAX_SETS = 1000
 
@@ -50,7 +51,8 @@ module OpenProject
         skipped = 0
         document["sets"].each do |entry|
           token_set = Tokens::TokenSet.from_set(entry)
-          sets.key?(token_set.id) ? skipped += 1 : sets[token_set.id] = token_set
+          # "custom" is the id of the set an admin makes in the editor.
+          sets.key?(token_set.id) || token_set.id == RESERVED_ID ? skipped += 1 : sets[token_set.id] = token_set
         rescue Tokens::TokenSet::InvalidSet
           skipped += 1
         end

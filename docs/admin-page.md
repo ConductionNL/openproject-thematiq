@@ -20,6 +20,29 @@ The line "Active now" names the design system in use. The list marks it "Active"
 
 The search runs on the server. The page works without JavaScript.
 
+## Make a custom design system
+
+OpenProject keeps one custom design system. It is a design system of the plugin plus the values you change.
+
+1. Select **Customise** next to a design system in the list. The editor opens with that design system as the base.
+2. Give your design system a name.
+3. Change values. Each of the eighteen values has its own field. An empty field keeps the value of the base, which the field shows in grey.
+4. Select **Preview**. The picture on the right is drawn again with your values. Nothing is saved.
+5. Select **Save and apply**. Your design system is saved and becomes the active one.
+
+To go back to one value of the base, select **Reset** next to it. **Reset all** empties every field. Both change the form only; select **Save and apply** to keep the result.
+
+A value the plugin cannot use is marked, with a line that says what is expected. Nothing is saved while a field is marked.
+
+Your design system stays in the list as "Custom". You can pick another design system and come back to yours later. **Delete the custom design system** removes it.
+
+### What the editor does not do
+
+- The preview does not follow your typing. It is drawn again when you select **Preview**.
+- There is one custom design system, not several.
+- A font you name must be on the reader's device. The plugin loads no font files.
+- You cannot upload a logo.
+
 ## Check the page after a change to the code
 
 The script `test/integration/admin_page_check.rb` signs in, opens the page and uses every action. Run it inside a development container, never against an instance people use:

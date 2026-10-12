@@ -1,0 +1,96 @@
+<% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.editor.title") %>
+<% kinds = OpenProject::Thematiq::Tokens::TokenSet::KINDS %>
+<% preview_set = @draft.token_set %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.editor.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       t("thematiq.editor.title")]
+    )
+    header.with_description { t("thematiq.editor.description") }
+  end
+%>
+
+<div class="thematiq-editor">
+  <%= form_with(url: admin_thematiq_custom_path, method: :post, data: { turbo: false }, id: "thematiq-editor-form",
+                class: "thematiq-editor__form") do %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-name"><%= t("thematiq.editor.name") %></label>
+      <input type="text" name="name" id="thematiq-name" class="FormControl-input FormControl-medium" maxlength="80" required
+             value="<%= @draft.name || params[:name].to_s.first(80) %>"
+             <% if @draft.error?("name") %>aria-invalid="true" aria-describedby="thematiq-name-error"<% end %>>
+      <% if @draft.error?("name") %>
+        <p class="thematiq-editor__error" id="thematiq-name-error"><%= t("thematiq.editor.error_name") %></p>
+      <% end %>
+    </div>
+
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-based-on"><%= t("thematiq.editor.based_on") %></label>
+      <select name="based_on" id="thematiq-based-on" class="FormControl-select FormControl-medium" aria-describedby="thematiq-based-on-hint">
+        <% @store.catalogue.sets.each do |token_set| %>
+          <option value="<%= token_set.id %>" <%= "selected" if token_set.id == @draft.base.id %>><%= token_set.name %></option>
+        <% end %>
+      </select>
+      <p class="thematiq-editor__hint" id="thematiq-based-on-hint"><%= t("thematiq.editor.based_on_hint") %></p>
+    </div>
+
+    <fieldset class="thematiq-editor__tokens">
+      <legend class="thematiq-editor__legend"><%= t("thematiq.editor.tokens") %></legend>
+      <p class="thematiq-editor__hint"><%= t("thematiq.editor.tokens_hint") %></p>
+
+      <% kinds.each do |key, kind| %>
+        <% field_id = "thematiq-token-#{key}" %>
+        <% described = ["#{field_id}-hint", (@draft.error?(key) ? "#{field_id}-error" : nil)].compact.join(" ") %>
+        <div class="thematiq-editor__field">
+          <label class="thematiq-editor__label" for="<%= field_id %>">
+            <%= t("thematiq.tokens.#{key}.label") %>
+            <span class="thematiq-editor__role"><%= t("thematiq.tokens.#{key}.hint") %></span>
+          </label>
+          <div class="thematiq-editor__control">
+            <% if kind == :color %><%= thematiq_swatch(preview_set, key) %><% end %>
+            <input type="text" name="tokens[<%= key %>]" id="<%= field_id %>" class="FormControl-input FormControl-medium"
+                   maxlength="400" autocomplete="off" spellcheck="false"
+                   value="<%= @draft.field_value(key) %>" placeholder="<%= @draft.base[key] %>"
+                   aria-describedby="<%= described %>" <%= 'aria-invalid="true"'.html_safe if @draft.error?(key) %>>
+            <% if @draft.overridden?(key) || @draft.error?(key) %>
+              <button type="submit" name="reset" value="<%= key %>" class="Button Button--secondary Button--medium"
+                      aria-label="<%= t("thematiq.editor.reset_token_label", token: t("thematiq.tokens.#{key}.label")) %>">
+                <span class="Button-content"><span class="Button-label"><%= t("thematiq.editor.reset_token") %></span></span>
+              </button>
+            <% end %>
+          </div>
+          <p class="thematiq-editor__hint" id="<%= field_id %>-hint">
+            <%= t("thematiq.editor.kind_hint.#{kind}") %>
+            <% if @draft.base[key] %><%= t("thematiq.editor.base_value", value: @draft.base[key]) %><% end %>
+          </p>
+          <% if @draft.error?(key) %>
+            <p class="thematiq-editor__error" id="<%= field_id %>-error"><%= t("thematiq.editor.error_#{kind}") %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </fieldset>
+
+    <div class="thematiq-editor__actions">
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, name: "save", value: "1")) { t("thematiq.editor.save_and_apply") } %>
+      <%= render(Primer::Beta::Button.new(type: :submit, name: "preview", value: "1")) { t("thematiq.editor.preview") } %>
+      <%= render(Primer::Beta::Button.new(type: :submit, name: "reset_all", value: "1")) { t("thematiq.editor.reset_all") } %>
+      <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.editor.back") } %>
+    </div>
+
+    <% if @store.custom_draft %>
+      <div class="thematiq-editor__danger">
+        <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, name: "delete", value: "1", formnovalidate: true)) { t("thematiq.editor.delete") } %>
+        <span class="thematiq-editor__hint"><%= t("thematiq.editor.delete_hint") %></span>
+      </div>
+    <% end %>
+  <% end %>
+
+  <div class="thematiq-editor__preview">
+    <h3 class="thematiq-editor__legend"><%= t("thematiq.editor.preview_title") %></h3>
+    <%= thematiq_shell_preview(preview_set) %>
+    <p class="thematiq-editor__hint"><%= t("thematiq.editor.preview_hint") %></p>
+  </div>
+</div>

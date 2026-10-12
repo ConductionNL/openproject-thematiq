@@ -2,6 +2,7 @@
 
 require "open_project/thematiq/tokens"
 require "open_project/thematiq/catalogue"
+require "open_project/thematiq/custom_draft"
 
 module OpenProject
   module Thematiq
@@ -36,18 +37,58 @@ module OpenProject
         id.is_a?(String) ? id : nil
       end
 
-      # What the pages are styled with: the chosen set, or the default when nothing usable is chosen.
+      # What the pages are styled with: the custom set when it is in use, else the chosen set,
+      # else the default.
       def active_token_set
-        catalogue.find(active_id) || catalogue.default
+        (custom_active? ? custom_set : nil) || catalogue.find(active_id) || catalogue.default
       end
 
-      # Makes a set of the catalogue the active one. Returns the set, or nil when the id is unknown.
+      # Makes a design system the active one: a set of the catalogue, or the custom set.
+      # Returns the set, or nil when the id is unknown.
       def activate(id)
+        if id == CustomDraft::ID
+          token_set = custom_set
+          write("use_custom" => true) if token_set
+          return token_set
+        end
+
         token_set = catalogue.find(id)
         return nil unless token_set
 
-        write("active_id" => token_set.id)
+        write("active_id" => token_set.id, "use_custom" => false)
         token_set
+      end
+
+      # --- the custom set: a base design system plus overrides ---
+
+      def custom_active?
+        data["use_custom"] == true && !custom_draft.nil?
+      end
+
+      # The stored custom set as a draft, checked again on the way out. nil when there is none.
+      def custom_draft
+        stored = data["custom"]
+        return nil unless stored.is_a?(Hash) && stored["overrides"].is_a?(Hash)
+
+        base = catalogue.find(stored["based_on"]) || catalogue.default
+        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"])
+        draft.name ? draft : nil
+      end
+
+      def custom_set
+        custom_draft&.token_set
+      end
+
+      # Stores a valid draft. Returns false and stores nothing when the draft has errors.
+      def save_custom(draft)
+        return false unless draft.valid?
+
+        write("custom" => draft.definition)
+        true
+      end
+
+      def delete_custom
+        write("custom" => nil, "use_custom" => false)
       end
 
       private

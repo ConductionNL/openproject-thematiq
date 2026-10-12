@@ -28,7 +28,7 @@ class StoreTest < Minitest::Test
     s = store
 
     assert_equal "zuiddrecht", s.activate("zuiddrecht").id
-    assert_equal({ "active_id" => "zuiddrecht" }, @backend.data)
+    assert_equal({ "active_id" => "zuiddrecht", "use_custom" => false }, @backend.data)
     assert_equal "#3669a5", s.active_token_set["primary"]
   end
 
@@ -53,6 +53,6 @@ class StoreTest < Minitest::Test
     s = store("something_else" => 1)
     s.activate("zuiddrecht")
 
-    assert_equal({ "something_else" => 1, "active_id" => "zuiddrecht" }, @backend.data)
+    assert_equal({ "something_else" => 1, "active_id" => "zuiddrecht", "use_custom" => false }, @backend.data)
   end
 end

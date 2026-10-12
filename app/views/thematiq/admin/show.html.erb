@@ -58,23 +58,46 @@
   <%= form_with(url: admin_thematiq_path, method: :post, data: { turbo: false }, id: "thematiq-picker-form") do %>
     <fieldset class="thematiq-picker">
       <legend class="sr-only"><%= t("thematiq.admin.picker_legend") %></legend>
+      <% if @custom && @query.blank? %>
+        <% custom_set = @custom.token_set %>
+        <div class="thematiq-picker__option" data-test-selector="thematiq-custom-option">
+          <label class="thematiq-picker__label" for="thematiq-set-custom">
+            <input type="radio" name="set_id" id="thematiq-set-custom" value="custom"
+                   class="thematiq-picker__radio" required <%= "checked" if @store.custom_active? %>>
+            <%= thematiq_thumbnail(custom_set) %>
+            <span class="thematiq-picker__text">
+              <span class="thematiq-picker__name"><%= custom_set.name %></span>
+              <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_custom") } %>
+              <% if @store.custom_active? %>
+                <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
+              <% end %>
+              <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: @custom.overrides.size, name: @custom.base.name) %></span>
+            </span>
+          </label>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path)) { t("thematiq.admin.edit_tokens") } %>
+        </div>
+      <% end %>
       <% @sets.each do |token_set| %>
-        <% is_active = token_set.id == active.id %>
-        <label class="thematiq-picker__option" for="thematiq-set-<%= token_set.id %>">
-          <input type="radio" name="set_id" id="thematiq-set-<%= token_set.id %>" value="<%= token_set.id %>"
-                 class="thematiq-picker__radio" required <%= "checked" if is_active %>>
-          <%= thematiq_thumbnail(token_set) %>
-          <span class="thematiq-picker__text">
-            <span class="thematiq-picker__name"><%= token_set.name %></span>
-            <% if token_set.id == @store.catalogue.default.id %>
-              <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_default") } %>
-            <% end %>
-            <% if is_active %>
-              <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
-            <% end %>
-            <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
-          </span>
-        </label>
+        <% is_active = !@store.custom_active? && token_set.id == active.id %>
+        <div class="thematiq-picker__option">
+          <label class="thematiq-picker__label" for="thematiq-set-<%= token_set.id %>">
+            <input type="radio" name="set_id" id="thematiq-set-<%= token_set.id %>" value="<%= token_set.id %>"
+                   class="thematiq-picker__radio" required <%= "checked" if is_active %>>
+            <%= thematiq_thumbnail(token_set) %>
+            <span class="thematiq-picker__text">
+              <span class="thematiq-picker__name"><%= token_set.name %></span>
+              <% if token_set.id == @store.catalogue.default.id %>
+                <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_default") } %>
+              <% end %>
+              <% if is_active %>
+                <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
+              <% end %>
+              <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+            </span>
+          </label>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(from: token_set.id),
+                                              "aria-label": t("thematiq.admin.customise_label", name: token_set.name))) { t("thematiq.admin.customise") } %>
+        </div>
       <% end %>
     </fieldset>
 

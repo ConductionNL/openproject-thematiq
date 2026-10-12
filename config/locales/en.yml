@@ -17,9 +17,80 @@ en:
       badge_default: "Default"
       badge_active: "Active"
       ships_with_plugin: "Ships with the plugin"
+      badge_custom: "Custom"
+      custom_meta:
+        one: "1 value changed from %{name}"
+        other: "%{count} values changed from %{name}"
+      edit_tokens: "Edit"
+      customise: "Customise"
+      customise_label: "Customise %{name}"
       apply: "Apply"
       apply_hint: "Everyone sees the chosen design system on their next page."
       notice_applied: "\"%{name}\" is now the active design system."
       error_unknown_set: "Choose a design system from the list first."
       catalogue_unusable: "The list of design systems in the plugin could not be read. OpenProject uses the built in Cunningham values until the plugin is installed again."
       rejected_tokens: "Some values of the active design system were refused and replaced: %{tokens}."
+    editor:
+      title: "Custom design system"
+      description: "Start from a design system and change single values. The result is one custom design system, kept in OpenProject."
+      default_name: "%{name}, custom"
+      name: "Name"
+      based_on: "Based on"
+      based_on_hint: "Values you leave empty come from this design system."
+      tokens: "Values"
+      tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
+      base_value: "Now: %{value}."
+      kind_hint:
+        color: "A colour, for example #1a67a3 or rgb(26, 103, 163)."
+        length: "A length, for example 8px or 0.5rem."
+        font_family: "A font stack, for example 'Fira Sans', system-ui, sans-serif. The font must be on the reader's device."
+      reset_token: "Reset"
+      reset_token_label: "Reset %{token}"
+      reset_all: "Reset all"
+      preview: "Preview"
+      save_and_apply: "Save and apply"
+      back: "Back to the list"
+      delete: "Delete the custom design system"
+      delete_hint: "OpenProject goes back to the design system chosen before."
+      preview_title: "Preview of the shell"
+      preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
+      notice_not_saved: "The preview is up to date. Nothing is saved yet."
+      notice_deleted: "The custom design system is deleted."
+      error_invalid: "Some values cannot be used. Correct the marked fields and save again."
+      error_name: "Give the design system a name of at most 80 characters."
+      error_color: "This is not a colour the plugin accepts. Use a hex value, a colour name or rgb()."
+      error_length: "This is not a length the plugin accepts. Use a number with px, rem, em or %."
+      error_font_family: "This is not a font stack the plugin accepts. Use names separated by commas, with quotes around names that have spaces."
+      sample:
+        app: "OpenProject"
+        search: "Search"
+        create: "Create"
+        export: "Export"
+        overview: "Overview"
+        work_packages: "Work packages"
+        meetings: "Meetings"
+        filter: "Filter by text"
+        id: "ID"
+        subject: "Subject"
+        row_one: "Organise the conference"
+        row_two: "Send the invitations"
+        footnote: "Sample content"
+    tokens:
+      primary: { label: "Primary", hint: "top bar" }
+      primary-deep: { label: "Primary, deep", hint: "hover in the top bar, selected text" }
+      primary-light: { label: "Primary, light", hint: "selected menu item" }
+      action: { label: "Action", hint: "the one main button" }
+      action-deep: { label: "Action, deep", hint: "border and hover of the main button" }
+      link: { label: "Link", hint: "links and work package numbers" }
+      accent: { label: "Accent", hint: "not used by OpenProject's screens yet" }
+      ink: { label: "Ink", hint: "main text" }
+      text: { label: "Text", hint: "not used by OpenProject's screens yet" }
+      muted: { label: "Muted", hint: "labels and hints" }
+      line: { label: "Line", hint: "lines between parts" }
+      soft: { label: "Soft", hint: "hover background" }
+      ground: { label: "Ground", hint: "page background" }
+      chip: { label: "Chip", hint: "not used by OpenProject's screens yet" }
+      field: { label: "Field", hint: "borders of inputs and buttons" }
+      radius: { label: "Radius", hint: "buttons and menu items" }
+      radius-lg: { label: "Radius, large", hint: "inputs and panels" }
+      font-family: { label: "Font", hint: "all text" }

@@ -116,6 +116,75 @@ begin
   check("apply makes the chosen design system active") { OpenProject::Thematiq::Store.new.active_token_set.id == last.id }
   check("the page says so") { admin.response.body.include?("is now the active design system") }
   check("the head style carries its primary colour") { head_style(admin).include?("--header-bg-color: #{last['primary']};") }
+
+  # 4. The editor
+  default = catalogue.default
+  as_member.get "/admin/thematiq/custom"
+  check("a non-admin cannot open the editor") { as_member.response.status == 403 }
+
+  admin.get "/admin/thematiq/custom", params: { from: default.id }
+  body = admin.response.body
+  check("an admin opens the editor") { admin.response.status == 200 && body.include?('id="thematiq-editor-form"') }
+  check("the editor has a field for each of the eighteen tokens") do
+    OpenProject::Thematiq::Tokens::TokenSet::KINDS.each_key.all? { |key| body.include?(%(id="thematiq-token-#{key}")) }
+  end
+  check("the editor shows the shell preview") { body.include?('data-test-selector="thematiq-shell-preview"') }
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, preview: "1",
+                                                 tokens: { "primary" => "#aa0055" }, authenticity_token: token }
+  check("preview draws the typed colour") { admin.response.status == 200 && admin.response.body.include?("background: #aa0055") }
+  check("preview stores nothing") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
+
+  hostile = 'red; } body { display:none'
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, save: "1",
+                                                 tokens: { "primary" => hostile, "radius" => "12px" }, authenticity_token: token }
+  body = admin.response.body
+  check("a hostile value is refused with 422") { admin.response.status == 422 && body.include?("This is not a colour the plugin accepts") }
+  check("the refused value is not stored") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
+  check("the refused value is shown escaped, in its field only") do
+    body.include?(CGI.escapeHTML(hostile)) && !head_style(admin).include?("display:none") && body.scan(hostile).empty?
+  end
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, save: "1",
+                                                 tokens: { "primary" => "#aa0055", "radius" => "12px" }, authenticity_token: token }
+  admin.follow_redirect!
+  body = admin.response.body
+  store = OpenProject::Thematiq::Store.new
+  check("save and apply stores the overrides") { store.custom_draft&.overrides == { "primary" => "#aa0055", "radius" => "12px" } }
+  check("the custom design system is active") { store.custom_active? && store.active_token_set.name == "Check style" }
+  check("the head style carries the overrides") { head_style(admin).include?("--header-bg-color: #aa0055;") && head_style(admin).include?("--thematiq-radius: 12px;") }
+  check("the head style keeps the base for the rest") { head_style(admin).include?("--primary-button-color: #{default['action']};") }
+  check("the picker lists the custom design system") { body.include?('id="thematiq-set-custom"') && body.include?("Check style") }
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, reset: "primary",
+                                                 tokens: { "primary" => "#aa0055", "radius" => "12px" }, authenticity_token: token }
+  check("reset of one token clears its field and saves nothing") do
+    admin.response.status == 200 && !admin.response.body.include?('value="#aa0055"') && admin.response.body.include?('value="12px"') &&
+      OpenProject::Thematiq::Store.new.custom_draft.overrides.key?("primary")
+  end
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, reset_all: "1",
+                                                 tokens: { "primary" => "#aa0055" }, authenticity_token: token }
+  check("reset all clears every field") { admin.response.status == 200 && !admin.response.body.include?('value="#aa0055"') }
+
+  admin.post "/admin/thematiq", params: { set_id: default.id, authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  check("picking a catalogue set turns the custom one off and keeps it") do
+    s = OpenProject::Thematiq::Store.new
+    !s.custom_active? && s.custom_draft&.name == "Check style"
+  end
+
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq/custom", params: { name: "x", based_on: default.id, save: "1" }
+  check("an editor post without a CSRF token is refused") { throwaway.response.status == 422 }
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { delete: "1", authenticity_token: token }
+  check("delete removes the custom design system") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
 ensure
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy

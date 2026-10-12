@@ -104,7 +104,16 @@ The plugin is early work. It styles the light theme only; the dark theme and the
 2. Type part of a name in **Search design systems** and select **Search**, or scroll the list.
 3. Select a design system and select **Apply**.
 
-Everyone sees the chosen design system on their next page. [docs/admin-page.md](docs/admin-page.md) has the details.
+Everyone sees the chosen design system on their next page.
+
+### Edit a design system
+
+1. On **Thematiq design**, select **Customise** next to the design system you want to start from.
+2. Give it a name and change the values you want: colours, corners, font. Leave a field empty to keep the original value.
+3. Select **Preview** to see the shell with your values. Nothing is saved yet.
+4. Select **Save and apply**.
+
+OpenProject keeps one custom design system. [docs/admin-page.md](docs/admin-page.md) has the details.
 
 ## What is in this repository now
 
