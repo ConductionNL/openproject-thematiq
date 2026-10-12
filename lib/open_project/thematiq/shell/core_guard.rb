@@ -23,7 +23,7 @@ module OpenProject
           # Calls the module_menu_dialog_content_before hook. The app switcher CSS styles its dialog.
           "lib/redmine/menu_manager/top_menu/module_menu.rb" =>
             "d7c21127e74d95c1ad1001822bb8679eacad384202a6236667d1005ee0525bf0",
-          # The header markup that stylesheets/50-shell-top-bar.css styles.
+          # The header markup that stylesheets/shell/10-top-bar.css styles.
           "app/views/layouts/base.html.erb" =>
             "94becc56b0209c7bd7093096b96c4920d048b70a1dc4e487ab4bf9c9f997ee66"
         }.freeze

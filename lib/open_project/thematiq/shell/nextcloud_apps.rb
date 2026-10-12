@@ -7,11 +7,9 @@ module OpenProject
       #
       # THIS LIST IS FIXED. It does not ask Nextcloud which apps are installed or which ones
       # the user may open. A later version reads the list from Nextcloud's navigation API.
+      #
+      # The address comes from Shell.nextcloud_url. Without one there is no column.
       module NextcloudApps
-        # PLACEHOLDER. Used only when OpenProject has no Nextcloud file storage configured.
-        # Replace it with the plugin setting once the settings page has a Nextcloud address.
-        FALLBACK_BASE_URL = "http://localhost:8080"
-
         App = Struct.new(:key, :path, :icon)
 
         # The icon is the path data of the outline icon in the OpHeader design (24 px grid).
@@ -31,22 +29,15 @@ module OpenProject
                   "M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75")
         ].freeze
 
-        # The address of the Nextcloud this OpenProject already talks to, without a trailing slash.
-        def self.base_url
-          (storage_host || FALLBACK_BASE_URL).to_s.chomp("/")
+        # The address without a trailing slash, or nil when it is not an http or https address.
+        # The value ends up in a link, so nothing else gets through.
+        def self.normalize(value)
+          url = value.to_s.strip.sub(%r{/+\z}, "")
+          url.match?(%r{\Ahttps?://[^\s"'<>]+\z}i) ? url : nil
         end
 
-        def self.url_for(app)
-          "#{base_url}#{app.path}"
-        end
-
-        # The first Nextcloud file storage an admin configured in OpenProject, if any.
-        def self.storage_host
-          return unless defined?(::Storages::NextcloudStorage)
-
-          ::Storages::NextcloudStorage.order(:id).pick(:host).presence
-        rescue ActiveRecord::ActiveRecordError
-          nil
+        def self.url_for(app, base)
+          "#{base}#{app.path}"
         end
       end
     end

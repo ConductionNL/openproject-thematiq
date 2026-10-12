@@ -61,6 +61,9 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
 | `app/workers/thematiq/` | The background job that keeps the tokens current |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
+| `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar: helper overrides, the app switcher column, the logo rule |
+| `stylesheets/shell/` | The CSS of the shared top bar. It comes after `stylesheets/geometry/` in path order |
+| `script/check-core.rb` | Fails when a core file the shell leans on has changed. Run it on every OpenProject release |
 | `test/` | The unit tests, run with `bin/test` |
 | `app/views/thematiq/hooks/` | The partials the hooks render |
 | `stylesheets/` | The static CSS layers the head hook inlines after the variable layer, in file name order |
