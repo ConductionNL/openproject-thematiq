@@ -85,25 +85,11 @@ OpenProject opens these links in a new tab, because its link handling treats ano
 | Count on Work packages | A menu item's `badge:` is a translation key. Override the private `badge_for`: `super` plus the number of open work packages the user may see. One count query per project page | Built |
 | Members and Project settings at the bottom | The same override puts a spacer row before the first of the two. Core already renders them last | Built |
 | Outline icons | CSS mask per item, for the twelve items the design draws | Built. Other items keep core's icon |
-| Saved queries on the work package page | See below | Built: the project menu stays, the queries open with the arrow |
+| Submenus of the modules | The two-layer menu, see below | Built: the project menu stays on every page, the second level opens in place |
 
 Which items a user sees is still core's decision. The overrides add rows around the items that `first_level_menu_items_for` and `render_menu_node` let through. A user who may not see Members gets no Members row, and no spacer.
 
 An item this plugin does not know, from another plugin for example, stays in the group of the item before it.
-
-### Saved queries
-
-On the work package page core "descends" into the Work packages item: the project menu slides away and the query list takes its place, with a back arrow. The design keeps the project menu in view.
-
-The query list is a real feature. A user needs it to open a saved view. Three ways to keep both:
-
-1. **Leave it.** Core's behaviour. The design is not met on this one page.
-2. **Keep the project menu, open the queries with the arrow.** Core already renders an arrow button on every item with a submenu, and its own controller opens and closes the submenu. On the work package page the plugin renders the list in its open state, so the project menu shows and the arrow leads to the queries. One click more than core, nothing removed.
-3. **Move the queries to the page.** A dropdown next to the page title. That is new interface in the Angular work package page, and a plugin cannot add it without a frontend build.
-
-The plugin does the second. It takes two small changes to what core returns: the class of the list (`menu_root closed` becomes `menu_root open`) and the class of the Work packages row. The arrow also gets its name back, "Open Work packages sub-menu". Core leaves that name empty on the selected item, because core never shows the arrow there.
-
-This applies to the items in `ProjectMenu::STAY_ON_PROJECT_MENU`, which holds `work_packages` only. Gantt, Boards, Meetings, Wiki, Members and Project settings keep core's behaviour: on their pages the submenu shows. Their submenus are how you move between boards or between settings pages, so hiding them behind a click costs more there. Add a name to the list to change one.
 
 ## Two-layer project menu: where each submenu comes from
 
@@ -156,6 +142,14 @@ Each `Menu` class is plain Ruby with a public `menu_items`, so the page could ca
 
 So mechanism 1 and mechanism 2 come down to the same move: show core's `ul.main-menu--children` under its parent row instead of in a swapped sidebar. For Project settings and Backlogs the list is there with the page. For the others the frame inside it loads when the row opens.
 
+### What is built
+
+`stylesheets/shell/30-nested-menu.css` shows core's second level under its row, to the sizes of "Navigation, nested" in the canon. `lib/open_project/thematiq/shell/assets/project_menu.js` is inlined at the end of the page through the hook `view_layouts_base_body_bottom`. Both mechanisms landed in one change, because they are the same rule on the same `ul`.
+
+No Ruby override was added for it. Two from the first project menu went away: the class of the list is no longer rewritten, and the Work packages row keeps core's `open` class.
+
+The CSS only applies while the project menu overrides are on. Every rule is scoped to a menu that holds the project switcher's initials, which only the override renders. When a guarded core file changes, the overrides and the two-layer menu switch off together and core's sidebar swap is back.
+
 ### What the in-place menu needs
 
 | Need | How |
@@ -164,17 +158,24 @@ So mechanism 1 and mechanism 2 come down to the same move: show core's `ul.main-
 | The current module opens in place | Core already marks its row `open`. CSS shows `ul.main-menu--children` under an open row |
 | Expand and collapse from the parent | Core's own arrow button and `menus--main#descend`. The call toggles `open` on the row, which is all the CSS looks at |
 | No back arrow | CSS hides `div.main-menu--children-menu-header` |
-| A chevron on the parent | CSS mask on the arrow button |
-| `aria-expanded` on the parent control | Core does not set it. A small script sets it on the arrow button and keeps it in step |
+| A chevron on the parent | CSS mask on the arrow button: right when closed, down when open |
+| `aria-expanded`, `aria-controls` and a label on the parent control | Core sets none of the first two, and labels the button "Open ... sub-menu" in both states. The script sets "Expand ..." or "Collapse ..." and keeps the state in step |
+| The create action as a quiet last row | CSS on the create button core renders in a module's frame. Only modules that have one show it, and only to a user who may create |
+| More than 8 entries: the first 6 and "Show all N" | The script counts the entries once the list is on screen, hides the rest and adds a button. The button shows them in place and moves focus to the first one that was hidden. The current entry is never hidden. Without the script every entry shows |
 | `aria-current="page"` on the current child | Core marks the current link with the class `selected` only. The same script adds the attribute |
 | The parent as "contains the current page" | CSS: a selected parent with a selected link below it |
 | No icons on level two | CSS hides the icon in a submenu row |
 | No inner scrollbar | CSS lets the list grow. The sidebar scrolls as a whole, as core's `#menu-sidebar` already does |
 
-### Not reachable
+### Differences from the design
 
-- **"Show all N" after the first items.** The number is only known after the frame has loaded, and the link target does not exist for every module. Boards, Meetings, Calendar and Team planner have an index page that lists everything. Work packages and Gantt do not: their index page is the table, so a cut list would hide saved queries with no other way to them. The lists are shown in full. Core's search field at the top of a submenu stays, and is how you find an entry in a long list.
-- **Arrow keys through the list.** Core's lists are plain links, so Tab moves through them. The wiki tree is a Primer tree view and has arrow keys of its own. Nothing traps Escape.
+- **No search field.** Core puts a search field at the top of most submenus. The design has none, so it is hidden. "Show all" takes its place for a long list.
+- **The create row keeps core's text**, "Board" for example, where the design says "New board". Work packages has no create row: core has no "save this view" action in the submenu.
+- **The toggle label uses the item's name as it is written**: "Collapse Work packages". The design writes it in lower case, which is wrong for names in other languages.
+- **Opening a row moves focus to its first entry** when the list is already loaded. That is core's `descend`. Closing leaves focus on the toggle.
+- **Arrow keys.** Core's lists are plain links, so Tab moves through them. The wiki tree is a Primer tree view and has arrow keys of its own. Nothing traps Escape.
+- **The wiki tree is not shortened.** It is a tree, not a list, and has its own filter.
+- **Resource management** was not tried. Its submenu needs the Enterprise edition.
 
 ## Icons
 
@@ -206,7 +207,10 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 | `lib/redmine/menu_manager/top_menu/user_menu.rb` | `Shell::TopBar#lateral_user_menu_button`, a private method with two arguments | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/module_menu.rb` | The hook `module_menu_dialog_content_before` and the dialog markup the popover CSS styles | Checksum in `core_guard.rb` |
 | `app/views/layouts/base.html.erb` | The header and menu markup the files in `stylesheets/shell/` style, and where the hooks run | Checksum in `core_guard.rb` |
-| `lib/redmine/menu_manager/menu_helper.rb` | `Shell::ProjectMenu::Helper`: `render_menu`, `render_menu_node`, `render_menu_toggler`, `menu_node_options`, `badge_for`. Two of them replace a class or a label in the string core returns | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/menu_helper.rb` | `Shell::ProjectMenu::Helper`: `render_menu`, `render_menu_node`, `render_menu_toggler`, `badge_for`. One of them fills in a label core leaves empty | Checksum in `core_guard.rb` |
+| `frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts` | The two-layer menu: the arrow button's `descend` must keep toggling `open` on the row | Checksum in `core_guard.rb` |
+| `frontend/src/global_styles/layout/_main_menu.sass` | The two-layer menu: the rules that hide and show rows in the `open` and `closed` states, which the CSS undoes | Checksum in `core_guard.rb` |
+| `app/components/open_project/common/submenu_component.html.erb` and `.sass` | The two-layer menu: the classes of the links, group headers, search field and create button in a module's frame | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/projects_menu.rb` | `Shell::ProjectMenu::Helper#render_projects_top_menu_node` | Checksum in `core_guard.rb` |
 | `app/components/header/project_select_component.rb` and `.html.erb` | `Shell::ProjectMenu::Switcher#trigger_label`, which the template prints inside the button | Checksum in `core_guard.rb` |
 
@@ -220,6 +224,8 @@ docker run --rm --entrypoint ruby openproject-thematiq:dev \
   /app/custom-plugins/openproject-thematiq/script/check-core.rb
 ```
 
+Three of the guarded files are frontend sources (`frontend/src/...`). The image ships them next to the compiled bundle. If a later image leaves them out, the check reports them as changed and the project menu overrides stay off until the list is adjusted.
+
 The checksums do not cover the Angular bundle. The search field, the unread indicator and the avatar are Angular elements, and the CSS names their classes. A change there shows up in the pixel diff, not in this check.
 
 ### When an OpenProject upgrade breaks this
@@ -229,7 +235,8 @@ You notice it in one of three ways: `script/check-core.rb` exits 1, the log says
 1. Run `script/check-core.rb` in the new image. It names the core files that changed.
 2. Open each one next to the override that leans on it. The table above says which.
    - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `render_logo` still returns the logo block, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
-   - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still writes `class="menu_root closed"` and sets `@menu`, `render_menu_node` still returns one `<li>` per item, `menu_node_options` still returns the `open` class, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
+   - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still sets `@menu`, `render_menu_node` still returns one `<li>` per item, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
+   - For `stylesheets/shell/30-nested-menu.css` and the script: a row with a submenu is still `li` with `div.main-item-wrapper` and `ul.main-menu--children`, the arrow button still toggles `open` on the row, and a module's frame still uses the `op-submenu--*` classes.
 3. If they hold, nothing in the plugin needs to change. Update the checksum and `CORE_VERSION` in `core_guard.rb`.
 4. If one moved, change the override to fit, then update the checksum.
 5. Start the instance and compare the top bar with the design, with `spike/pixdiff.py`.
@@ -242,6 +249,5 @@ Until someone does this, OpenProject keeps working. Its own top bar and project 
 - **Search placeholder.** The design says "Search files, work packages or people". Core's search finds work packages and projects, so the plugin keeps core's text.
 - **Nextcloud apps.** The fixed list should become a call to Nextcloud's navigation API, cached per user.
 - **Nextcloud address.** The setting `nextcloud_url` needs a field on the admin page.
-- **Submenus.** Only the work package page keeps the project menu in view. The design shows it on every project page. Extending `STAY_ON_PROJECT_MENU` does that, at the price of one more click to reach a board list or a settings page.
 - **Count position.** The count sits after the label. The design puts it at the right edge of the row.
 - **Narrow screens.** The geometry layer sets the desktop columns at every width. The shell layer puts core's compact header back below 1012 px. That reset belongs in the geometry layer.
