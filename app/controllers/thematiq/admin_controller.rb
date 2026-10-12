@@ -61,6 +61,16 @@ module Thematiq
       end
     end
 
+    # The Nextcloud address for the app switcher links. Empty is fine: then the switcher shows OpenProject only.
+    def update_shell
+      if @store.save_nextcloud_url(params[:nextcloud_url])
+        flash[:notice] = t(@store.nextcloud_url ? "thematiq.shell.settings.notice_saved" : "thematiq.shell.settings.notice_cleared")
+      else
+        flash[:error] = t("thematiq.shell.settings.error_invalid")
+      end
+      redirect_to action: :show
+    end
+
     # Sends one design system as a JSON file in the set shape.
     def export
       token_set = params[:id].to_s == OpenProject::Thematiq::CustomDraft::ID ? @store.custom_set : @store.catalogue.find(params[:id].to_s)

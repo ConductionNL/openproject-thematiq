@@ -3,6 +3,7 @@
 require "open_project/thematiq/tokens"
 require "open_project/thematiq/catalogue"
 require "open_project/thematiq/custom_draft"
+require "open_project/thematiq/shell/nextcloud_apps"
 
 module OpenProject
   module Thematiq
@@ -89,6 +90,28 @@ module OpenProject
 
       def delete_custom
         write("custom" => nil, "use_custom" => false)
+      end
+
+      # --- the Nextcloud address for the app switcher links ---
+      #
+      # The key and the check are the shell's: Shell::NEXTCLOUD_URL_SETTING, read by Shell.nextcloud_url
+      # and checked by Shell::NextcloudApps.normalize. The plugin never opens this address. It only links to it.
+
+      NEXTCLOUD_URL_KEY = "nextcloud_url"
+
+      def nextcloud_url
+        Shell::NextcloudApps.normalize(data[NEXTCLOUD_URL_KEY])
+      end
+
+      # Stores the address, or clears it when the value is empty. Returns false and stores nothing
+      # when the value is not an http or https address.
+      def save_nextcloud_url(value)
+        text = value.to_s.strip
+        normalized = Shell::NextcloudApps.normalize(text)
+        return false if !text.empty? && (normalized.nil? || text.length > 500)
+
+        write(NEXTCLOUD_URL_KEY => normalized)
+        true
       end
 
       private

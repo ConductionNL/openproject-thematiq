@@ -151,3 +151,20 @@ end %>
   </p>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.transfer.import") } %>
 <% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.shell.settings.title") }
+end %>
+
+<%= form_with(url: admin_thematiq_shell_path, method: :post, data: { turbo: false }, id: "thematiq-shell-form") do %>
+  <%= render(Primer::Alpha::TextField.new(
+        name: :nextcloud_url,
+        id: "thematiq-nextcloud-url",
+        label: t("thematiq.shell.settings.nextcloud_url"),
+        caption: t("thematiq.shell.settings.nextcloud_url_caption"),
+        value: @store.nextcloud_url.to_s,
+        placeholder: "https://cloud.example.org",
+        input_width: :large
+      )) %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.settings.save") } %>
+<% end %>

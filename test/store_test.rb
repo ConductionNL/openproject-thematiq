@@ -55,4 +55,47 @@ class StoreTest < Minitest::Test
 
     assert_equal({ "something_else" => 1, "active_id" => "zuiddrecht", "use_custom" => false }, @backend.data)
   end
+
+  # --- the Nextcloud address for the app switcher ---
+
+  def test_no_nextcloud_address_on_a_fresh_install
+    assert_nil store.nextcloud_url
+  end
+
+  def test_saves_an_http_address_without_its_trailing_slash
+    s = store("active_id" => "zuiddrecht")
+
+    assert s.save_nextcloud_url(" https://cloud.example.org/ ")
+    assert_equal "https://cloud.example.org", s.nextcloud_url
+    assert_equal({ "active_id" => "zuiddrecht", "nextcloud_url" => "https://cloud.example.org" }, @backend.data)
+  end
+
+  def test_the_key_is_the_one_the_shell_reads
+    shell = File.read(File.expand_path("../lib/open_project/thematiq/shell.rb", __dir__))
+
+    assert_includes shell, %(NEXTCLOUD_URL_SETTING = "#{Store::NEXTCLOUD_URL_KEY}")
+  end
+
+  def test_an_empty_address_clears_it
+    s = store("nextcloud_url" => "https://cloud.example.org")
+
+    assert s.save_nextcloud_url("  ")
+    assert_nil s.nextcloud_url
+    assert s.save_nextcloud_url(nil)
+  end
+
+  def test_refuses_what_is_not_an_http_address_and_keeps_the_old_one
+    s = store("nextcloud_url" => "https://cloud.example.org")
+
+    ["javascript:alert(1)", "cloud.example.org", "ftp://cloud.example.org", 'https://cloud.example.org/"onclick="x',
+     "https://cloud.example.org/<script>", "https://a b", "https://#{'a' * 500}.example.org"].each do |value|
+      refute s.save_nextcloud_url(value), value
+    end
+    assert_equal "https://cloud.example.org", s.nextcloud_url
+  end
+
+  def test_a_tampered_stored_address_is_not_given_out
+    assert_nil store("nextcloud_url" => "javascript:alert(1)").nextcloud_url
+    assert_nil store("nextcloud_url" => ["https://cloud.example.org"]).nextcloud_url
+  end
 end
