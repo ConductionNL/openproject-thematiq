@@ -65,7 +65,7 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/transfer.rb` | Export and import of one design system |
 | `bin/check-syntax` | Compiles every Ruby file and template without a database |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
-| `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar and the project menu: helper overrides, the app switcher column, the logo rule |
+| `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar, the project menu and the merged home page: helper overrides, the app switcher column, the logo rule |
 | `stylesheets/shell/` | The CSS of the top bar and the project menu. It comes after `stylesheets/geometry/` in path order |
 | `script/check-core.rb` | Fails when a core file the shell leans on has changed. Run it on every OpenProject release |
 | `test/` | The unit tests, run with `bin/test` |

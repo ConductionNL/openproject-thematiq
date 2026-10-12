@@ -107,10 +107,9 @@
 
 /* ---------- The list: group titles, count, bottom items ---------- */
 
-/* Only while the project menu itself shows. In the closed state core shows a submenu instead. */
-#main-menu ul.menu_root.open { display: flex; flex-direction: column; }
-#main-menu ul.menu_root.closed > .thematiq-nav-group,
-#main-menu ul.menu_root.closed > .thematiq-nav-spacer { display: none; }
+/* A column, so the spacer can push the bottom items down. 30-nested-menu.css keeps the list in
+ * view in core's "closed" state too. */
+#main-menu ul.menu_root:has(> .thematiq-nav-group, > .thematiq-nav-spacer) { display: flex; flex-direction: column; }
 
 #main-menu ul.menu_root > .thematiq-nav-group {
   margin: 0;
@@ -123,7 +122,7 @@
   color: var(--thematiq-muted);
 }
 #main-menu ul.menu_root > .thematiq-nav-group:not(:first-child) { margin-top: 18px; }
-#main-menu ul.menu_root.open > .thematiq-nav-spacer { flex: 1 1 auto; min-height: 20px; margin: 0; }
+#main-menu ul.menu_root > .thematiq-nav-spacer { flex: 1 1 auto; min-height: 20px; margin: 0; }
 
 #main-menu ul.menu_root > li a .op-menu--item-title { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; width: 100%; min-width: 0; }
 .thematiq-nav-count {
