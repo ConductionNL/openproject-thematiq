@@ -113,7 +113,17 @@ Everyone sees the chosen design system on their next page.
 3. Select **Preview** to see the shell with your values. Nothing is saved yet.
 4. Select **Save and apply**.
 
-OpenProject keeps one custom design system. [docs/admin-page.md](docs/admin-page.md) has the details.
+OpenProject keeps one custom design system.
+
+### Export and import
+
+Use this to move a design system from one OpenProject to another.
+
+1. On **Thematiq design**, select **Export** next to a design system. Your browser saves a small JSON file.
+2. On the other OpenProject, open **Thematiq design**. Under **Import a design system**, choose the file and select **Import**.
+3. The file becomes the custom design system there. Pick it in the list and select **Apply**.
+
+An import replaces the custom design system that was there. [docs/admin-page.md](docs/admin-page.md) has the details.
 
 ## What is in this repository now
 

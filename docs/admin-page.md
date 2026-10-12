@@ -43,6 +43,20 @@ Your design system stays in the list as "Custom". You can pick another design sy
 - A font you name must be on the reader's device. The plugin loads no font files.
 - You cannot upload a logo.
 
+## Export and import a design system
+
+**Export** next to a design system saves it as a JSON file: its id, its name, its eighteen values and the name of its logo file. The file has the same shape as one entry of the plugin's catalogue.
+
+**Import a design system**, at the bottom of the page, reads such a file.
+
+1. Choose the file and select **Import**.
+2. The file becomes the custom design system. It replaces the one that was there.
+3. Pick it in the list and select **Apply**.
+
+The plugin treats the file as untrusted. It refuses a file over 64 KB, a file that is not JSON, a file with an entry it does not know and a file with one value that is not a colour, a length or a font stack. When it refuses a file, nothing changes.
+
+A logo does not travel with the file. The file holds a file name only, and an imported design system uses OpenProject's own logo.
+
 ## Check the page after a change to the code
 
 The script `test/integration/admin_page_check.rb` signs in, opens the page and uses every action. Run it inside a development container, never against an instance people use:

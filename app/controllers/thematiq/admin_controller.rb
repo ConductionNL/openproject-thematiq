@@ -61,7 +61,43 @@ module Thematiq
       end
     end
 
+    # Sends one design system as a JSON file in the set shape.
+    def export
+      token_set = params[:id].to_s == OpenProject::Thematiq::CustomDraft::ID ? @store.custom_set : @store.catalogue.find(params[:id].to_s)
+      return render_404 unless token_set
+
+      send_data OpenProject::Thematiq::Transfer.export(token_set),
+                filename: OpenProject::Thematiq::Transfer.file_name(token_set),
+                type: "application/json", disposition: "attachment"
+    end
+
+    # Reads an uploaded file as the custom design system. The file is hostile input: Transfer checks all of it.
+    def import
+      imported = OpenProject::Thematiq::Transfer.import(uploaded_text)
+      draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: imported.name.first(80),
+                                                     overrides: imported.tokens)
+      raise OpenProject::Thematiq::Transfer::Refused, "token_invalid" unless @store.save_custom(draft)
+
+      flash[:notice] = t("thematiq.transfer.notice_imported", name: draft.name)
+      redirect_to action: :show
+    rescue OpenProject::Thematiq::Transfer::Refused => e
+      flash[:error] = t("thematiq.transfer.errors.#{import_error_key(e.code)}")
+      redirect_to action: :show
+    end
+
     private
+
+    # At most one byte over the cap is read, so a huge upload is refused without being loaded.
+    def uploaded_text
+      file = params[:file]
+      return nil unless file.respond_to?(:read)
+
+      file.read(OpenProject::Thematiq::Transfer::MAX_BYTES + 1)
+    end
+
+    def import_error_key(code)
+      %w[empty too_large invalid_json unknown_keys token_invalid name_invalid].include?(code) ? code : "not_a_set"
+    end
 
     def new_draft(base)
       OpenProject::Thematiq::CustomDraft.new(base:, name: t("thematiq.editor.default_name", name: base.name).first(80), overrides: {})

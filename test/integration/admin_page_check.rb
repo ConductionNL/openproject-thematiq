@@ -185,6 +185,65 @@ begin
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
   admin.post "/admin/thematiq/custom", params: { delete: "1", authenticity_token: token }
   check("delete removes the custom design system") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
+
+  # 5. Export and import
+  require "tempfile"
+  upload = lambda do |content|
+    file = Tempfile.new(["thematiq-check", ".json"])
+    file.binmode
+    file.write(content)
+    file.close
+    Rack::Test::UploadedFile.new(file.path, "application/json")
+  end
+
+  as_member.get "/admin/thematiq/export", params: { id: default.id }
+  check("a non-admin cannot export") { as_member.response.status == 403 }
+
+  admin.get "/admin/thematiq/export", params: { id: default.id }
+  exported = admin.response.body
+  check("export sends a JSON attachment") do
+    admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
+      admin.response.media_type == "application/json"
+  end
+  check("the export is the set shape") { JSON.parse(exported).keys == %w[id name tokens logo] }
+  admin.get "/admin/thematiq/export", params: { id: "no-such-set" }
+  check("export of an unknown design system gives 404") { admin.response.status == 404 }
+  admin.get "/admin/thematiq/export", params: { id: "custom" }
+  check("export of a custom design system that does not exist gives 404") { admin.response.status == 404 }
+
+  import = lambda do |content|
+    token = form_token(admin, "/admin/thematiq", "thematiq-import-form")
+    admin.post "/admin/thematiq/import", params: { file: upload.call(content), authenticity_token: token }
+    admin.follow_redirect!
+    admin.response.body
+  end
+
+  good = JSON.parse(exported).merge("id" => "moved", "name" => "Moved style")
+  good["tokens"]["primary"] = "#aa0055"
+  body = import.call(JSON.generate(good))
+  store = OpenProject::Thematiq::Store.new
+  check("import stores the file as the custom design system") { store.custom_draft&.name == "Moved style" && store.custom_set["primary"] == "#aa0055" }
+  check("import does not apply it") { !store.custom_active? && body.include?("is imported as your custom design system") }
+
+  { "a hostile token value" => JSON.generate(good.merge("tokens" => good["tokens"].merge("action" => "red; } body { display:none"))),
+    "an unknown key" => JSON.generate(good.merge("script" => "<script>alert(1)</script>")),
+    "a file that is not JSON" => "<html><script>alert(1)</script></html>",
+    "a file over the size cap" => JSON.generate(good) + (" " * 70_000),
+    "an empty file" => "" }.each do |label, content|
+    body = import.call(content)
+    check("import refuses #{label} and says why") { ["Nothing was imported", "is not a design system file", "Choose a file first", "The file is too large"].any? { |text| body.include?(text) } }
+    check("after #{label} the stored custom design system is unchanged") { OpenProject::Thematiq::Store.new.custom_set["primary"] == "#aa0055" }
+    check("after #{label} nothing hostile is on the page") { !body.include?("<script>alert(1)</script>") && !head_style(admin).include?("display:none") }
+  end
+
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq/import", params: { file: upload.call(JSON.generate(good)) }
+  check("an import without a CSRF token is refused") { throwaway.response.status == 422 }
+
+  admin.get "/admin/thematiq/export", params: { id: "custom" }
+  check("the custom design system exports and imports back to the same tokens") do
+    OpenProject::Thematiq::Transfer.import(admin.response.body).tokens == OpenProject::Thematiq::Store.new.custom_set.tokens
+  end
 ensure
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy

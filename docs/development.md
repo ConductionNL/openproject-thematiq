@@ -60,6 +60,10 @@ Then run the `docker run` command again.
 | `data/catalogue/`, `lib/open_project/thematiq/catalogue.rb` | The design systems that ship with the plugin, and their loader |
 | `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
+| `lib/open_project/thematiq/preview.rb` | The inline styles of the small pictures and the shell preview |
+| `lib/open_project/thematiq/custom_draft.rb` | The custom design system: a base plus overrides |
+| `lib/open_project/thematiq/transfer.rb` | Export and import of one design system |
+| `bin/check-syntax` | Compiles every Ruby file and template without a database |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `test/` | The unit tests, run with `bin/test` |
 | `app/views/thematiq/hooks/` | The partials the hooks render |

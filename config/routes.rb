@@ -5,4 +5,6 @@ Rails.application.routes.draw do
   post "admin/thematiq", to: "thematiq/admin#update"
   get "admin/thematiq/custom", to: "thematiq/admin#edit", as: :admin_thematiq_custom
   post "admin/thematiq/custom", to: "thematiq/admin#update_custom"
+  get "admin/thematiq/export", to: "thematiq/admin#export", as: :admin_thematiq_export
+  post "admin/thematiq/import", to: "thematiq/admin#import", as: :admin_thematiq_import
 end
