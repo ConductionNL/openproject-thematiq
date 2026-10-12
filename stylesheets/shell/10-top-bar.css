@@ -207,7 +207,7 @@
   .thematiq-account { display: none; }
 }
 @media screen and (min-width: 1012px) and (max-width: 1359px) {
-  .op-app-header { grid-template-columns: auto minmax(260px, 460px) minmax(max-content, 1fr); }
+  .op-app-header { grid-template-columns: auto minmax(240px, 460px) minmax(max-content, 1fr); }
 }
 
 /* Below 1240 px the row folds into the app switcher. The current tile stays, after the button.
