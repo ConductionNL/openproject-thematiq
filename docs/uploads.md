@@ -51,6 +51,27 @@ The page tells you when parts were left out. Look at the preview: a logo that re
 
 `lib/open_project/thematiq/uploads/svg.rb` holds the lists. `test/fixtures/uploads/` holds the hostile files the tests feed it.
 
+## Where each file shows
+
+| Kind | How it reaches the page |
+|---|---|
+| Logo, logo for the coloured top bar | The one logo rule of the shell, `Shell::Logo`, fed by `Assets`. The variant for the coloured bar comes first |
+| Mobile logo | A rule of the same shape for the element OpenProject shows below 850 px |
+| Favicon, touch icon | `link` elements in the page head, on every layout the plugin reaches. [layouts.md](layouts.md) says where they sit |
+| Font | One `@font-face` rule per file, with `font-display: swap` |
+
+Only a custom design system has uploads. A design system of the catalogue keeps its bundled files. An upload on a custom design system wins over the files of its base.
+
+## Export and import
+
+Uploaded files stay on the installation. An export holds no file. It lists the kinds it left behind:
+
+```json
+"uploads": { "included": false, "note": "...", "kinds": ["logo", "font"] }
+```
+
+The import tells the administrator which files to upload again. Two reasons: a font file is often not free to pass on, and the export file has a 64 KB limit that one logo can already pass.
+
 ## Where the files live
 
 The files are in the database, in a table of the plugin's own: `thematiq_uploads`. Each row holds one file with its bytes.

@@ -23,7 +23,7 @@ The files were copied from thematiq at the commit the catalogue names in `genera
 
 ## The logo
 
-The top bar has the primary colour as its background. So the plugin shows the variant for dark backgrounds when the design system has one, and the normal logo otherwise. A custom design system keeps the logo of the design system it is based on.
+The top bar has the primary colour as its background. So the plugin shows the variant for dark backgrounds when the design system has one, and the normal logo otherwise. A custom design system keeps the logo of the design system it is based on, until you upload one. An uploaded logo wins.
 
 ## The font
 
@@ -31,12 +31,13 @@ For the active design system, the plugin writes one `@font-face` rule per bundle
 
 For 42 of the 64 design systems the first font in the stack ships with the plugin. For the other 22 it does not: a system font such as Arial, or a house font the catalogue does not mark as free to pass on. Those pages fall through the stack. Cunningham names Marianne first, which is not bundled, and Inter second, which is, so Cunningham renders in Inter.
 
+A custom design system can also load fonts you uploaded. An uploaded family replaces the bundled files of the same family.
+
 The admin page says which case applies to the active design system.
 
 ## What is not built
 
-- Uploading a logo or a font for a custom design system.
-- A mobile logo, a favicon and a touch icon per design system. The catalogue has none.
+- A mobile logo, a favicon and a touch icon for a design system of the catalogue. The catalogue has none. A custom design system gets them by upload, see [uploads.md](uploads.md).
 - A logo on the sign in page that differs from the one in the top bar.
 
 To add files after a catalogue change, copy the redistributable ones into the two folders and run `bin/test`. It fails on a file no redistributable entry names.

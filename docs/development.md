@@ -63,6 +63,8 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/preview.rb` | The inline styles of the small pictures and the shell preview |
 | `lib/open_project/thematiq/custom_draft.rb` | The custom design system: a base plus overrides |
 | `lib/open_project/thematiq/transfer.rb` | Export and import of one design system |
+| `lib/open_project/thematiq/uploads/`, `app/models/thematiq/upload.rb`, `db/migrate/` | Uploaded logos, icons and fonts: the content checks, the SVG rebuild and the table |
+| `app/controllers/thematiq/files_controller.rb` | The public endpoint that serves uploaded files |
 | `bin/check-syntax` | Compiles every Ruby file and template without a database |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar and the project menu: helper overrides, the app switcher column, the logo rule |

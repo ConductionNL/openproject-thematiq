@@ -28,7 +28,7 @@
           <input type="hidden" name="id" value="<%= @draft.id %>">
           <input type="hidden" name="kind" value="<%= kind.name %>">
           <h4 class="thematiq-files__name">
-            <%= t("thematiq.uploads.kinds.#{kind.name}.label") %>
+            <%= t("thematiq.uploads.kinds.#{kind.name}.label").upcase_first %>
             <span class="thematiq-editor__role"><%= t("thematiq.uploads.kinds.#{kind.name}.hint") %></span>
           </h4>
 
@@ -80,7 +80,7 @@
       <input type="hidden" name="id" value="<%= @draft.id %>">
       <input type="hidden" name="kind" value="font">
       <h4 class="thematiq-files__name">
-        <%= t("thematiq.uploads.kinds.font.label") %>
+        <%= t("thematiq.uploads.kinds.font.label").upcase_first %>
         <span class="thematiq-editor__role"><%= t("thematiq.uploads.kinds.font.hint") %></span>
       </h4>
 
@@ -88,7 +88,7 @@
         <ul class="thematiq-files__fonts">
           <% fonts.each do |record| %>
             <li class="thematiq-files__font">
-              <span class="thematiq-files__sample" style="font-family: '<%= record.face.family %>'; font-weight: <%= record.face.weight.split.first %>; font-style: <%= record.face.style %>" aria-hidden="true"><%= t("thematiq.uploads.font_sample") %></span>
+              <span class="thematiq-files__sample" style="font-family: '<%= record.face.family %>'; font-weight: <%= record.face.weight.include?(" ") ? "400" : record.face.weight %>; font-style: <%= record.face.style %>" aria-hidden="true"><%= t("thematiq.uploads.font_sample") %></span>
               <span>
                 <strong><%= record.face.family %></strong>
                 <%= t("thematiq.uploads.font_face", weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"), style: t("thematiq.uploads.styles.#{record.face.style}")) %>
