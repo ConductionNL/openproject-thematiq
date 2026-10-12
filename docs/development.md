@@ -37,7 +37,7 @@ The first start seeds the database and takes a few minutes. Open `http://localho
 1. Open **Administration**, then **Plugins**. The list shows "Thematiq" with its version.
 2. View the source of any page. The head has a `<style id="openproject-thematiq">` tag.
 
-Pages on the sign in layout do not get the style tag. OpenProject only calls the head hook from its base layout.
+[layouts.md](layouts.md) lists which pages get which style tag.
 
 ## Change the code
 

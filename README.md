@@ -94,7 +94,7 @@ Start OpenProject on the plain `openproject/openproject:17` image again. The plu
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. The sign in page is not styled. A logo ships for 14 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You cannot upload a logo or a font yet. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 14 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You cannot upload a logo or a font yet. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 

@@ -97,6 +97,94 @@ class GeneratorTest < Minitest::Test
     assert_equal Generator.new(TokenSet.fallback).css, css
   end
 
+  # --- the early variant, for the top of the head ---
+
+  def test_the_early_variant_puts_everything_that_depends_on_order_on_the_body
+    all = blocks(Generator.new(set(FULL), early: true).css)
+
+    assert_equal [":root", "body[data-color-mode]", Generator::LIGHT_SCOPE], all.keys
+    refute_includes all[":root"], "--body-font-family", "OpenProject sets this on :root later in the page, so :root would lose"
+    assert_includes all[":root"], "  --thematiq-radius: 8px;"
+    assert_includes all["body[data-color-mode]"], "  --body-font-family: 'Fira Sans', system-ui, sans-serif;"
+    assert_includes all["body[data-color-mode]"], "  --borderRadius-medium: 10px;"
+  end
+
+  def test_the_early_and_the_late_variant_declare_the_same_variables
+    names = ->(css) { css.scan(/^  (--[\w-]+):/).flatten.sort }
+
+    assert_equal names.call(Generator.new(set(FULL)).css), names.call(Generator.new(set(FULL), early: true).css)
+    assert_safe Generator.new(set(FULL), early: true).css, "early"
+  end
+
+  # --- the optional dark block ---
+
+  def dark_set(dark)
+    TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL, "dark" => dark })
+  end
+
+  def test_without_a_dark_block_the_dark_theme_gets_nothing
+    css = Generator.new(set(FULL)).css
+
+    refute_includes css, Generator::DARK_SCOPE
+    refute set(FULL).dark?
+  end
+
+  def test_a_dark_block_writes_its_colours_to_the_dark_theme_only
+    css = Generator.new(dark_set("primary" => "#0b1f33", "ink" => "#f0f6fc", "action" => "#2ea043")).css
+    dark = css[/#{Regexp.escape(Generator::DARK_SCOPE)} \{\n(.*?)\n\}/m, 1]
+
+    assert_includes dark, "  --header-bg-color: #0b1f33;"
+    assert_includes dark, "  --fgColor-default: #f0f6fc;"
+    assert_includes dark, "  --primary-button-color: #2ea043;"
+    assert_includes dark, "  --thematiq-ink: #f0f6fc;"
+    refute_includes dark, "#ffffff", "white surfaces of the light theme do not leak into the dark theme"
+    refute_includes dark, "--main-menu-bg-color", "what the dark block does not name stays OpenProject's"
+    refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#0b1f33"
+  end
+
+  def test_hostile_dark_values_are_dropped_and_listed
+    token_set = dark_set("primary" => "red; } body { display:none", "ink" => "#f0f6fc", "radius" => "9px", "junk" => "#fff")
+    css = Generator.new(token_set).css
+
+    assert_equal({ "ink" => "#f0f6fc" }, token_set.dark_tokens)
+    assert_equal %w[dark.primary], token_set.rejected
+    refute_match(/display|[<>\\@]|url\(/, css)
+    assert_equal 4, css.count("{")
+    assert_equal 4, css.count("}")
+  end
+
+  def test_every_hostile_value_in_every_dark_role
+    TokenSet::DARK_KEYS.each do |key|
+      HOSTILE_VALUES.each do |value|
+        token_set = dark_set(key => value)
+
+        assert_nil token_set.dark_tokens[key], "dark #{key} took #{value.inspect}"
+        refute_match(/display|[<>\\@]|url\(|expression/i, Generator.new(token_set).css)
+      end
+    end
+  end
+
+  def test_a_dark_block_that_is_not_an_object_refuses_the_set
+    ["x", [], 7].each { |dark| assert_raises(TokenSet::InvalidSet) { dark_set(dark) } }
+  end
+
+  def test_the_dark_block_survives_the_set_shape_and_strict_mode
+    token_set = dark_set("primary" => "#0b1f33")
+    copy = TokenSet.from_set(token_set.to_set, strict: true)
+
+    assert_equal({ "primary" => "#0b1f33" }, copy.dark_tokens)
+    assert_equal "unknown_keys", assert_raises(TokenSet::InvalidSet) {
+      TokenSet.from_set(token_set.to_set.merge("dark" => { "radius" => "9px" }), strict: true)
+    }.message
+    refute_includes set(FULL).to_set.keys, "dark"
+  end
+
+  def test_a_custom_set_keeps_the_dark_block_of_its_base
+    draft = OpenProject::Thematiq::CustomDraft.new(base: dark_set("primary" => "#0b1f33"), name: "Mine", overrides: {})
+
+    assert_equal({ "primary" => "#0b1f33" }, draft.token_set.dark_tokens)
+  end
+
   # Structural check: exactly three rules, every line inside a rule is one "--name: value;" declaration.
   def assert_safe(css, label)
     refute_match(/[<>\\@]|\/\*.*\*\/.*\/\*|url\(|expression|javascript|display|!important/i, css, label)

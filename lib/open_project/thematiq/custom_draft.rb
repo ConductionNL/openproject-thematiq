@@ -55,7 +55,7 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id: ID, name: name || base.name, tokens: overrides, base: base.tokens,
+        Tokens::TokenSet.new(id: ID, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens,
                              logo_file: base.logo_file, logo_inverse_file: base.logo_inverse_file, logo_licence: base.logo_licence)
       end
 

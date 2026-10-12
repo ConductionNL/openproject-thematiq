@@ -78,6 +78,30 @@ begin
   check("the page names the active design system") { body.include?("Active design system") && body.include?("Cunningham") }
   check("the head style carries the Cunningham primary colour") { head_style(admin).include?("--header-bg-color: #{OpenProject::Thematiq::Catalogue.bundled.default['primary']};") }
 
+  # 1b. Which pages carry the style tags
+  anonymous.get "/login"
+  check("the sign in page carries the full style tag") do
+    anonymous.response.status == 200 && anonymous.response.body.include?('<style id="openproject-thematiq"') &&
+      anonymous.response.body.include?('<style id="openproject-thematiq-early"')
+  end
+  check("the early style tag comes before OpenProject's stylesheets and the full one after") do
+    page = anonymous.response.body
+    early = page.index('id="openproject-thematiq-early"')
+    sheet = page.index('rel="stylesheet"')
+    full = page.index('<style id="openproject-thematiq"')
+    early && sheet && full && early < sheet && sheet < full
+  end
+  admin.get "/this-page-does-not-exist-#{SecureRandom.hex(4)}"
+  check("an error page carries the early style tag") do
+    admin.response.status == 404 && admin.response.body.include?('<style id="openproject-thematiq-early"')
+  end
+  %w[/thematiq/logos/zuiddrecht.svg /thematiq/fonts/inter-latin-400-normal.woff2 /thematiq/fonts/OFL.txt].each do |path|
+    anonymous.get path
+    check("the plugin serves #{path} without a sign in") { anonymous.response.status == 200 && anonymous.response.body.bytesize > 500 }
+  end
+  anonymous.get "/thematiq/logos/..%2F..%2F..%2Fconfig%2Fdatabase.yml"
+  check("the static handler does not leave its folder") { anonymous.response.status != 200 }
+
   # 2. The removed link stays removed
   check("no background job of the plugin is scheduled") { Rails.application.config.good_job.cron.keys.grep(/Thematiq/).empty? }
   check("the plugin has no HTTP client") { !defined?(OpenProject::Thematiq::Tokens::Client) }

@@ -17,6 +17,11 @@ module OpenProject
       # An entry whose token is missing from the set is left out, so OpenProject's own value stays.
       class Generator
         LIGHT_SCOPE = 'body[data-color-mode="light"][data-light-theme="light"]'
+        DARK_SCOPE = 'body[data-color-mode="dark"][data-dark-theme="dark"]'
+        MODE_SCOPE = "[data-color-mode]"
+        # The same block for a page where this CSS comes before OpenProject's own stylesheets:
+        # one element more in the selector, so it wins without relying on source order.
+        EARLY_MODE_SCOPE = "body[data-color-mode]"
         WHITE = "#ffffff"
 
         # OpenProject's own design variables, the ones its Enterprise design page writes.
@@ -98,23 +103,32 @@ module OpenProject
           "--body-font-family" => :"font-family"
         }.freeze
 
+        ROOT_ALIASES = ROOT_SHAPE.reject { |variable, _| variable == "--body-font-family" }.freeze
+        BODY_FONT = { "--body-font-family" => :"font-family" }.freeze
+
         PRIMER_SHAPE = {
           "--borderRadius-medium" => :"radius-lg",
           "--fontStack-system" => :"font-family",
           "--fontStack-sansSerif" => :"font-family"
         }.freeze
 
-        def initialize(token_set)
+        # early: true gives the variant for the top of the head, before OpenProject's stylesheets.
+        # It moves everything that would otherwise depend on source order onto the body element.
+        def initialize(token_set, early: false)
           @token_set = token_set
+          @early = early
         end
 
         def css
-          [
+          blocks = [
             "/* openproject-thematiq, variable layer. Generated from a validated token set. */",
-            block(":root", declarations(ROOT_SHAPE)),
-            block("[data-color-mode]", declarations(PRIMER_SHAPE) + fallback_aliases),
+            block(":root", declarations(@early ? ROOT_ALIASES : ROOT_SHAPE)),
+            block(@early ? EARLY_MODE_SCOPE : MODE_SCOPE,
+                  (@early ? declarations(BODY_FONT) : []) + declarations(PRIMER_SHAPE) + fallback_aliases),
             block(LIGHT_SCOPE, declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS) + light_aliases)
-          ].join("\n")
+          ]
+          blocks << block(DARK_SCOPE, dark_declarations) if @token_set.dark?
+          blocks.join("\n")
         end
 
         private
@@ -136,6 +150,15 @@ module OpenProject
 
         def resolve(source)
           source.is_a?(Symbol) ? @token_set[source.to_s] : source
+        end
+
+        # The dark theme only gets what the design system's dark block names. A literal such as white
+        # has no dark counterpart in the token set, so those entries stay OpenProject's own.
+        def dark_declarations
+          OPENPROJECT_COLORS.merge(PRIMER_COLORS).merge(COLOR_ALIASES.transform_values(&:first)).filter_map do |variable, source|
+            value = source.is_a?(Symbol) ? @token_set.dark_tokens[source.to_s] : nil
+            "  #{variable}: #{value};" if value
+          end
         end
 
         def block(selector, lines)

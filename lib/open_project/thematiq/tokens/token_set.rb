@@ -11,7 +11,8 @@ module OpenProject
       #
       # The set shape, shared by the bundled catalogue, the export file and the import file:
       #   { "id": "...", "name": "...", "tokens": { eighteen roles },
-      #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true } }
+      #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
+      #     "dark": { colour roles for the dark theme, optional } }
       class TokenSet
         class InvalidSet < StandardError; end
 
@@ -25,11 +26,12 @@ module OpenProject
           "font-family" => :font_family
         }.freeze
 
-        SET_KEYS = %w[id name tokens logo].freeze
+        SET_KEYS = %w[id name tokens logo dark].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
+        DARK_KEYS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
-        attr_reader :id, :name, :tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+        attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
 
         # The last resort: the values in Defaults. Used when the catalogue cannot be read.
         def self.fallback
@@ -53,14 +55,16 @@ module OpenProject
           raise InvalidSet, "id_invalid" unless set["id"].is_a?(String) && ID.match?(set["id"])
           raise InvalidSet, "tokens_missing" unless tokens.is_a?(Hash)
           raise InvalidSet, "logo_invalid" unless logo.is_a?(Hash)
+          raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
 
           if strict
-            unknown = (set.keys - SET_KEYS) + (tokens.keys - KINDS.keys) + (logo.keys - LOGO_KEYS)
+            unknown = (set.keys - SET_KEYS) + (tokens.keys - KINDS.keys) + (logo.keys - LOGO_KEYS) +
+                      ((set["dark"] || {}).keys - DARK_KEYS)
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
           end
 
-          token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:,
+          token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:, dark: set["dark"],
                           logo_file: logo["redistributable"] == true ? Validator.file_name(logo["file"]) : nil,
                           logo_inverse_file: logo["redistributable"] == true ? Validator.file_name(logo["inverse_file"]) : nil,
                           logo_licence: Validator.label(logo["licence"], max: 300))
@@ -69,7 +73,7 @@ module OpenProject
           token_set
         end
 
-        def initialize(id:, name:, tokens:, base: Defaults::TOKENS, logo_file: nil, logo_inverse_file: nil, logo_licence: nil)
+        def initialize(id:, name:, tokens:, base: Defaults::TOKENS, dark: nil, logo_file: nil, logo_inverse_file: nil, logo_licence: nil)
           @id = id
           @name = name
           @logo_file = logo_file
@@ -77,6 +81,7 @@ module OpenProject
           @logo_licence = logo_licence
           @rejected = []
           @tokens = clean(tokens, base).freeze
+          @dark_tokens = clean_dark(dark).freeze
           @rejected.freeze
         end
 
@@ -84,14 +89,34 @@ module OpenProject
           tokens[key]
         end
 
+        # True when the design system brings its own colours for the dark theme.
+        def dark?
+          !dark_tokens.empty?
+        end
+
         # The set shape. This is what an export file holds.
         def to_set
-          { "id" => id, "name" => name, "tokens" => tokens.dup,
-            "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
-                        "redistributable" => !logo_file.nil? } }
+          set = { "id" => id, "name" => name, "tokens" => tokens.dup,
+                  "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
+                              "redistributable" => !logo_file.nil? } }
+          set["dark"] = dark_tokens.dup if dark?
+          set
         end
 
         private
+
+        # The optional dark block: colour roles only, no fallback. A role it does not name, or names with
+        # a value that fails, stays OpenProject's own dark colour.
+        def clean_dark(raw)
+          return {} unless raw.is_a?(Hash)
+
+          DARK_KEYS.each_with_object({}) do |key, result|
+            given = raw[key]
+            value = Validator.color(given)
+            @rejected << "dark.#{key}" if !given.nil? && value.nil?
+            result[key] = value if value
+          end
+        end
 
         def clean(raw, base)
           KINDS.each_with_object({}) do |(key, kind), result|

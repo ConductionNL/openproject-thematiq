@@ -32,7 +32,19 @@ The last resort values have no `accent`, `text` and `chip`. The variables for th
 2. `[data-color-mode]` gets the `--thematiq-*` colour aliases, filled from Primer's own variables.
 3. The light theme gets the token colours, on OpenProject's variables, on Primer's variables and on the `--thematiq-*` aliases.
 
-A design system has no dark values. So the dark theme and both high contrast themes keep OpenProject's own colours. Only radius and font follow the tokens there.
+## The dark theme
+
+A design system may bring a `dark` block next to `tokens`: the fifteen colour roles, each optional.
+
+```json
+{ "id": "example", "name": "Example", "tokens": { "primary": "#1a67a3" }, "dark": { "primary": "#0b1f33", "ink": "#f0f6fc" } }
+```
+
+When a set has one, the generator writes a fourth block for `body[data-color-mode="dark"][data-dark-theme="dark"]`. It holds only the roles the block names. Everything else stays OpenProject's own dark colour. White surfaces of the light theme are never copied into the dark theme.
+
+None of the 64 bundled design systems has a `dark` block today, and the plugin does not derive one. So the dark theme keeps OpenProject's own colours, and only radius and font follow the tokens there. The two high contrast themes always keep OpenProject's colours.
+
+"Sync with OS" was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
 
 ## Run the tests
 

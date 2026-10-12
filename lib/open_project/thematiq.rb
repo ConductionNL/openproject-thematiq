@@ -29,13 +29,22 @@ module OpenProject
     require "open_project/thematiq/stylesheet"
 
     # The token set the pages are styled with right now.
+    # It never raises. A design plugin must not be the reason a page fails, least of all an error page
+    # that is shown because the database is away. Then the default design system is used.
     def self.active_token_set
       Store.new.active_token_set
+    rescue StandardError
+      Catalogue.bundled.default
     end
 
     # The CSS the head hook inlines on every page that uses the base layout.
     def self.stylesheet
       Stylesheet.css(active_token_set)
+    end
+
+    # The variable layer for the meta hook, which every layout with OpenProject's shared head calls.
+    def self.early_stylesheet
+      Stylesheet.early_css(active_token_set)
     end
 
     # The CSS that names files the plugin serves: the fonts and the logo of the active design system.

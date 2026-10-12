@@ -19,6 +19,11 @@ module OpenProject
         end
       end
 
+      # The variable layer for the top of the head. It reaches the layouts that do not call the head hook.
+      def early_css(token_set)
+        Variables::Generator.new(token_set, early: true).css
+      end
+
       def static_layers
         @static_layers ||= Dir[File.join(STYLESHEET_DIR, "**", "*.css")].sort.map { |path| File.read(path) }.join("\n")
       end
