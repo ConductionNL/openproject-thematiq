@@ -13,7 +13,7 @@ module OpenProject
   #   OpenProject::Thematiq::Variables   the variable layer: tokens to CSS variables
   #   OpenProject::Thematiq::Stylesheet  the variable layer plus the static layers in stylesheets/
   #   OpenProject::Thematiq::Store       what the plugin keeps in OpenProject's settings
-  #   OpenProject::Thematiq::Shell       reserved for the shared top bar and project menu
+  #   OpenProject::Thematiq::Shell       the shared top bar (and later the project menu)
   module Thematiq
     ROOT = File.expand_path("../..", __dir__)
     STYLESHEET_DIR = File.join(ROOT, "stylesheets")
@@ -47,15 +47,11 @@ module OpenProject
       Stylesheet.early_css(active_token_set)
     end
 
-    # The CSS that names files the plugin serves: the fonts and the logo of the active design system.
+    # The @font-face rules for the fonts of the active design system, which the plugin serves itself.
     # root is the path OpenProject is mounted under, empty when it runs at the top of its host.
+    # The logo rule is the shell's: OpenProject::Thematiq::Shell::Logo.
     def self.asset_stylesheet(root: "")
-      token_set = active_token_set
-      assets = Assets.bundled
-      logo = assets.logo_url(token_set, root:)
-      rules = [assets.font_face_css(token_set, root:)]
-      rules << ".op-app-header .op-logo--link { background-image: url(#{logo}); }" if logo
-      rules.reject(&:empty?).join("\n")
+      Assets.bundled.font_face_css(active_token_set, root:)
     end
 
     require "open_project/thematiq/engine" if defined?(::Rails::Engine)

@@ -8,3 +8,5 @@
 <%= raw early_asset_css %>
 </style>
 <% end %>
+<%# The logo rule is specific enough to win from here too, so the logo-only layout gets the logo as well. %>
+<%= render partial: "thematiq/shell/head", locals: { style_id: "openproject-thematiq-early-logo" } %>

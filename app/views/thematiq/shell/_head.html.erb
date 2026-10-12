@@ -1,0 +1,6 @@
+<%# The logo of the active design system. Rendered from the head hook, after the stylesheet. %>
+<% logo_css = OpenProject::Thematiq::Shell::Logo.css(OpenProject::Thematiq.active_token_set,
+                                                      root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
+<% if logo_css.present? %>
+<style id="<%= local_assigns.fetch(:style_id, "openproject-thematiq-logo") %>"><%= raw logo_css %></style>
+<% end %>

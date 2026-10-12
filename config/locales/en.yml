@@ -124,3 +124,21 @@ en:
       radius: { label: "Radius", hint: "buttons and menu items" }
       radius-lg: { label: "Radius, large", hint: "inputs and panels" }
       font-family: { label: "Font", hint: "all text" }
+    shell:
+      settings:
+        title: "App switcher"
+        nextcloud_url: "Nextcloud address"
+        nextcloud_url_caption: "Optional. With an address, the app switcher also links to Files, Mail, Calendar, Tasks, Talk and Contacts in that Nextcloud. OpenProject never contacts the address itself."
+        save: "Save"
+        notice_saved: "Saved. The app switcher now links to Nextcloud."
+        notice_cleared: "Saved. The app switcher shows OpenProject only."
+        error_invalid: "Enter a full address that starts with http:// or https://, or leave the field empty."
+      app_switcher:
+        nextcloud: "Nextcloud"
+        apps:
+          files: "Files"
+          mail: "Mail"
+          calendar: "Calendar"
+          tasks: "Tasks"
+          talk: "Talk"
+          contacts: "Contacts"

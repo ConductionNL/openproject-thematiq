@@ -14,6 +14,11 @@ module OpenProject
     class Hooks < OpenProject::Hook::ViewListener
       render_on :view_layouts_base_html_meta, partial: "thematiq/hooks/meta"
       render_on :view_layouts_base_html_head, partial: "thematiq/hooks/head"
+
+      # Core calls this hook at the top of the app switcher dialog, before its own module list
+      # (lib/redmine/menu_manager/top_menu/module_menu.rb). The module list itself stays core's:
+      # it comes from OpenProject's menu and permission helpers.
+      render_on :module_menu_dialog_content_before, partial: "thematiq/shell/app_switcher_nextcloud"
     end
   end
 end

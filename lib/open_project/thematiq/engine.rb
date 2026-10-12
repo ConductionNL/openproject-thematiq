@@ -31,6 +31,8 @@ module OpenProject
       config.to_prepare do
         require "open_project/thematiq/store"
         require "open_project/thematiq/hooks"
+        require "open_project/thematiq/shell"
+        OpenProject::Thematiq::Shell.install!
       end
     end
   end
