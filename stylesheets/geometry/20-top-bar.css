@@ -1,15 +1,16 @@
-/* Top bar. Canon: OpHeader, measured from DqKop.
- * The spike wrote the app name with ::after content. Generated content is not reliable for
- * screen readers, so it is left out here. The shell adds the app name as real markup. */
+/* Top bar. Canon: OpHeader.
+ * The bar prints no app name: the logo carries it, and the row of apps the shell adds shows where you are. */
 
 /* height 68 px, full width */
-.op-app-header { height: 68px; padding: 0 20px; box-sizing: border-box; font-family: var(--thematiq-font); grid-template-columns: 417px 560px 1fr; }
-.op-app-header--start { width: 417px; padding-left: 0; }
+/* three columns: the brand block with the row of apps as wide as they are, the search, the rest */
+.op-app-header { height: 68px; padding: 0 20px 0 0; box-sizing: border-box; font-family: var(--thematiq-font); grid-template-columns: auto minmax(240px, 560px) 1fr; column-gap: 16px; }
+.op-app-header--start { width: auto; padding-left: 0; }
 .op-app-header--end { flex: 0 0 auto; width: auto; margin-left: auto; padding-right: 0; }
 .op-app-header .op-app-menu { display: flex; align-items: center; height: 68px; margin-left: 0; }
 
-/* brand block: 237 px wide, logo 26 px high */
-.op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: -1; height: 68px; display: flex; align-items: center; width: auto; min-width: 237px; margin: 0 39px 0 0; }
+/* brand block: as wide as the sidebar, so its right edge is the sidebar's edge. The logo starts at the
+ * sidebar's content edge, 14 px in, and is 26 px high. The sidebar's width is pinned in 10-variables.css. */
+.op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: -1; height: 68px; display: flex; align-items: center; box-sizing: border-box; width: var(--main-menu-width, 264px); min-width: var(--main-menu-width, 264px); padding-left: 14px; margin: 0; }
 .op-app-header .op-logo:not(.op-logo--icon) .op-logo--link { display: block; flex: 0 0 auto; height: 26px; width: 104px; min-width: 104px; background-size: contain; background-position: left center; }
 
 /* app switcher: 40 x 40 button, icon 20 px */
@@ -17,7 +18,7 @@
 .op-app-header .op-app-menu > .Button--iconOnly svg { width: 20px; height: 20px; }
 
 /* search: flex 0 1 560px, 44 px high, 1 px border, radius-lg, 15 px text */
-.op-app-header--center { flex: 0 1 560px; width: 560px; margin: 0; justify-content: flex-start; }
+.op-app-header--center { width: 100%; margin: 0; justify-content: flex-start; }
 .op-app-header .op-app-search, .op-app-header opce-global-search { display: block; width: 100%; }
 .op-app-header .top-menu-search { width: 100% !important; max-width: none !important; margin: 0; height: 68px; }
 .op-app-header .top-menu-search .op-autocompleter, .op-app-header .top-menu-search ng-select { width: 100% !important; max-width: none !important; }
@@ -43,9 +44,9 @@
  * its fixed columns would push the right side off a narrow screen. So the columns, the brand block
  * and the search go back to sizes that follow the content. */
 @media screen and (max-width: 1011px) {
-  .op-app-header { grid-template-columns: minmax(0, auto) 1fr auto; padding: 0 6px; }
+  .op-app-header { grid-template-columns: minmax(0, auto) 1fr auto; column-gap: 0; padding: 0 6px; }
   .op-app-header--start { width: auto; }
-  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; min-width: 0; margin: 0 8px 0 0; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; width: auto; min-width: 0; padding-left: 0; margin: 0 8px 0 0; }
   .op-app-header--center { flex: 1 1 auto; width: auto; justify-content: flex-end; }
   .op-app-header .op-app-search,
   .op-app-header opce-global-search { display: flex; width: auto; }

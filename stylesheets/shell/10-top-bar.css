@@ -2,7 +2,7 @@
  *
  * This file comes after stylesheets/geometry/ in path order and builds on 20-top-bar.css,
  * which sets the bar height, the three columns, the search field and the button sizes.
- * Here: what the shell adds or reorders. The app name, the account label, the outline icons,
+ * Here: what the shell adds or reorders. The row of apps, the account label, the outline icons,
  * the unread dot and the app switcher popover.
  * Selectors are OpenProject 17.9.1 class names, plus the thematiq-* classes the shell renders.
  */
@@ -143,17 +143,47 @@
 .thematiq-account--name { font-size: 15px; font-weight: 700; }
 .thematiq-account--role { font-size: 13px; font-weight: 400; opacity: 0.85; }
 
-/* App name: real text after the logo, 18 px weight 700, with a 1 px rule before it. */
-.thematiq-app-name {
-  align-self: center;
-  margin-left: 12px;
-  padding: 0 12px;
-  border-left: 1px solid var(--shell-divider);
+/* The row of apps and modules after the brand block. Each one is a link with its name in a tooltip. */
+.thematiq-app-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.thematiq-app-row > li { position: relative; margin: 0; padding: 0; list-style: none; }
+.op-app-header .thematiq-app-row--item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--thematiq-radius);
   color: var(--thematiq-on-primary);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 28px;
-  white-space: nowrap;
+  text-decoration: none;
+}
+.op-app-header .thematiq-app-row--item svg { width: 20px; height: 20px; color: inherit; fill: currentColor; }
+.op-app-header .thematiq-app-row--item svg[fill="none"] { fill: none; }
+.op-app-header .thematiq-app-row--item:hover { background: var(--shell-hover); color: var(--thematiq-on-primary); }
+.op-app-header .thematiq-app-row--item:focus-visible { outline: 2px solid var(--thematiq-on-primary); outline-offset: -2px; }
+.thematiq-app-row--letter { font-size: 15px; font-weight: 700; }
+/* Where you are: a filled tile and a short line under the icon, so it does not rest on colour alone. */
+.op-app-header .thematiq-app-row--item[aria-current="page"] { background: var(--shell-hover); }
+.op-app-header .thematiq-app-row--item[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--thematiq-on-primary);
+}
+
+/* Below 1200 px the row gives its room to the search field. Everything in it is in the app switcher too. */
+@media screen and (max-width: 1199px) {
+  .thematiq-app-row { display: none; }
 }
 
 /* The small logo is a square mark in a 130 px box. With the app switcher after it, that box
@@ -165,7 +195,6 @@
 /* Below 1012 px OpenProject uses its compact header. The texts do not fit there.
  * The geometry layer gives the header its compact columns below that width itself (geometry/20-top-bar.css). */
 @media screen and (max-width: 1011px) {
-  .thematiq-app-name,
   .thematiq-account,
   .op-app-header--end > button.op-app-menu--item .Button-label::after { display: none; }
 }
@@ -173,12 +202,20 @@
 /* ---------- Desktop ---------- */
 
 @media screen and (min-width: 1012px) {
-  /* Brand: logo, rule, app name, then the app switcher. The geometry layer reserved 237 px on the
-   * logo for a name it no longer writes, so the logo goes back to its own width here. */
-  .op-app-header .op-app-menu { gap: 12px; }
-  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; min-width: 0; margin: 0; }
-  .op-app-header .op-logo:not(.op-logo--icon) .op-logo--link { width: 120px; min-width: 0; margin: 0; }
-  .op-app-header .op-app-menu > .thematiq-app-name { margin-left: 0; }
+  /* After the brand block: the row of apps, then the app switcher as the "more" button.
+   * The brand block is as wide as the sidebar (geometry/20-top-bar.css), so its rule on the right
+   * sits on the sidebar's edge. */
+  .op-app-header .op-app-menu { gap: 4px; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { position: relative; margin-right: 8px; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 20px;
+    width: 1px;
+    height: 28px;
+    background: var(--shell-divider);
+  }
 
   /* Right side: 6 px between the buttons. Core adds Primer spacing utilities, which are !important. */
   .op-app-header--end { align-items: center; gap: 6px; }
@@ -229,9 +266,9 @@
 
   .op-app-header .op-app-menu dialog.Overlay.op-app-menu--item {
     position: fixed;
-    inset: 72px auto auto 160px;
+    inset: 72px auto auto var(--main-menu-width, 264px);
     width: 640px;
-    max-width: calc(100vw - 176px);
+    max-width: calc(100vw - var(--main-menu-width, 264px) - 16px);
     height: auto;
     max-height: calc(100vh - 88px);
     margin: 0;

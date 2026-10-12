@@ -6,6 +6,7 @@ require "fileutils"
 require "open_project/thematiq/shell/core_guard"
 require "open_project/thematiq/shell/logo"
 require "open_project/thematiq/shell/nextcloud_apps"
+require "open_project/thematiq/shell/app_row"
 require "open_project/thematiq/shell/project_menu"
 
 class ShellTest < Minitest::Test
@@ -97,6 +98,28 @@ class ShellTest < Minitest::Test
       assert_empty paths - Shell::CoreGuard::FILES.keys
     end
     assert_equal Shell::CoreGuard::FILES.keys.sort, Shell::CoreGuard::PARTS.values.flatten.uniq.sort
+  end
+
+  def test_app_row_count_has_a_default_and_limits
+    row = Shell::AppRow
+
+    assert_equal 7, row.count(nil)
+    assert_equal 7, row.count("many")
+    assert_equal 7, row.count("-3")
+    assert_equal 0, row.count("0")
+    assert_equal 5, row.count(" 5 ")
+    assert_equal 12, row.count("40")
+  end
+
+  def test_app_row_marks_the_module_of_the_page
+    row = Shell::AppRow
+
+    assert row.current?("/", "/")
+    refute row.current?("/projects", "/")
+    assert row.current?("/projects/demo/work_packages", "/projects")
+    assert row.current?("/work_packages/", "http://localhost:8233/work_packages?query_id=3")
+    refute row.current?("/work_packages_other", "/work_packages")
+    refute row.current?("/my/page", "/my/time-tracking")
   end
 
   def test_the_menu_script_cannot_close_its_script_tag
