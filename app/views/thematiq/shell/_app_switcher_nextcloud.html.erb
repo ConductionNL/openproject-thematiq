@@ -1,0 +1,21 @@
+<%# Rendered inside the app switcher dialog, before OpenProject's own module list. The list is fixed: see Shell::NextcloudApps. %>
+<% apps = OpenProject::Thematiq::Shell::NextcloudApps %>
+<% base = OpenProject::Thematiq::Shell.nextcloud_url %>
+<% if base %>
+<section class="thematiq-apps thematiq-apps_nextcloud" aria-labelledby="thematiq-apps-nextcloud-title">
+  <h2 class="thematiq-apps--title" id="thematiq-apps-nextcloud-title"><%= t("thematiq.shell.app_switcher.nextcloud") %></h2>
+  <ul class="thematiq-apps--list">
+    <% apps::APPS.each do |app| %>
+      <li>
+        <a class="thematiq-apps--item" href="<%= apps.url_for(app, base) %>" data-allow-external-link="true">
+          <span class="thematiq-apps--icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="<%= app.icon %>"></path></svg>
+          </span>
+          <span class="thematiq-apps--name"><%= t("thematiq.shell.app_switcher.apps.#{app.key}") %></span>
+        </a>
+      </li>
+    <% end %>
+  </ul>
+</section>
+<h2 class="thematiq-apps--title thematiq-apps--title_core" id="thematiq-apps-core-title"><%= Setting.app_title %></h2>
+<% end %>

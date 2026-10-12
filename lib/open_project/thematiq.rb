@@ -12,7 +12,7 @@ module OpenProject
   #   OpenProject::Thematiq::Variables   the variable layer: tokens to CSS variables
   #   OpenProject::Thematiq::Stylesheet  the variable layer plus the static layers in stylesheets/
   #   OpenProject::Thematiq::Store       what the plugin keeps in OpenProject's settings
-  #   OpenProject::Thematiq::Shell       reserved for the shared top bar and project menu
+  #   OpenProject::Thematiq::Shell       the shared top bar (and later the project menu)
   module Thematiq
     ROOT = File.expand_path("../..", __dir__)
     STYLESHEET_DIR = File.join(ROOT, "stylesheets")

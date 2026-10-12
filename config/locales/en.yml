@@ -42,3 +42,13 @@ en:
       invalid_payload: "The answer does not follow the token contract this plugin supports."
       unexpected_not_modified: "Thematiq answered \"not modified\" but no design system is stored. Use \"Refresh now\"."
       unknown: "The fetch failed."
+    shell:
+      app_switcher:
+        nextcloud: "Nextcloud"
+        apps:
+          files: "Files"
+          mail: "Mail"
+          calendar: "Calendar"
+          tasks: "Tasks"
+          talk: "Talk"
+          contacts: "Contacts"
