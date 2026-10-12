@@ -2,3 +2,14 @@ en:
   plugin_openproject_thematiq:
     name: "Thematiq"
     description: "Gives OpenProject the same shell as a Nextcloud themed with thematiq."
+  thematiq:
+    shell:
+      app_switcher:
+        nextcloud: "Nextcloud"
+        apps:
+          files: "Files"
+          mail: "Mail"
+          calendar: "Calendar"
+          tasks: "Tasks"
+          talk: "Talk"
+          contacts: "Contacts"
