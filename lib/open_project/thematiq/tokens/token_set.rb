@@ -49,19 +49,21 @@ module OpenProject
               name: Validator.label(payload["name"]) || id,
               tokens: payload["tokens"],
               logo_url: Validator.absolute_http_url(logo["url"]),
-              logo_inverse_url: Validator.absolute_http_url(logo["inverse_url"]))
+              logo_inverse_url: Validator.absolute_http_url(logo["inverse_url"]),
+              rejected: payload["rejected"])
         end
 
-        def initialize(id:, name:, revision:, tokens:, logo_url: nil, logo_inverse_url: nil, bundled: false)
+        def initialize(id:, name:, revision:, tokens:, logo_url: nil, logo_inverse_url: nil, bundled: false, rejected: nil)
           @id = id
           @name = name
           @revision = revision
           @logo_url = logo_url
           @logo_inverse_url = logo_inverse_url
           @bundled = bundled
-          @rejected = []
+          # Keys refused earlier. The stored copy holds the fallback values, so it carries this list along.
+          @rejected = rejected.is_a?(Array) ? KINDS.keys & rejected : []
           @tokens = clean(tokens).freeze
-          @rejected.freeze
+          @rejected = (KINDS.keys & @rejected).freeze
         end
 
         def bundled?
@@ -75,7 +77,8 @@ module OpenProject
         # The shape that is stored and that .from_payload reads back.
         def to_payload
           { "version" => SUPPORTED_VERSION, "id" => id, "name" => name, "revision" => revision,
-            "tokens" => tokens.dup, "logo" => { "url" => logo_url, "inverse_url" => logo_inverse_url } }
+            "tokens" => tokens.dup, "logo" => { "url" => logo_url, "inverse_url" => logo_inverse_url },
+            "rejected" => rejected.dup }
         end
 
         private

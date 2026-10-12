@@ -40,7 +40,9 @@ def session_for(login = nil, password = nil)
 
   session.get "/login"
   token = session.response.body[/name="authenticity_token" value="([^"]+)"/, 1]
-  session.post "/login", params: { username: login, password:, authenticity_token: token }
+  session.post "/login", params: { username: login, password:, authenticity_token: CGI.unescapeHTML(token.to_s) }
+  # OpenProject walks through its authentication stages with redirects before the session is signed in.
+  5.times { session.response.redirect? ? session.follow_redirect! : break }
   session
 end
 
@@ -100,9 +102,11 @@ begin
   check("the page shows name, revision, last fetched") { ["Name", "Revision", "Last fetched", "Source"].all? { |text| body.include?(text) } }
   check("the admin menu has the item") { body.include?("Thematiq design") }
 
-  # 2. CSRF
-  admin.post "/admin/thematiq", params: { base_url: endpoint }
-  check("a post without a CSRF token is refused") { admin.response.status == 422 }
+  # 2. CSRF. OpenProject ends the session on a failed check, so this uses a session of its own.
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq", params: { base_url: endpoint }
+  check("a post without a CSRF token is refused") { throwaway.response.status == 422 }
+  check("the refused post changed nothing") { Setting.plugin_openproject_thematiq == saved_settings }
 
   # 3. Empty address: bundled default
   admin.post "/admin/thematiq", params: { base_url: "", authenticity_token: form_token(admin, "thematiq-connection-form") }

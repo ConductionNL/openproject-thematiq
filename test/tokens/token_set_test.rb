@@ -83,6 +83,20 @@ class TokenSetTest < Minitest::Test
     assert_equal set.revision, copy.revision
   end
 
+  def test_the_stored_shape_remembers_which_tokens_were_refused
+    set = TokenSet.from_payload(payload("action" => "red; } body { display:none"))
+    copy = TokenSet.from_payload(set.to_payload)
+
+    assert_equal %w[action], copy.rejected
+    assert_equal Defaults::TOKENS["action"], copy["action"]
+  end
+
+  def test_a_hostile_rejected_list_is_reduced_to_known_keys
+    set = TokenSet.from_payload(payload({}, "rejected" => ["action", "<script>", 7, "action"]))
+
+    assert_equal %w[action], set.rejected
+  end
+
   def test_bundled_set
     set = TokenSet.bundled
 
