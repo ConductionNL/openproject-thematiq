@@ -3,13 +3,13 @@
 module OpenProject
   module Thematiq
     module Tokens
-      # The bundled token set. The plugin uses it when thematiq is not configured or cannot be reached.
-      # The values are the Cunningham based example set the spike used (spike/theme.css).
-      # The spike had no value for "accent", "text" and "chip", so the bundled set leaves those out.
+      # The last resort values: what a token falls back to when its value is refused,
+      # and the whole set when the catalogue cannot be read.
+      # They are the Cunningham based example set the spike used (spike/theme.css).
+      # The spike had no value for "accent", "text" and "chip", so those are left out here.
       module Defaults
-        ID = "bundled-default"
-        NAME = "Bundled default"
-        REVISION = "bundled-1"
+        ID = "cunningham"
+        NAME = "Cunningham"
 
         TOKENS = {
           "primary" => "#1a67a3",

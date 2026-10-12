@@ -8,7 +8,7 @@ module OpenProject
   # Layout of this namespace:
   #   OpenProject::Thematiq::Engine      the Rails engine and plugin registration
   #   OpenProject::Thematiq::Hooks       the view hooks (page head)
-  #   OpenProject::Thematiq::Tokens      the token source: fetch, validate, bundled default
+  #   OpenProject::Thematiq::Tokens      the token model: token set, validator, last resort values
   #   OpenProject::Thematiq::Variables   the variable layer: tokens to CSS variables
   #   OpenProject::Thematiq::Stylesheet  the variable layer plus the static layers in stylesheets/
   #   OpenProject::Thematiq::Store       what the plugin keeps in OpenProject's settings
@@ -21,7 +21,7 @@ module OpenProject
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
 
-    # The token set the pages are styled with right now. Reads settings only, never the network.
+    # The token set the pages are styled with right now.
     def self.active_token_set
       Store.new.active_token_set
     end

@@ -56,10 +56,9 @@ Then run the `docker run` command again.
 |---|---|
 | `lib/open_project/thematiq/engine.rb` | The Rails engine and the plugin registration |
 | `lib/open_project/thematiq/hooks.rb` | The view hooks |
-| `lib/open_project/thematiq/tokens/` | The token source: fetch, check, bundled default |
+| `lib/open_project/thematiq/tokens/` | The token model: token set, validator, last resort values |
 | `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
-| `app/workers/thematiq/` | The background job that keeps the tokens current |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `test/` | The unit tests, run with `bin/test` |
 | `app/views/thematiq/hooks/` | The partials the hooks render |

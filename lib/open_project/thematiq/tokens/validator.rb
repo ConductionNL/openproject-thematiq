@@ -16,6 +16,8 @@ module OpenProject
         QUOTED_FAMILY = /\A(["'])([A-Za-z0-9 _.-]{1,60})\1\z/
         BARE_FAMILY = /\A-?[A-Za-z_][A-Za-z0-9_-]*(?: [A-Za-z_][A-Za-z0-9_-]*)*\z/
 
+        FILE_NAME = /\A[a-z0-9][a-z0-9._-]{0,80}\.(?:svg|png)\z/
+
         NAMED_COLORS = %w[
           aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown
           burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan
@@ -79,13 +81,11 @@ module OpenProject
           cleaned.join(", ")
         end
 
-        def absolute_http_url(value)
-          return nil unless value.is_a?(String) && value.length <= 2000 && value.match?(/\Ahttps?:\/\/[^\s<>"'`\\]+\z/)
+        # The name of a bundled file: one path segment, lower case, svg or png.
+        def file_name(value)
+          return nil unless value.is_a?(String) && FILE_NAME.match?(value) && !value.include?("..")
 
-          uri = URI.parse(value)
-          uri.is_a?(URI::HTTP) && uri.host && !uri.host.empty? && uri.userinfo.nil? ? value : nil
-        rescue URI::InvalidURIError
-          nil
+          value
         end
 
         # Plain text shown on the admin page. Never written into CSS.

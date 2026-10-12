@@ -61,11 +61,11 @@ class ValidatorTest < Minitest::Test
     hostile.each { |value| assert_nil V.font_family(value), "accepted font stack #{value.inspect}" }
   end
 
-  def test_urls
-    assert_equal "https://cloud.example.org/logo.svg", V.absolute_http_url("https://cloud.example.org/logo.svg")
-    ["javascript:alert(1)", "//example.org/x", "/logo.svg", "ftp://example.org/x", "https://user:pw@example.org/",
-     "https://example.org/a b", %(https://example.org/"onerror="x), "https://", nil, 1].each do |value|
-      assert_nil V.absolute_http_url(value), "accepted url #{value.inspect}"
+  def test_file_names
+    assert_equal "zuiddrecht-inverse.svg", V.file_name("zuiddrecht-inverse.svg")
+    assert_equal "logo_2.png", V.file_name("logo_2.png")
+    ["../a.svg", "a/b.svg", "a..svg", ".svg", "a.svg.exe", "a.SVG", "a b.svg", "a.svg\n", "a.gif", "", nil, 1].each do |value|
+      assert_nil V.file_name(value), "accepted file name #{value.inspect}"
     end
   end
 

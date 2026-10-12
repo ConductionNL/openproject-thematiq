@@ -14,7 +14,7 @@ class GeneratorTest < Minitest::Test
   }.freeze
 
   def set(tokens)
-    TokenSet.from_payload("version" => 1, "id" => "t", "name" => "T", "revision" => "r", "tokens" => tokens)
+    TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => tokens })
   end
 
   def blocks(css)
@@ -61,7 +61,7 @@ class GeneratorTest < Minitest::Test
   end
 
   def test_a_missing_token_leaves_its_variables_out
-    css = Generator.new(TokenSet.bundled).css
+    css = Generator.new(TokenSet.fallback).css
     light = blocks(css)[Generator::LIGHT_SCOPE]
 
     refute_includes light, "--thematiq-accent"
@@ -69,8 +69,8 @@ class GeneratorTest < Minitest::Test
     assert_includes light, "  --header-bg-color: #1a67a3;"
   end
 
-  def test_the_bundled_set_gives_the_values_the_spike_had
-    light = blocks(Generator.new(TokenSet.bundled).css)[Generator::LIGHT_SCOPE]
+  def test_the_fallback_set_gives_the_values_the_spike_had
+    light = blocks(Generator.new(TokenSet.fallback).css)[Generator::LIGHT_SCOPE]
     spike = File.read(File.expand_path("../../spike/theme.css", __dir__))
     spike_values = spike.scan(/^  (--[\w-]+): ([^;]+);$/).to_h
 
@@ -94,7 +94,7 @@ class GeneratorTest < Minitest::Test
     css = Generator.new(set(hostile)).css
 
     assert_safe css, "all hostile"
-    assert_equal Generator.new(TokenSet.bundled).css, css
+    assert_equal Generator.new(TokenSet.fallback).css, css
   end
 
   # Structural check: exactly three rules, every line inside a rule is one "--name: value;" declaration.
