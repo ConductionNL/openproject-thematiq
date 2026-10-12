@@ -56,10 +56,17 @@ Then run the `docker run` command again.
 |---|---|
 | `lib/open_project/thematiq/engine.rb` | The Rails engine and the plugin registration |
 | `lib/open_project/thematiq/hooks.rb` | The view hooks |
+| `lib/open_project/thematiq/tokens/` | The token source: fetch, check, bundled default |
+| `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
+| `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
+| `app/workers/thematiq/` | The background job that keeps the tokens current |
+| `test/` | The unit tests, run with `bin/test` |
 | `app/views/thematiq/hooks/` | The partials the hooks render |
-| `stylesheets/` | The CSS the head hook inlines, in file name order |
+| `stylesheets/` | The static CSS layers the head hook inlines after the variable layer, in file name order |
 | `config/locales/` | All text a user reads |
 | `docker/` | The development image |
 | `spike/` | The throwaway spike, kept as a reference |
 
 `lib/open_project/thematiq/shell/` and `app/views/thematiq/shell/` are reserved for the shared top bar and project menu.
+
+Next, read [tokens.md](tokens.md) for how the tokens reach the page.
