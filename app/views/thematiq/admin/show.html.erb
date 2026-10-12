@@ -1,5 +1,6 @@
 <% html_title t(:label_administration), t("thematiq.admin.title") %>
 <% active = @store.active_token_set %>
+<% total = @store.catalogue.sets.size %>
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
@@ -12,10 +13,74 @@
   end
 %>
 
-<%= render(Primer::Beta::Subhead.new) do |component|
-  component.with_heading(tag: :h3, size: :medium) { t("thematiq.admin.active_design_system") }
-end %>
+<% if @store.catalogue.error %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, test_selector: "thematiq-catalogue-error")) do %>
+    <%= t("thematiq.admin.catalogue_unusable") %>
+  <% end %>
+<% end %>
 
-<%= render(AttributeGroups::AttributeGroupComponent.new) do |component|
-  component.with_attribute(key: t("thematiq.admin.name"), value: active.name)
-end %>
+<% if active.rejected.any? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, test_selector: "thematiq-rejected-banner")) do %>
+    <%= t("thematiq.admin.rejected_tokens", tokens: active.rejected.join(", ")) %>
+  <% end %>
+<% end %>
+
+<p class="thematiq-picker__status" data-test-selector="thematiq-active">
+  <%= t("thematiq.admin.active_now_html", name: active.name) %>
+</p>
+
+<%= form_with(url: admin_thematiq_path, method: :get, data: { turbo: false }, id: "thematiq-search-form",
+              class: "thematiq-picker__search", role: "search") do %>
+  <%= render(Primer::Alpha::TextField.new(
+        name: :q,
+        id: "thematiq-search",
+        label: t("thematiq.admin.search_label"),
+        value: @query,
+        input_width: :large
+      )) %>
+  <div class="thematiq-picker__search-actions">
+    <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.admin.search") } %>
+    <% if @query.present? %>
+      <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.admin.show_all") } %>
+    <% end %>
+  </div>
+<% end %>
+
+<p class="color-fg-muted" role="status" data-test-selector="thematiq-count">
+  <%= t("thematiq.admin.count", shown: @sets.size, total:) %>
+</p>
+
+<% if @sets.empty? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :default, mb: 3, test_selector: "thematiq-no-results")) do %>
+    <%= t("thematiq.admin.no_results") %>
+  <% end %>
+<% else %>
+  <%= form_with(url: admin_thematiq_path, method: :post, data: { turbo: false }, id: "thematiq-picker-form") do %>
+    <fieldset class="thematiq-picker">
+      <legend class="sr-only"><%= t("thematiq.admin.picker_legend") %></legend>
+      <% @sets.each do |token_set| %>
+        <% is_active = token_set.id == active.id %>
+        <label class="thematiq-picker__option" for="thematiq-set-<%= token_set.id %>">
+          <input type="radio" name="set_id" id="thematiq-set-<%= token_set.id %>" value="<%= token_set.id %>"
+                 class="thematiq-picker__radio" required <%= "checked" if is_active %>>
+          <%= thematiq_thumbnail(token_set) %>
+          <span class="thematiq-picker__text">
+            <span class="thematiq-picker__name"><%= token_set.name %></span>
+            <% if token_set.id == @store.catalogue.default.id %>
+              <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_default") } %>
+            <% end %>
+            <% if is_active %>
+              <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
+            <% end %>
+            <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+          </span>
+        </label>
+      <% end %>
+    </fieldset>
+
+    <div class="thematiq-picker__actions">
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary)) { t("thematiq.admin.apply") } %>
+      <span class="color-fg-muted"><%= t("thematiq.admin.apply_hint") %></span>
+    </div>
+  <% end %>
+<% end %>

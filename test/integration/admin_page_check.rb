@@ -81,6 +81,41 @@ begin
   # 2. The removed link stays removed
   check("no background job of the plugin is scheduled") { Rails.application.config.good_job.cron.keys.grep(/Thematiq/).empty? }
   check("the plugin has no HTTP client") { !defined?(OpenProject::Thematiq::Tokens::Client) }
+
+  # 3. The picker
+  catalogue = OpenProject::Thematiq::Catalogue.bundled
+  last = catalogue.sets.last
+  check("the catalogue in the gem loads without an error") { catalogue.error.nil? && catalogue.skipped.zero? }
+  check("the picker lists every design system") { catalogue.sets.all? { |set| body.include?(%(id="thematiq-set-#{set.id}")) } }
+  check("the picker has one small picture per design system") { body.scan('class="thematiq-thumb"').size == catalogue.sets.size }
+  check("the picker says which one is active") { body.include?("Active now: <strong>Cunningham</strong>") }
+  check("the picker has a labelled search field") { body.include?('id="thematiq-search"') && body.include?("Search design systems") }
+  check("the picker counts the sets") { body.include?("#{catalogue.sets.size} of #{catalogue.sets.size} design systems") }
+
+  admin.get "/admin/thematiq", params: { q: "no design system is called this" }
+  check("a search without a match says so") { admin.response.status == 200 && admin.response.body.include?("No design system has that name") }
+  admin.get "/admin/thematiq", params: { q: %(<script>alert(1)</script>") }
+  check("a hostile search is escaped") { !admin.response.body.include?("<script>alert(1)</script>") }
+  admin.get "/admin/thematiq", params: { q: last.name }
+  check("a search by name finds the set") { admin.response.body.include?(%(id="thematiq-set-#{last.id}")) }
+
+  as_member.post "/admin/thematiq", params: { set_id: last.id }
+  check("a non-admin cannot apply a design system") { [403, 422].include?(as_member.response.status) }
+  check("the non-admin post changed nothing") { Setting.plugin_openproject_thematiq == saved_settings }
+
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq", params: { set_id: last.id }
+  check("a post without a CSRF token is refused") { throwaway.response.status == 422 }
+
+  admin.post "/admin/thematiq", params: { set_id: "no-such-set", authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  admin.follow_redirect!
+  check("an unknown design system is refused") { admin.response.body.include?("Choose a design system from the list first.") }
+
+  admin.post "/admin/thematiq", params: { set_id: last.id, authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  admin.follow_redirect!
+  check("apply makes the chosen design system active") { OpenProject::Thematiq::Store.new.active_token_set.id == last.id }
+  check("the page says so") { admin.response.body.include?("is now the active design system") }
+  check("the head style carries its primary colour") { head_style(admin).include?("--header-bg-color: #{last['primary']};") }
 ensure
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy

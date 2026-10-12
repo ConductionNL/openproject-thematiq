@@ -96,6 +96,16 @@ Start OpenProject on the plain `openproject/openproject:17` image again. The plu
 
 The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. The sign in page is not styled. A design system's logo and font are not shown yet, so OpenProject's logo and your system font stay. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
+## Usage
+
+### Pick a design system
+
+1. Open **Administration**, then **Thematiq design**.
+2. Type part of a name in **Search design systems** and select **Search**, or scroll the list.
+3. Select a design system and select **Apply**.
+
+Everyone sees the chosen design system on their next page. [docs/admin-page.md](docs/admin-page.md) has the details.
+
 ## What is in this repository now
 
 - The plugin gem at the repository root: `openproject-thematiq.gemspec`, `lib/`, `app/`, `config/` and `stylesheets/`.
