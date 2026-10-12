@@ -9,6 +9,7 @@ module OpenProject
   #   OpenProject::Thematiq::Engine      the Rails engine and plugin registration
   #   OpenProject::Thematiq::Hooks       the view hooks (page head)
   #   OpenProject::Thematiq::Tokens      the token model: token set, validator, last resort values
+  #   OpenProject::Thematiq::Catalogue   the design systems that ship with the plugin
   #   OpenProject::Thematiq::Variables   the variable layer: tokens to CSS variables
   #   OpenProject::Thematiq::Stylesheet  the variable layer plus the static layers in stylesheets/
   #   OpenProject::Thematiq::Store       what the plugin keeps in OpenProject's settings
@@ -18,6 +19,7 @@ module OpenProject
     STYLESHEET_DIR = File.join(ROOT, "stylesheets")
 
     require "open_project/thematiq/tokens"
+    require "open_project/thematiq/catalogue"
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
 

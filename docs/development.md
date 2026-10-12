@@ -57,6 +57,7 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/engine.rb` | The Rails engine and the plugin registration |
 | `lib/open_project/thematiq/hooks.rb` | The view hooks |
 | `lib/open_project/thematiq/tokens/` | The token model: token set, validator, last resort values |
+| `data/catalogue/`, `lib/open_project/thematiq/catalogue.rb` | The design systems that ship with the plugin, and their loader |
 | `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
@@ -69,4 +70,4 @@ Then run the `docker run` command again.
 
 `lib/open_project/thematiq/shell/` and `app/views/thematiq/shell/` are reserved for the shared top bar and project menu.
 
-Next, read [tokens.md](tokens.md) for how the tokens reach the page, [geometry.md](geometry.md) for the sizes and [admin-page.md](admin-page.md) for the page an administrator uses.
+Next, read [catalogue.md](catalogue.md) for the design systems that ship with the plugin, [tokens.md](tokens.md) for how the tokens reach the page, [geometry.md](geometry.md) for the sizes and [admin-page.md](admin-page.md) for the page an administrator uses.

@@ -10,7 +10,7 @@ This page explains what a design system is to the plugin and how its tokens reac
 | `radius`, `radius-lg` | A CSS length |
 | `font-family` | A CSS font stack |
 
-The plugin makes no network requests. Every design system comes from a file in the plugin or from OpenProject's own settings.
+The plugin makes no network requests. Every design system comes from a file in the plugin or from OpenProject's own settings. [catalogue.md](catalogue.md) describes the file.
 
 ## How a value is checked
 
