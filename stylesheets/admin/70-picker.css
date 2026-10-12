@@ -33,3 +33,10 @@
 .thematiq-thumb__main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 5px; padding: 8px; }
 .thematiq-thumb__title { width: 64px; height: 7px; opacity: .3; }
 .thematiq-thumb__row { height: 9px; box-sizing: border-box; }
+
+/* On a narrow screen a card stacks: radio and picture, then the name, then the links. */
+@media screen and (max-width: 700px) {
+  .thematiq-picker__option { flex-wrap: wrap; gap: 12px; }
+  .thematiq-picker__label { flex: 1 1 100%; flex-wrap: wrap; gap: 12px; }
+  .thematiq-picker__text { flex: 1 1 100%; }
+}
