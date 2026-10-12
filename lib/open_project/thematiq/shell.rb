@@ -9,6 +9,7 @@ module OpenProject
     #   Shell::CoreGuard      the core files the shell depends on, with their checksums
     #   Shell::TopBar         two small overrides of OpenProject's top menu helpers
     #   Shell::ProjectMenu    the overrides of the project menu helpers and the project switcher
+    #   Shell::Home           Home and My page as one page
     #   Shell::NextcloudApps  the Nextcloud column of the app switcher
     #   Shell::AppRow         which apps and modules the top bar shows as icons
     #   Shell::Logo           the logo of the active design system, as a CSS rule
@@ -52,7 +53,9 @@ module OpenProject
 
         require "open_project/thematiq/shell/project_menu"
 
-        { top_bar: TopBar, project_menu: ProjectMenu }.each do |part, overrides|
+        require "open_project/thematiq/shell/home"
+
+        { top_bar: TopBar, project_menu: ProjectMenu, home: Home }.each do |part, overrides|
           changed = CoreGuard.changed_files(part:)
           next overrides.install! if changed.empty?
 

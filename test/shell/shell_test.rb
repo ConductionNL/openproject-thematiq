@@ -8,6 +8,7 @@ require "open_project/thematiq/shell/logo"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
 require "open_project/thematiq/shell/project_menu"
+require "open_project/thematiq/shell/home"
 
 class ShellTest < Minitest::Test
   Shell = OpenProject::Thematiq::Shell
@@ -135,6 +136,17 @@ class ShellTest < Minitest::Test
     assert_equal "team_planners", Shell::AppRow.current_key(:team_planner_view)
     assert_equal "work_packages", Shell::AppRow.current_key(:work_packages)
     assert_equal "", Shell::AppRow.current_key(nil)
+  end
+
+  def test_home_keeps_every_block_but_the_welcome_text
+    blocks = [{ name: "welcome", if: -> { true } }, { name: "news" }, { name: "administration", if: -> { false } }]
+    home = Shell::Home
+
+    assert_equal %w[news administration], home.other_blocks({ blocks: }).fetch(:blocks).map { |block| block[:name] }
+    assert home.welcome?({ blocks: })
+    refute home.welcome?({ blocks: [{ name: "welcome", if: -> { false } }] })
+    refute home.welcome?({ blocks: [{ name: "news" }] })
+    assert_empty home.other_blocks({}).fetch(:blocks)
   end
 
   def test_the_menu_script_cannot_close_its_script_tag

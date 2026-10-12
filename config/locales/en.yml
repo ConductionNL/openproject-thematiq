@@ -142,6 +142,11 @@ en:
           tasks: "Tasks"
           talk: "Talk"
           contacts: "Contacts"
+      home:
+        greeting: "Hello %{name}"
+        welcome: "Welcome message"
+        widgets: "Your widgets"
+        more: "More on this instance"
       project_menu:
         create_work_package: "Create work package"
         project: "Project"

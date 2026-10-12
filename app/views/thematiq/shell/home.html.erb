@@ -1,0 +1,36 @@
+<%# Home and My page as one page, for a signed in user. See Shell::Home. Everything OpenProject's own Home shows is here. %>
+<% html_title(t(:label_home)) %>
+<div class="thematiq-home">
+  <%=
+    render(Primer::OpenProject::PageHeader.new) do |header|
+      header.with_title { t("thematiq.shell.home.greeting", name: User.current.firstname.presence || User.current.name) }
+      header.with_breadcrumbs(nil)
+      if User.current.allowed_in_any_project?(:add_work_packages)
+        header.with_action_button(tag: :a, href: new_work_package_path, scheme: :primary, mobile_icon: :plus,
+                                  mobile_label: t("thematiq.shell.project_menu.create_work_package")) do |button|
+          button.with_leading_visual_icon(icon: :plus)
+          t("thematiq.shell.project_menu.create_work_package")
+        end
+      end
+    end
+  %>
+
+  <%= render Homescreen::AnnouncementComponent.new(announcement: @announcement) %>
+
+  <% if OpenProject::Thematiq::Shell::Home.welcome?(@homescreen) %>
+    <section class="thematiq-home--welcome" aria-label="<%= t("thematiq.shell.home.welcome") %>">
+      <%= render(Grids::WidgetGridComponent.new) { |grid| grid.with_widget(Homescreen::Blocks::Welcome) } %>
+    </section>
+  <% end %>
+
+  <section class="thematiq-home--grid" aria-label="<%= t("thematiq.shell.home.widgets") %>">
+    <%= angular_component_tag "opce-my-page" %>
+  </section>
+
+  <section class="thematiq-home--more" aria-labelledby="thematiq-home-more-title">
+    <h2 class="thematiq-home--more-title" id="thematiq-home-more-title"><%= t("thematiq.shell.home.more") %></h2>
+    <%= render Homescreen::BlocksGridComponent.new(homescreen: OpenProject::Thematiq::Shell::Home.other_blocks(@homescreen)) %>
+    <%= render Homescreen::LinksComponent.new(homescreen: @homescreen) %>
+    <%= call_hook :homescreen_after_links %>
+  </section>
+</div>
