@@ -38,58 +38,82 @@ module OpenProject
         id.is_a?(String) ? id : nil
       end
 
-      # What the pages are styled with: the custom set when it is in use, else the chosen set,
-      # else the default.
+      # What the pages are styled with: the active custom design system, else the chosen set of the
+      # catalogue, else the default.
       def active_token_set
-        (custom_active? ? custom_set : nil) || catalogue.find(active_id) || catalogue.default
+        custom_set(active_custom_id) || catalogue.find(active_id) || catalogue.default
       end
 
-      # Makes a design system the active one: a set of the catalogue, or the custom set.
+      # Makes a design system the active one: a set of the catalogue or a custom design system.
       # Returns the set, or nil when the id is unknown.
       def activate(id)
-        if id == CustomDraft::ID
-          token_set = custom_set
-          write("use_custom" => true) if token_set
+        if (token_set = custom_set(id))
+          write("active_custom" => id, "use_custom" => false)
           return token_set
         end
 
         token_set = catalogue.find(id)
         return nil unless token_set
 
-        write("active_id" => token_set.id, "use_custom" => false)
+        write("active_id" => token_set.id, "active_custom" => nil, "use_custom" => false)
         token_set
       end
 
-      # --- the custom set: a base design system plus overrides ---
+      # --- custom design systems: a base design system plus overrides, any number up to MAX_CUSTOMS ---
 
-      def custom_active?
-        data["use_custom"] == true && !custom_draft.nil?
+      MAX_CUSTOMS = 50
+
+      # The id of the custom design system in use, or nil.
+      def active_custom_id
+        id = data["active_custom"]
+        id = CustomDraft::ID if id.nil? && data["use_custom"] == true # the shape of the version with one custom set
+        custom_definitions.key?(id) ? id : nil
       end
 
-      # The stored custom set as a draft, checked again on the way out. nil when there is none.
-      def custom_draft
-        stored = data["custom"]
+      def custom_active?
+        !active_custom_id.nil?
+      end
+
+      # Every stored custom design system as a draft, by name. Each is checked again on the way out.
+      def custom_drafts
+        custom_definitions.keys.filter_map { |id| custom_draft(id) }.sort_by { |draft| [draft.name.downcase, draft.id] }
+      end
+
+      # One stored custom design system as a draft. nil when there is none with that id.
+      def custom_draft(id = CustomDraft::ID)
+        stored = custom_definitions[id]
         return nil unless stored.is_a?(Hash) && stored["overrides"].is_a?(Hash)
 
         base = catalogue.find(stored["based_on"]) || catalogue.default
-        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"])
+        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"], id:, logo: stored["logo"])
         draft.name ? draft : nil
       end
 
-      def custom_set
-        custom_draft&.token_set
+      def custom_set(id = CustomDraft::ID)
+        id.is_a?(String) ? custom_draft(id)&.token_set : nil
       end
 
-      # Stores a valid draft. Returns false and stores nothing when the draft has errors.
-      def save_custom(draft)
-        return false unless draft.valid?
+      # The id a new custom design system gets: the first one that is free.
+      def next_custom_id
+        taken = custom_definitions.keys
+        ([CustomDraft::ID] + (2..MAX_CUSTOMS).map { |number| "#{CustomDraft::ID}-#{number}" }).find { |id| !taken.include?(id) }
+      end
 
-        write("custom" => draft.definition)
+      # Stores a valid draft under its id. Returns false and stores nothing when the draft has errors,
+      # or when it is a new one and the limit is reached.
+      def save_custom(draft)
+        definitions = custom_definitions
+        return false unless draft.valid?
+        return false if !definitions.key?(draft.id) && definitions.size >= MAX_CUSTOMS
+
+        write("customs" => definitions.merge(draft.id => draft.definition), "custom" => nil)
         true
       end
 
-      def delete_custom
-        write("custom" => nil, "use_custom" => false)
+      def delete_custom(id = CustomDraft::ID)
+        changes = { "customs" => custom_definitions.except(id), "custom" => nil }
+        changes.merge!("active_custom" => nil, "use_custom" => false) if active_custom_id == id
+        write(changes)
       end
 
       # --- the Nextcloud address for the app switcher links ---
@@ -128,6 +152,14 @@ module OpenProject
       end
 
       private
+
+      # id => stored definition. Reads the shape of the version with one custom set as well:
+      # that one set becomes "custom". Ids that do not look like a custom id are left out.
+      def custom_definitions
+        stored = data["customs"].is_a?(Hash) ? data["customs"] : {}
+        stored = { CustomDraft::ID => data["custom"] }.merge(stored) if data["custom"].is_a?(Hash)
+        stored.select { |id, definition| id.is_a?(String) && CustomDraft::ID_PATTERN.match?(id) && definition.is_a?(Hash) }
+      end
 
       def data
         value = @backend.read

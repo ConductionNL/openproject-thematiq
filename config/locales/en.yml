@@ -22,6 +22,7 @@ en:
         one: "1 value changed from %{name}"
         other: "%{count} values changed from %{name}"
       edit_tokens: "Edit"
+      edit_label: "Edit %{name}"
       customise: "Customise"
       customise_label: "Customise %{name}"
       apply: "Apply"
@@ -32,7 +33,7 @@ en:
       rejected_tokens: "Some values of the active design system were refused and replaced: %{tokens}."
     editor:
       title: "Custom design system"
-      description: "Start from a design system and change single values. The result is one custom design system, kept in OpenProject."
+      description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."
       default_name: "%{name}, custom"
       name: "Name"
       based_on: "Based on"
@@ -50,7 +51,7 @@ en:
       preview: "Preview"
       save_and_apply: "Save and apply"
       back: "Back to the list"
-      delete: "Delete the custom design system"
+      delete: "Delete this custom design system"
       delete_hint: "OpenProject goes back to the design system chosen before."
       preview_title: "Preview of the shell"
       preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
@@ -95,9 +96,8 @@ en:
       import_title: "Import a design system"
       file: "File"
       import: "Import"
-      import_hint: "Choose a file that was exported from this page. It becomes your custom design system. It is not applied until you pick it."
-      import_hint_replaces: "Choose a file that was exported from this page. It replaces your custom design system. It is not applied until you pick it."
-      notice_imported: "\"%{name}\" is imported as your custom design system. Pick it in the list and select \"Apply\" to use it."
+      import_hint: "Choose a file that was exported from this page. It is added as a new custom design system. It is not applied until you pick it."
+      notice_imported: "\"%{name}\" is added as a custom design system. Pick it in the list and select \"Apply\" to use it."
       errors:
         empty: "Choose a file first."
         too_large: "The file is too large. A design system file is at most 64 KB."
@@ -106,6 +106,7 @@ en:
         unknown_keys: "The file holds entries this plugin does not know. Nothing was imported."
         token_invalid: "The file holds a value that cannot be used as a colour, a length or a font. Nothing was imported."
         name_invalid: "The file has no usable name. Nothing was imported."
+        too_many: "There are 50 custom design systems, which is the most the plugin keeps. Delete one first."
     tokens:
       primary: { label: "Primary", hint: "top bar" }
       primary-deep: { label: "Primary, deep", hint: "hover in the top bar, selected text" }

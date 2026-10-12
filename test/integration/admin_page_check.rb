@@ -250,7 +250,7 @@ begin
   body = import.call(JSON.generate(good))
   store = OpenProject::Thematiq::Store.new
   check("import stores the file as the custom design system") { store.custom_draft&.name == "Moved style" && store.custom_set["primary"] == "#aa0055" }
-  check("import does not apply it") { !store.custom_active? && body.include?("is imported as your custom design system") }
+  check("import does not apply it") { !store.custom_active? && body.include?("is added as a custom design system") }
 
   { "a hostile token value" => JSON.generate(good.merge("tokens" => good["tokens"].merge("action" => "red; } body { display:none"))),
     "an unknown key" => JSON.generate(good.merge("script" => "<script>alert(1)</script>")),
@@ -261,6 +261,23 @@ begin
     check("import refuses #{label} and says why") { ["Nothing was imported", "is not a design system file", "Choose a file first", "The file is too large"].any? { |text| body.include?(text) } }
     check("after #{label} the stored custom design system is unchanged") { OpenProject::Thematiq::Store.new.custom_set["primary"] == "#aa0055" }
     check("after #{label} nothing hostile is on the page") { !body.include?("<script>alert(1)</script>") && !head_style(admin).include?("display:none") }
+  end
+
+  body = import.call(JSON.generate(good.merge("name" => "Second moved style")))
+  store = OpenProject::Thematiq::Store.new
+  check("a second import is added and does not replace the first") do
+    store.custom_drafts.map(&:name).sort == ["Moved style", "Second moved style"] && body.include?('id="thematiq-set-custom-2"')
+  end
+  admin.get "/admin/thematiq/custom", params: { id: "custom-2" }
+  check("the editor opens the second custom design system") { admin.response.body.include?('value="Second moved style"') && admin.response.body.include?('name="id" value="custom-2"') }
+  admin.post "/admin/thematiq/custom", params: { id: "custom-2", delete: "1", authenticity_token: form_token(admin, "/admin/thematiq/custom?id=custom-2", "thematiq-editor-form") }
+  check("deleting the second leaves the first") { OpenProject::Thematiq::Store.new.custom_drafts.map(&:name) == ["Moved style"] }
+
+  zuiddrecht_file = OpenProject::Thematiq::Transfer.export(catalogue.find("zuiddrecht"))
+  import.call(zuiddrecht_file)
+  check("an imported set keeps the bundled logo of the set it came from") do
+    moved = OpenProject::Thematiq::Store.new.custom_drafts.find { |draft| draft.name == catalogue.find("zuiddrecht").name }
+    moved && OpenProject::Thematiq::Assets.bundled.logo_url(moved.token_set) == "/thematiq/logos/zuiddrecht-dark.svg"
   end
 
   throwaway = session_for("admin", ADMIN_PASSWORD)

@@ -22,9 +22,9 @@ The search runs on the server. The page works without JavaScript.
 
 ## Make a custom design system
 
-OpenProject keeps one custom design system. It is a design system of the plugin plus the values you change.
+A custom design system is a design system of the plugin plus the values you change. You can keep up to 50.
 
-1. Select **Customise** next to a design system in the list. The editor opens with that design system as the base.
+1. Select **Customise** next to a design system in the list. The editor opens a new custom design system with that one as the base. To change one you made earlier, select **Edit** next to it.
 2. Give your design system a name.
 3. Change values. Each of the eighteen values has its own field. An empty field keeps the value of the base, which the field shows in grey.
 4. Select **Preview**. The picture on the right is drawn again with your values. Nothing is saved.
@@ -34,12 +34,11 @@ To go back to one value of the base, select **Reset** next to it. **Reset all** 
 
 A value the plugin cannot use is marked, with a line that says what is expected. Nothing is saved while a field is marked.
 
-Your design system stays in the list as "Custom". You can pick another design system and come back to yours later. **Delete the custom design system** removes it.
+Your design systems stay at the top of the list, marked "Custom". You can pick another design system and come back to yours later. **Delete this custom design system** removes the one you have open.
 
 ### What the editor does not do
 
 - The preview does not follow your typing. It is drawn again when you select **Preview**.
-- There is one custom design system, not several.
 - A font you name is loaded when it is one of the 13 families in the plugin. Any other font must be on the reader's device. [logos-and-fonts.md](logos-and-fonts.md) lists the families.
 - You cannot upload a logo.
 
@@ -50,12 +49,12 @@ Your design system stays in the list as "Custom". You can pick another design sy
 **Import a design system**, at the bottom of the page, reads such a file.
 
 1. Choose the file and select **Import**.
-2. The file becomes the custom design system. It replaces the one that was there.
+2. The file is added as a new custom design system. It never replaces one that is there.
 3. Pick it in the list and select **Apply**.
 
 The plugin treats the file as untrusted. It refuses a file over 64 KB, a file that is not JSON, a file with an entry it does not know and a file with one value that is not a colour, a length or a font stack. When it refuses a file, nothing changes.
 
-A logo does not travel with the file. The file holds a file name only, and an imported design system uses OpenProject's own logo.
+A logo file does not travel with the file. The file holds the logo's name. When that names a logo that ships with the plugin, the imported design system shows it. Otherwise it uses OpenProject's own logo.
 
 ## Check the page after a change to the code
 

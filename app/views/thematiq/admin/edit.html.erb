@@ -17,6 +17,7 @@
 <div class="thematiq-editor">
   <%= form_with(url: admin_thematiq_custom_path, method: :post, data: { turbo: false }, id: "thematiq-editor-form",
                 class: "thematiq-editor__form") do %>
+    <input type="hidden" name="id" value="<%= @draft.id %>">
     <div class="thematiq-editor__field">
       <label class="thematiq-editor__label" for="thematiq-name"><%= t("thematiq.editor.name") %></label>
       <input type="text" name="name" id="thematiq-name" class="FormControl-input FormControl-medium" maxlength="80" required
@@ -80,7 +81,7 @@
       <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.editor.back") } %>
     </div>
 
-    <% if @store.custom_draft %>
+    <% if @stored %>
       <div class="thematiq-editor__danger">
         <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, name: "delete", value: "1", formnovalidate: true)) { t("thematiq.editor.delete") } %>
         <span class="thematiq-editor__hint"><%= t("thematiq.editor.delete_hint") %></span>
