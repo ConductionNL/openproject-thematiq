@@ -6,7 +6,9 @@ require "fileutils"
 require "open_project/thematiq/shell/core_guard"
 require "open_project/thematiq/shell/logo"
 require "open_project/thematiq/shell/nextcloud_apps"
+require "open_project/thematiq/shell/app_row"
 require "open_project/thematiq/shell/project_menu"
+require "open_project/thematiq/shell/home"
 
 class ShellTest < Minitest::Test
   Shell = OpenProject::Thematiq::Shell
@@ -99,7 +101,78 @@ class ShellTest < Minitest::Test
     assert_equal Shell::CoreGuard::FILES.keys.sort, Shell::CoreGuard::PARTS.values.flatten.uniq.sort
   end
 
+  def test_app_row_setting
+    row = Shell::AppRow
+
+    assert_equal row::DEFAULT, row.wanted(nil)
+    assert_equal row::DEFAULT, row.wanted("  ")
+    assert_equal row::DEFAULT, row.wanted("<script>")
+    assert_empty row.wanted("none")
+    assert_equal %w[files gantt], row.wanted("Files, gantt , files")
+    assert_equal 12, row.wanted((1..40).map { |n| "m#{n}" }.join(",")).size
+  end
+
+  def test_app_row_leaves_out_what_the_user_cannot_open_and_fills_up
+    row = Shell::AppRow
+    modules = %w[home my_page projects work_packages gantt boards meetings news]
+
+    assert_equal %w[files mail calendar work_packages boards gantt meetings],
+                 row.pick(row::DEFAULT, %w[files mail calendar tasks talk contacts] + modules)
+    assert_equal %w[work_packages boards gantt meetings home my_page projects], row.pick(row::DEFAULT, modules)
+    assert_equal %w[home], row.pick(row::DEFAULT, %w[home])
+    assert_empty row.pick([], modules)
+  end
+
+  def test_app_row_gives_the_last_place_to_a_current_entry_outside_it
+    row = Shell::AppRow
+    modules = %w[home my_page projects work_packages gantt boards meetings news]
+
+    assert_equal %w[work_packages boards news], row.pick(%w[work_packages boards gantt], modules, "news")
+    assert_equal %w[work_packages boards gantt], row.pick(%w[work_packages boards gantt], modules, "boards")
+    assert_equal %w[work_packages boards gantt], row.pick(%w[work_packages boards gantt], modules, "members")
+  end
+
+  def test_app_row_knows_the_global_module_of_a_project_page
+    assert_equal "team_planners", Shell::AppRow.current_key(:team_planner_view)
+    assert_equal "work_packages", Shell::AppRow.current_key(:work_packages)
+    assert_equal "", Shell::AppRow.current_key(nil)
+  end
+
+  def test_home_keeps_every_block_but_the_welcome_text
+    blocks = [{ name: "welcome", if: -> { true } }, { name: "news" }, { name: "administration", if: -> { false } }]
+    home = Shell::Home
+
+    assert_equal %w[news administration], home.other_blocks({ blocks: }).fetch(:blocks).map { |block| block[:name] }
+    assert home.welcome?({ blocks: })
+    refute home.welcome?({ blocks: [{ name: "welcome", if: -> { false } }] })
+    refute home.welcome?({ blocks: [{ name: "news" }] })
+    assert_empty home.other_blocks({}).fetch(:blocks)
+  end
+
+  def test_the_menu_script_cannot_close_its_script_tag
+    script = Shell::ProjectMenu.script
+
+    refute_empty script
+    refute_match(%r{</script}i, script)
+    refute_includes script, "<!--"
+  end
+
+  def test_the_nested_menu_only_applies_while_the_overrides_are_on
+    css = File.read(File.expand_path("../../stylesheets/shell/30-nested-menu.css", __dir__)).gsub(%r{/\*.*?\*/}m, "")
+    selectors = css.gsub(/@media[^{]*\{/, "").scan(/([^{}]+)\{/).flatten.flat_map { |list| split_selectors(list) }
+
+    refute_empty selectors
+    selectors.each { |selector| assert_includes selector, "#main-menu:has(.thematiq-project--initials)", selector }
+  end
+
   private
+
+  # Splits a selector list on its commas, leaving the commas inside :is() and :has() alone.
+  def split_selectors(list)
+    depth = 0
+    list.each_char.slice_when { |char, _| depth += { "(" => 1, ")" => -1 }.fetch(char, 0); char == "," && depth.zero? }
+        .map { |chars| chars.join.delete_suffix(",").strip }.reject(&:empty?)
+  end
 
   def changed(files, root)
     files.reject { |path, sum| Digest::SHA256.file(File.join(root, path)).hexdigest == sum }.keys

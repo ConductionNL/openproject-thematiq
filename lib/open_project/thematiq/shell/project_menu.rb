@@ -12,11 +12,15 @@ module OpenProject
       #
       # Written against OpenProject 17.9.1:
       #   lib/redmine/menu_manager/menu_helper.rb               (render_menu, render_menu_node,
-      #                                                          render_menu_toggler, menu_node_options,
-      #                                                          badge_for)
+      #                                                          render_menu_toggler, badge_for)
       #   lib/redmine/menu_manager/top_menu/projects_menu.rb    (render_projects_top_menu_node)
       #   app/components/header/project_select_component.rb     (trigger_label)
       # CoreGuard holds their checksums. Shell.install! skips this module when they differ.
+      #
+      # The two-layer menu itself is CSS and a small script on core's own markup: every item with a
+      # submenu already has its second level as a ul inside its li. stylesheets/shell/30-nested-menu.css
+      # shows that list under the item instead of in a swapped sidebar. Its rules only apply when
+      # these overrides are on: they are scoped to the initials the switcher override renders.
       module ProjectMenu
         # Which title an item goes under. This only decides where a title is drawn.
         # An item that is not listed stays in the group of the item before it.
@@ -29,10 +33,13 @@ module OpenProject
         # These sit at the foot of the menu, under a spacer and without a title.
         BOTTOM = %w[members settings].freeze
 
-        # On the page of these items OpenProject swaps the project menu for the item's submenu.
-        # For the items listed here the project menu stays, and the submenu opens with the arrow
-        # button core already renders on the item. Nothing is removed.
-        STAY_ON_PROJECT_MENU = %i[work_packages].freeze
+        # The script that keeps aria-expanded and aria-current in step with core's classes.
+        # It is inlined at the end of the page, because the official image serves no plugin assets.
+        SCRIPT_PATH = File.expand_path("assets/project_menu.js", __dir__)
+
+        def self.script
+          @script ||= File.read(SCRIPT_PATH)
+        end
 
         PLUS_ICON = "M12 5v14M5 12h14"
 
@@ -64,14 +71,10 @@ module OpenProject
             safe_join([thematiq_create_work_package_link, super].compact)
           end
 
-          # Core renders the list. On the page of a STAY_ON_PROJECT_MENU item core marks the list
-          # as closed, which shows the submenu. Here it stays open.
+          # Core renders the list. This only starts a fresh record of the titles drawn in it.
           def render_menu(menu, project = nil)
             @thematiq_nav_drawn = []
-            html = super
-            return html unless html && menu == :project_menu && thematiq_stay_on_project_menu?(project)
-
-            html.sub('class="menu_root closed"', 'class="menu_root open"').html_safe # rubocop:disable Rails/OutputSafety
+            super
           end
 
           # A group title, or the spacer above the bottom items, before the first item that needs one.
@@ -85,20 +88,13 @@ module OpenProject
 
           private
 
-          # Core opens the submenu of the selected item with this class. A STAY_ON_PROJECT_MENU item
-          # goes without it, so the arrow button opens and closes its submenu as on any other page.
-          def menu_node_options(node)
-            options = super
-            return options unless @menu == :project_menu && ProjectMenu::STAY_ON_PROJECT_MENU.include?(node.name)
-
-            options.except(:class)
-          end
-
           # Core names the arrow button after the item's title attribute, which is empty on the
-          # selected item. Core never shows the arrow there. Here it shows, so it gets its name.
+          # selected item. Core never shows the arrow there. In the two-layer menu it shows on every
+          # item with a submenu, so it gets its name. On other items the label is not empty and
+          # nothing is replaced.
           def render_menu_toggler(node)
             html = super
-            return html unless @menu == :project_menu && ProjectMenu::STAY_ON_PROJECT_MENU.include?(node.name)
+            return html unless @menu == :project_menu
 
             nameless = %(aria-label="#{h(I18n.t(:label_go_forward, module: ''))}")
             named = %(aria-label="#{h(I18n.t(:label_go_forward, module: node.caption(@project)))}")
@@ -120,12 +116,6 @@ module OpenProject
             tag.span(class: "thematiq-nav-count") do
               concat number_with_delimiter(count)
               concat tag.span(" #{t('thematiq.shell.project_menu.open')}", class: "sr-only")
-            end
-          end
-
-          def thematiq_stay_on_project_menu?(project)
-            first_level_menu_items_for(:project_menu, project).any? do |node|
-              ProjectMenu::STAY_ON_PROJECT_MENU.include?(node.name) && node_or_children_selected?(node)
             end
           end
 
