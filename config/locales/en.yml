@@ -6,43 +6,133 @@ en:
     admin:
       menu: "Thematiq design"
       title: "Thematiq design"
-      description: "OpenProject takes its colours, corners and font from the design system that is active in thematiq."
-      connection: "Connection"
-      base_url: "Nextcloud address"
-      base_url_caption: "The address of the Nextcloud that runs thematiq, for example https://cloud.example.org. Leave it empty to use the bundled default."
-      save: "Save"
-      check_connection: "Check connection"
-      refresh_now: "Refresh now"
-      active_design_system: "Active design system"
+      description: "Pick the design system OpenProject uses. It sets the colours, the corners and the font."
+      active_now_html: "Active now: <strong>%{name}</strong>."
+      search_label: "Search design systems"
+      search: "Search"
+      show_all: "Show all"
+      count: "%{shown} of %{total} design systems"
+      no_results: "No design system has that name. Try another word or show all."
+      picker_legend: "Design systems"
+      badge_default: "Default"
+      badge_active: "Active"
+      ships_with_plugin: "Ships with the plugin"
+      badge_custom: "Custom"
+      custom_meta:
+        one: "1 value changed from %{name}"
+        other: "%{count} values changed from %{name}"
+      edit_tokens: "Edit"
+      customise: "Customise"
+      customise_label: "Customise %{name}"
+      apply: "Apply"
+      apply_hint: "Everyone sees the chosen design system on their next page."
+      notice_applied: "\"%{name}\" is now the active design system."
+      error_unknown_set: "Choose a design system from the list first."
+      catalogue_unusable: "The list of design systems in the plugin could not be read. OpenProject uses the built in Cunningham values until the plugin is installed again."
+      rejected_tokens: "Some values of the active design system were refused and replaced: %{tokens}."
+    editor:
+      title: "Custom design system"
+      description: "Start from a design system and change single values. The result is one custom design system, kept in OpenProject."
+      default_name: "%{name}, custom"
       name: "Name"
-      revision: "Revision"
-      source: "Source"
-      source_thematiq: "Thematiq"
-      source_bundled: "Bundled default"
-      last_fetched: "Last fetched"
-      last_checked: "Last checked"
-      never: "Never"
-      bundled_not_configured: "The bundled default is in use. No Nextcloud address is set."
-      bundled_no_fetch: "The bundled default is in use. Thematiq has not given a design system yet."
-      last_fetch_failed: "The last fetch failed. %{message} The design system below stays in use."
-      rejected_tokens: "Some values were refused and replaced by the bundled default: %{tokens}."
-      picker_hint: "To choose another design system, open thematiq in Nextcloud. OpenProject follows within five minutes."
-      notice_saved_without_url: "Saved. The bundled default is in use."
-      notice_saved_and_fetched: "Saved. The design system \"%{name}\" is in use."
-      notice_refreshed: "Refreshed. The design system \"%{name}\" is in use."
-      notice_check_ok: "The connection works. Thematiq offers \"%{name}\", revision %{revision}. Save to use it."
-    errors:
-      invalid_url: "Enter a full address that starts with http:// or https://."
-      not_configured: "Set a Nextcloud address first."
-      timeout: "Thematiq did not answer in time."
-      unreachable: "The address could not be reached."
-      http_status: "Thematiq answered with status %{status}."
-      invalid_json: "The answer was not JSON. Check that the address points at Nextcloud and that thematiq is enabled."
-      too_large: "The answer was too large."
-      invalid_payload: "The answer does not follow the token contract this plugin supports."
-      unexpected_not_modified: "Thematiq answered \"not modified\" but no design system is stored. Use \"Refresh now\"."
-      unknown: "The fetch failed."
+      based_on: "Based on"
+      based_on_hint: "Values you leave empty come from this design system."
+      tokens: "Values"
+      tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
+      base_value: "Now: %{value}."
+      kind_hint:
+        color: "A colour, for example #1a67a3 or rgb(26, 103, 163)."
+        length: "A length, for example 8px or 0.5rem."
+        font_family: "A font stack, for example 'Fira Sans', system-ui, sans-serif. A font that does not come with the plugin must be on the reader's device."
+      reset_token: "Reset"
+      reset_token_label: "Reset %{token}"
+      reset_all: "Reset all"
+      preview: "Preview"
+      save_and_apply: "Save and apply"
+      back: "Back to the list"
+      delete: "Delete the custom design system"
+      delete_hint: "OpenProject goes back to the design system chosen before."
+      preview_title: "Preview of the shell"
+      preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
+      notice_not_saved: "The preview is up to date. Nothing is saved yet."
+      notice_deleted: "The custom design system is deleted."
+      error_invalid: "Some values cannot be used. Correct the marked fields and save again."
+      error_name: "Give the design system a name of at most 80 characters."
+      error_color: "This is not a colour the plugin accepts. Use a hex value, a colour name or rgb()."
+      error_length: "This is not a length the plugin accepts. Use a number with px, rem, em or %."
+      error_font_family: "This is not a font stack the plugin accepts. Use names separated by commas, with quotes around names that have spaces."
+      sample:
+        app: "OpenProject"
+        search: "Search"
+        create: "Create"
+        export: "Export"
+        overview: "Overview"
+        work_packages: "Work packages"
+        meetings: "Meetings"
+        filter: "Filter by text"
+        id: "ID"
+        subject: "Subject"
+        row_one: "Organise the conference"
+        row_two: "Send the invitations"
+        footnote: "Sample content"
+    contrast:
+      low: "Low contrast, under 4.5 to 1: %{pairs}."
+      pairs:
+        on-primary: "white text on the top bar"
+        on-action: "white text on the main button"
+        ink-on-ground: "main text on the page background"
+        muted-on-ground: "muted text on the page background"
+        link-on-white: "links on white"
+        primary-deep-on-primary-light: "the selected menu item"
+    fonts:
+      loaded: "The font %{family} comes with the plugin."
+      next_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see %{next_family}, which does."
+      not_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see the next font in the list that is on their device."
+    transfer:
+      export: "Export"
+      export_label: "Export %{name} as a file"
+      import_title: "Import a design system"
+      file: "File"
+      import: "Import"
+      import_hint: "Choose a file that was exported from this page. It becomes your custom design system. It is not applied until you pick it."
+      import_hint_replaces: "Choose a file that was exported from this page. It replaces your custom design system. It is not applied until you pick it."
+      notice_imported: "\"%{name}\" is imported as your custom design system. Pick it in the list and select \"Apply\" to use it."
+      errors:
+        empty: "Choose a file first."
+        too_large: "The file is too large. A design system file is at most 64 KB."
+        invalid_json: "The file is not a design system file. It could not be read as JSON."
+        not_a_set: "The file is not a design system file. It needs an id, a name and tokens."
+        unknown_keys: "The file holds entries this plugin does not know. Nothing was imported."
+        token_invalid: "The file holds a value that cannot be used as a colour, a length or a font. Nothing was imported."
+        name_invalid: "The file has no usable name. Nothing was imported."
+    tokens:
+      primary: { label: "Primary", hint: "top bar" }
+      primary-deep: { label: "Primary, deep", hint: "hover in the top bar, selected text" }
+      primary-light: { label: "Primary, light", hint: "selected menu item" }
+      action: { label: "Action", hint: "the one main button" }
+      action-deep: { label: "Action, deep", hint: "border and hover of the main button" }
+      link: { label: "Link", hint: "links and work package numbers" }
+      accent: { label: "Accent", hint: "not used by OpenProject's screens yet" }
+      ink: { label: "Ink", hint: "main text" }
+      text: { label: "Text", hint: "not used by OpenProject's screens yet" }
+      muted: { label: "Muted", hint: "labels and hints" }
+      line: { label: "Line", hint: "lines between parts" }
+      soft: { label: "Soft", hint: "hover background" }
+      ground: { label: "Ground", hint: "page background" }
+      chip: { label: "Chip", hint: "not used by OpenProject's screens yet" }
+      field: { label: "Field", hint: "borders of inputs and buttons" }
+      radius: { label: "Radius", hint: "buttons and menu items" }
+      radius-lg: { label: "Radius, large", hint: "inputs and panels" }
+      font-family: { label: "Font", hint: "all text" }
     shell:
+      settings:
+        title: "App switcher"
+        nextcloud_url: "Nextcloud address"
+        nextcloud_url_caption: "Optional. With an address, the app switcher also links to Files, Mail, Calendar, Tasks, Talk and Contacts in that Nextcloud. OpenProject never contacts the address itself."
+        save: "Save"
+        notice_saved: "Saved. The app switcher now links to Nextcloud."
+        notice_cleared: "Saved. The app switcher shows OpenProject only."
+        error_invalid: "Enter a full address that starts with http:// or https://, or leave the field empty."
       app_switcher:
         nextcloud: "Nextcloud"
         apps:

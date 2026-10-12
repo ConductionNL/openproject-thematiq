@@ -1,0 +1,27 @@
+#!/bin/sh
+# Syntax check for every Ruby file, the locale file and the ERB templates, compiled the way Rails compiles them.
+# Needs no database. It does not render a page: a wrong helper or component argument only shows in a running OpenProject.
+set -e
+cd "$(dirname "$0")/.."
+exec docker run --rm -v "$PWD":/plugin:ro --entrypoint bash "${OPENPROJECT_IMAGE:-openproject/openproject:17}" -c '
+cd /app
+status=0
+for f in $(find /plugin/app /plugin/lib /plugin/config /plugin/test -name "*.rb"); do ruby -c "$f" >/dev/null || status=1; done
+ruby -ryaml -e "Dir[%q(/plugin/config/locales/*.yml)].each { |f| YAML.load_file(f) }" || status=1
+bundle exec ruby -e "
+  require %q(action_view)
+  ok = true
+  Dir[%q(/plugin/app/views/**/*.erb)].sort.each do |file|
+    src = ActionView::Template::Handlers::ERB::Erubi.new(File.read(file)).src
+    begin
+      RubyVM::InstructionSequence.compile(src, file)
+    rescue SyntaxError => e
+      ok = false
+      warn %(#{file}: #{e.message.lines.first})
+    end
+  end
+  exit(ok ? 0 : 1)
+" || status=1
+[ $status -eq 0 ] && echo "syntax ok" || echo "SYNTAX ERRORS"
+exit $status
+'

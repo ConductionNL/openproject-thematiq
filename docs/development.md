@@ -37,7 +37,7 @@ The first start seeds the database and takes a few minutes. Open `http://localho
 1. Open **Administration**, then **Plugins**. The list shows "Thematiq" with its version.
 2. View the source of any page. The head has a `<style id="openproject-thematiq">` tag.
 
-Pages on the sign in layout do not get the style tag. OpenProject only calls the head hook from its base layout.
+[layouts.md](layouts.md) lists which pages get which style tag. [enterprise-parity.md](enterprise-parity.md) compares the plugin with OpenProject's Enterprise design page.
 
 ## Change the code
 
@@ -56,10 +56,14 @@ Then run the `docker run` command again.
 |---|---|
 | `lib/open_project/thematiq/engine.rb` | The Rails engine and the plugin registration |
 | `lib/open_project/thematiq/hooks.rb` | The view hooks |
-| `lib/open_project/thematiq/tokens/` | The token source: fetch, check, bundled default |
+| `lib/open_project/thematiq/tokens/` | The token model: token set, validator, last resort values |
+| `data/catalogue/`, `lib/open_project/thematiq/catalogue.rb` | The design systems that ship with the plugin, and their loader |
 | `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
-| `app/workers/thematiq/` | The background job that keeps the tokens current |
+| `lib/open_project/thematiq/preview.rb` | The inline styles of the small pictures and the shell preview |
+| `lib/open_project/thematiq/custom_draft.rb` | The custom design system: a base plus overrides |
+| `lib/open_project/thematiq/transfer.rb` | Export and import of one design system |
+| `bin/check-syntax` | Compiles every Ruby file and template without a database |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar and the project menu: helper overrides, the app switcher column, the logo rule |
 | `stylesheets/shell/` | The CSS of the top bar and the project menu. It comes after `stylesheets/geometry/` in path order |
@@ -73,4 +77,4 @@ Then run the `docker run` command again.
 
 `lib/open_project/thematiq/shell/` and `app/views/thematiq/shell/` are reserved for the shared top bar and project menu.
 
-Next, read [tokens.md](tokens.md) for how the tokens reach the page, [geometry.md](geometry.md) for the sizes and [admin-page.md](admin-page.md) for the page an administrator uses.
+Next, read [catalogue.md](catalogue.md) for the design systems that ship with the plugin, [tokens.md](tokens.md) for how the tokens reach the page, [geometry.md](geometry.md) for the sizes and [admin-page.md](admin-page.md) for the page an administrator uses.

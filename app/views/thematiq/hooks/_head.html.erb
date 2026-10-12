@@ -2,4 +2,11 @@
 <style id="openproject-thematiq" data-plugin-version="<%= OpenProject::Thematiq::VERSION %>">
 <%= raw OpenProject::Thematiq.stylesheet %>
 </style>
+<%# The fonts of the active design system. They are files the plugin serves itself, under /thematiq/. %>
+<% asset_css = OpenProject::Thematiq.asset_stylesheet(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
+<% if asset_css.present? %>
+<style id="openproject-thematiq-assets">
+<%= raw asset_css %>
+</style>
+<% end %>
 <%= render partial: "thematiq/shell/head" %>

@@ -38,3 +38,21 @@
 .op-app-header--end > button.op-app-header--primer-button.Button--invisible { height: 48px; width: auto; }
 .op-app-header .op-top-menu-user-avatar .op-avatar,
 .op-app-header .op-top-menu-user-avatar .op-principal--avatar { width: 38px; height: 38px; line-height: 38px; }
+
+/* Below 1012 px OpenProject uses its compact header. The canon sizes above are for the desktop bar:
+ * its fixed columns would push the right side off a narrow screen. So the columns, the brand block
+ * and the search go back to sizes that follow the content. */
+@media screen and (max-width: 1011px) {
+  .op-app-header { grid-template-columns: minmax(0, auto) 1fr auto; padding: 0 6px; }
+  .op-app-header--start { width: auto; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; min-width: 0; margin: 0 8px 0 0; }
+  .op-app-header--center { flex: 1 1 auto; width: auto; justify-content: flex-end; }
+  .op-app-header .op-app-search,
+  .op-app-header opce-global-search { display: flex; width: auto; }
+}
+
+/* Below 850 px OpenProject hides the wide logo and shows its square mark. The brand block rule above
+ * sets display, which would bring the wide logo back, so it is hidden again here. */
+@media screen and (max-width: 850px) {
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { display: none; }
+}

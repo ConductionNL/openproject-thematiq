@@ -1,0 +1,12 @@
+<%# For the layouts that do not call the head hook. See lib/open_project/thematiq/hooks.rb. %>
+<style id="openproject-thematiq-early">
+<%= raw OpenProject::Thematiq.early_stylesheet %>
+</style>
+<% early_asset_css = OpenProject::Thematiq.asset_stylesheet(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
+<% if early_asset_css.present? %>
+<style id="openproject-thematiq-early-assets">
+<%= raw early_asset_css %>
+</style>
+<% end %>
+<%# The logo rule is specific enough to win from here too, so the logo-only layout gets the logo as well. %>
+<%= render partial: "thematiq/shell/head", locals: { style_id: "openproject-thematiq-early-logo" } %>

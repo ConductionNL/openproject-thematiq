@@ -10,7 +10,6 @@ require "open_project/thematiq/shell/project_menu"
 
 class ShellTest < Minitest::Test
   Shell = OpenProject::Thematiq::Shell
-  TokenSet = Struct.new(:logo_url, :logo_inverse_url)
 
   def test_guard_names_every_file_when_the_core_is_not_there
     Dir.mktmpdir do |root|
@@ -31,22 +30,38 @@ class ShellTest < Minitest::Test
     end
   end
 
-  def test_logo_prefers_the_inverse_logo
-    css = Shell::Logo.css(TokenSet.new("https://cloud.example.org/logo.svg", "https://cloud.example.org/logo-white.svg"))
+  def test_logo_prefers_the_logo_for_dark_backgrounds
+    css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht"))
 
-    assert_includes css, 'url("https://cloud.example.org/logo-white.svg")'
+    assert_equal %(.op-app-header .op-logo .op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); }), css
   end
 
-  def test_logo_writes_no_rule_without_a_logo
-    assert_equal "", Shell::Logo.css(TokenSet.new(nil, nil))
+  def test_logo_takes_the_normal_logo_when_there_is_no_other_and_respects_the_mount_path
+    css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("dinkelland"), root: "/op")
+
+    assert_includes css, 'url("/op/thematiq/logos/dinkelland.svg")'
+  end
+
+  def test_logo_writes_no_rule_without_a_bundled_logo
+    assert_equal "", Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("amsterdam"))
+    assert_equal "", Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("cunningham"))
+    assert_equal "", Shell::Logo.rule(nil)
   end
 
   def test_logo_address_cannot_leave_the_css_string
-    css = Shell::Logo.css(TokenSet.new('https://cloud.example.org/a"); } body { display: none } </style><script>', nil))
+    css = Shell::Logo.rule('https://cloud.example.org/a"); } body { display: none } </style><script>')
 
     refute_match(/[<>]/, css)
     assert_equal 2, css.count('"')
     assert_equal 1, css.count("}")
+  end
+
+  def test_every_bundled_set_gives_a_plain_logo_rule_or_none
+    OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
+      css = Shell::Logo.css(token_set)
+
+      assert_match(%r{\A(?:|\.op-app-header \.op-logo \.op-logo--link \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \})\z}, css, token_set.id)
+    end
   end
 
   def test_nextcloud_address_loses_its_trailing_slash

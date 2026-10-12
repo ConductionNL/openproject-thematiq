@@ -1,20 +1,22 @@
 # frozen_string_literal: true
 
-require "uri"
 require "open_project/thematiq/tokens/validator"
 require "open_project/thematiq/tokens/defaults"
 
 module OpenProject
   module Thematiq
     module Tokens
-      # One validated token set. Every value in #tokens has passed the Validator,
+      # One validated design system. Every value in #tokens has passed the Validator,
       # so the variable layer can write them to CSS as they are.
+      #
+      # The set shape, shared by the bundled catalogue, the export file and the import file:
+      #   { "id": "...", "name": "...", "tokens": { eighteen roles },
+      #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
+      #     "dark": { colour roles for the dark theme, optional } }
       class TokenSet
-        class InvalidPayload < StandardError; end
+        class InvalidSet < StandardError; end
 
-        SUPPORTED_VERSION = 1
-
-        # The contract of GET <nextcloud>/apps/thematiq/api/shell-tokens.
+        # The eighteen roles and the kind of value each one takes.
         KINDS = {
           "primary" => :color, "primary-deep" => :color, "primary-light" => :color,
           "action" => :color, "action-deep" => :color, "link" => :color, "accent" => :color,
@@ -24,70 +26,104 @@ module OpenProject
           "font-family" => :font_family
         }.freeze
 
-        attr_reader :id, :name, :revision, :tokens, :logo_url, :logo_inverse_url, :rejected
+        SET_KEYS = %w[id name tokens logo dark].freeze
+        LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
+        DARK_KEYS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
+        ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
-        def self.bundled
-          @bundled ||= new(id: Defaults::ID, name: Defaults::NAME, revision: Defaults::REVISION,
-                           tokens: Defaults::TOKENS, bundled: true)
+        attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+
+        # The last resort: the values in Defaults. Used when the catalogue cannot be read.
+        def self.fallback
+          @fallback ||= new(id: Defaults::ID, name: Defaults::NAME, tokens: Defaults::TOKENS)
         end
 
-        # Builds a token set from the JSON thematiq returned, or from the copy the plugin stored.
-        # A value that fails validation falls back to the bundled value and its key is listed in #rejected.
-        # Raises InvalidPayload when the document itself does not follow the contract.
-        def self.from_payload(payload)
-          raise InvalidPayload, "not_an_object" unless payload.is_a?(Hash)
-          raise InvalidPayload, "unsupported_version" unless payload["version"] == SUPPORTED_VERSION
-          raise InvalidPayload, "tokens_missing" unless payload["tokens"].is_a?(Hash)
+        # Builds a token set from a hash in the set shape.
+        #
+        # Default mode, for the bundled catalogue and the stored custom set: a value that fails
+        # validation falls back to the value in +base+ and its key is listed in #rejected.
+        #
+        # Strict mode, for an imported file: an unknown key or a value that fails validation
+        # refuses the whole set.
+        #
+        # Raises InvalidSet with a short code when the hash does not have the set shape.
+        def self.from_set(set, strict: false, base: Defaults::TOKENS)
+          raise InvalidSet, "not_an_object" unless set.is_a?(Hash)
 
-          id = Validator.label(payload["id"])
-          revision = Validator.label(payload["revision"], max: 200)
-          raise InvalidPayload, "id_missing" unless id
-          raise InvalidPayload, "revision_missing" unless revision
+          tokens = set["tokens"]
+          logo = set["logo"].nil? ? {} : set["logo"]
+          raise InvalidSet, "id_invalid" unless set["id"].is_a?(String) && ID.match?(set["id"])
+          raise InvalidSet, "tokens_missing" unless tokens.is_a?(Hash)
+          raise InvalidSet, "logo_invalid" unless logo.is_a?(Hash)
+          raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
 
-          logo = payload["logo"].is_a?(Hash) ? payload["logo"] : {}
-          new(id:, revision:,
-              name: Validator.label(payload["name"]) || id,
-              tokens: payload["tokens"],
-              logo_url: Validator.absolute_http_url(logo["url"]),
-              logo_inverse_url: Validator.absolute_http_url(logo["inverse_url"]),
-              rejected: payload["rejected"])
+          if strict
+            unknown = (set.keys - SET_KEYS) + (tokens.keys - KINDS.keys) + (logo.keys - LOGO_KEYS) +
+                      ((set["dark"] || {}).keys - DARK_KEYS)
+            raise InvalidSet, "unknown_keys" if unknown.any?
+            raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
+          end
+
+          token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:, dark: set["dark"],
+                          logo_file: logo["redistributable"] == true ? Validator.file_name(logo["file"]) : nil,
+                          logo_inverse_file: logo["redistributable"] == true ? Validator.file_name(logo["inverse_file"]) : nil,
+                          logo_licence: Validator.label(logo["licence"], max: 300))
+          raise InvalidSet, "token_invalid" if strict && token_set.rejected.any?
+
+          token_set
         end
 
-        def initialize(id:, name:, revision:, tokens:, logo_url: nil, logo_inverse_url: nil, bundled: false, rejected: nil)
+        def initialize(id:, name:, tokens:, base: Defaults::TOKENS, dark: nil, logo_file: nil, logo_inverse_file: nil, logo_licence: nil)
           @id = id
           @name = name
-          @revision = revision
-          @logo_url = logo_url
-          @logo_inverse_url = logo_inverse_url
-          @bundled = bundled
-          # Keys refused earlier. The stored copy holds the fallback values, so it carries this list along.
-          @rejected = rejected.is_a?(Array) ? KINDS.keys & rejected : []
-          @tokens = clean(tokens).freeze
-          @rejected = (KINDS.keys & @rejected).freeze
-        end
-
-        def bundled?
-          @bundled
+          @logo_file = logo_file
+          @logo_inverse_file = logo_inverse_file
+          @logo_licence = logo_licence
+          @rejected = []
+          @tokens = clean(tokens, base).freeze
+          @dark_tokens = clean_dark(dark).freeze
+          @rejected.freeze
         end
 
         def [](key)
           tokens[key]
         end
 
-        # The shape that is stored and that .from_payload reads back.
-        def to_payload
-          { "version" => SUPPORTED_VERSION, "id" => id, "name" => name, "revision" => revision,
-            "tokens" => tokens.dup, "logo" => { "url" => logo_url, "inverse_url" => logo_inverse_url },
-            "rejected" => rejected.dup }
+        # True when the design system brings its own colours for the dark theme.
+        def dark?
+          !dark_tokens.empty?
+        end
+
+        # The set shape. This is what an export file holds.
+        def to_set
+          set = { "id" => id, "name" => name, "tokens" => tokens.dup,
+                  "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
+                              "redistributable" => !logo_file.nil? } }
+          set["dark"] = dark_tokens.dup if dark?
+          set
         end
 
         private
 
-        def clean(raw)
+        # The optional dark block: colour roles only, no fallback. A role it does not name, or names with
+        # a value that fails, stays OpenProject's own dark colour.
+        def clean_dark(raw)
+          return {} unless raw.is_a?(Hash)
+
+          DARK_KEYS.each_with_object({}) do |key, result|
+            given = raw[key]
+            value = Validator.color(given)
+            @rejected << "dark.#{key}" if !given.nil? && value.nil?
+            result[key] = value if value
+          end
+        end
+
+        def clean(raw, base)
           KINDS.each_with_object({}) do |(key, kind), result|
-            value = raw.key?(key) ? Validator.public_send(kind, raw[key]) : nil
-            @rejected << key if raw.key?(key) && !raw[key].nil? && value.nil?
-            value ||= Defaults::TOKENS[key]
+            given = raw[key]
+            value = Validator.public_send(kind, given)
+            @rejected << key if !given.nil? && value.nil?
+            value ||= Validator.public_send(kind, base[key])
             result[key] = value if value
           end
         end

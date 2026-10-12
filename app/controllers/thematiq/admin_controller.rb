@@ -2,7 +2,6 @@
 
 module Thematiq
   # The "Thematiq design" page in the administration. Admins only.
-  # The fetches it starts are bound by the client's short timeouts.
   class AdminController < ApplicationController
     before_action :require_admin
     before_action :load_state
@@ -10,74 +9,124 @@ module Thematiq
     layout "admin"
     menu_item :thematiq_design
 
-    def show; end
+    # The picker: every design system, a search field and the active one.
+    def show
+      @query = params[:q].to_s.strip.first(100)
+      @sets = @store.catalogue.search(@query)
+      @custom = @store.custom_draft
+    end
 
-    # One form posts here with two buttons. Rails binds a CSRF token to one form action,
-    # so "Check connection" is a named button on the same action and not a second URL.
+    # Makes the chosen design system the active one.
     def update
-      return check if params[:check].present?
+      token_set = @store.activate(params[:set_id].to_s)
 
-      base_url = params[:base_url].to_s.strip
-
-      if base_url.present? && OpenProject::Thematiq::Tokens::Client.endpoint_for(base_url).nil?
-        flash.now[:error] = t("thematiq.errors.invalid_url")
-        @base_url = base_url
-        return render :show, status: :unprocessable_entity
-      end
-
-      changed = base_url != @store.base_url
-      @store.forget_token_set if changed
-      @store.base_url = base_url
-
-      if base_url.blank?
-        flash[:notice] = t("thematiq.admin.notice_saved_without_url")
+      if token_set
+        flash[:notice] = t("thematiq.admin.notice_applied", name: token_set.name)
       else
-        report refresher.call(force: true), success: "thematiq.admin.notice_saved_and_fetched"
+        flash[:error] = t("thematiq.admin.error_unknown_set")
       end
       redirect_to action: :show
     end
 
-    def refresh
-      report refresher.call(force: true), success: "thematiq.admin.notice_refreshed"
+    # The editor: the custom set, or a new one that starts from a design system of the catalogue.
+    def edit
+      start = @store.catalogue.find(params[:from].to_s)
+      @draft = if start
+                 new_draft(start)
+               else
+                 @store.custom_draft || new_draft(@store.catalogue.find(@store.active_id) || @store.catalogue.default)
+               end
+    end
+
+    # One form posts here with several named buttons. Rails binds a CSRF token to one form action,
+    # so preview, reset and delete are buttons on the same action and not URLs of their own.
+    def update_custom
+      if params[:delete].present?
+        @store.delete_custom
+        flash[:notice] = t("thematiq.editor.notice_deleted")
+        return redirect_to action: :show
+      end
+
+      @draft = draft_from_params
+      if params[:preview].present? || params[:reset].present? || params[:reset_all].present?
+        flash.now[:notice] = t("thematiq.editor.notice_not_saved")
+        render :edit
+      elsif @store.save_custom(@draft)
+        @store.activate(OpenProject::Thematiq::CustomDraft::ID)
+        flash[:notice] = t("thematiq.admin.notice_applied", name: @draft.name)
+        redirect_to action: :show
+      else
+        flash.now[:error] = t("thematiq.editor.error_invalid")
+        render :edit, status: :unprocessable_entity
+      end
+    end
+
+    # The Nextcloud address for the app switcher links. Empty is fine: then the switcher shows OpenProject only.
+    def update_shell
+      if @store.save_nextcloud_url(params[:nextcloud_url])
+        flash[:notice] = t(@store.nextcloud_url ? "thematiq.shell.settings.notice_saved" : "thematiq.shell.settings.notice_cleared")
+      else
+        flash[:error] = t("thematiq.shell.settings.error_invalid")
+      end
+      redirect_to action: :show
+    end
+
+    # Sends one design system as a JSON file in the set shape.
+    def export
+      token_set = params[:id].to_s == OpenProject::Thematiq::CustomDraft::ID ? @store.custom_set : @store.catalogue.find(params[:id].to_s)
+      return render_404 unless token_set
+
+      send_data OpenProject::Thematiq::Transfer.export(token_set),
+                filename: OpenProject::Thematiq::Transfer.file_name(token_set),
+                type: "application/json", disposition: "attachment"
+    end
+
+    # Reads an uploaded file as the custom design system. The file is hostile input: Transfer checks all of it.
+    def import
+      imported = OpenProject::Thematiq::Transfer.import(uploaded_text)
+      draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: imported.name.first(80),
+                                                     overrides: imported.tokens)
+      raise OpenProject::Thematiq::Transfer::Refused, "token_invalid" unless @store.save_custom(draft)
+
+      flash[:notice] = t("thematiq.transfer.notice_imported", name: draft.name)
+      redirect_to action: :show
+    rescue OpenProject::Thematiq::Transfer::Refused => e
+      flash[:error] = t("thematiq.transfer.errors.#{import_error_key(e.code)}")
       redirect_to action: :show
     end
 
     private
 
-    # Reads the endpoint for the address in the field and stores nothing.
-    def check
-      @base_url = params[:base_url].to_s.strip
-      outcome = refresher.check(@base_url)
+    # At most one byte over the cap is read, so a huge upload is refused without being loaded.
+    def uploaded_text
+      file = params[:file]
+      return nil unless file.respond_to?(:read)
 
-      if outcome.success?
-        flash.now[:notice] = t("thematiq.admin.notice_check_ok", name: outcome.token_set.name, revision: outcome.token_set.revision)
-      else
-        flash.now[:error] = error_message(outcome)
-      end
-      render :show
+      file.read(OpenProject::Thematiq::Transfer::MAX_BYTES + 1)
+    end
+
+    def import_error_key(code)
+      %w[empty too_large invalid_json unknown_keys token_invalid name_invalid].include?(code) ? code : "not_a_set"
+    end
+
+    def new_draft(base)
+      OpenProject::Thematiq::CustomDraft.new(base:, name: t("thematiq.editor.default_name", name: base.name).first(80), overrides: {})
+    end
+
+    def draft_from_params
+      base = @store.catalogue.find(params[:based_on].to_s) || @store.catalogue.default
+      typed = params[:tokens].respond_to?(:permit) ? params[:tokens].permit(*token_keys).to_h : {}
+      typed = {} if params[:reset_all].present?
+      typed = typed.except(params[:reset].to_s) if params[:reset].present?
+      OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed)
+    end
+
+    def token_keys
+      OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys
     end
 
     def load_state
       @store = OpenProject::Thematiq::Store.new
-      @base_url = @store.base_url
-    end
-
-    def refresher
-      OpenProject::Thematiq::Tokens::Refresher.new(store: @store)
-    end
-
-    def report(outcome, success:)
-      if outcome.success?
-        flash[:notice] = t(success, name: outcome.token_set.name)
-      elsif outcome.status == :not_configured
-        flash[:error] = t("thematiq.errors.not_configured")
-      else
-        flash[:error] = error_message(outcome)
-      end
-    end
-
-    def error_message(outcome)
-      helpers.thematiq_error_message(outcome.error, outcome.detail)
     end
   end
 end
