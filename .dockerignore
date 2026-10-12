@@ -1,0 +1,7 @@
+.git
+.lane
+tmp
+spike
+docs
+*.log
+*.gem

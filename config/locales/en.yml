@@ -1,0 +1,4 @@
+en:
+  plugin_openproject_thematiq:
+    name: "Thematiq"
+    description: "Gives OpenProject the same shell as a Nextcloud themed with thematiq."

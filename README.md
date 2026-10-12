@@ -16,8 +16,12 @@ The designs are on [identity.conduction.nl/screens](https://identity.conduction.
 
 ## What is in this repository now
 
+- The plugin gem at the repository root: `openproject-thematiq.gemspec`, `lib/`, `app/`, `config/` and `stylesheets/`.
+- `docker/`: the image that runs OpenProject with the plugin.
 - `spike/`: the throwaway plugin, the generated stylesheet and the measuring scripts from the spike, kept as a reference.
 - `spike/OP-TWIN-canon.md`: the sizes the shell is measured against.
+
+To build and run it, follow [docs/development.md](docs/development.md).
 
 ## Licence
 
