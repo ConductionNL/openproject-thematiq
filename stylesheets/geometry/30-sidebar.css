@@ -1,0 +1,31 @@
+/* Sidebar. Canon: OpNav, measured from AppZijbalk and DqZijbalk. */
+
+/* width 264 px, 1 px border on the right. !important because the resizer writes the width inline */
+#main-menu { width: 264px !important; min-width: 264px; max-width: 264px; border-right: 1px solid var(--thematiq-line); box-sizing: border-box; font-family: var(--thematiq-font); }
+
+/* padding 20px 14px */
+#main-menu #menu-sidebar { padding-left: 14px; padding-right: 14px; }
+#main-menu .main-menu--top-container > div:first-child { padding-top: 20px !important; }
+
+/* project switcher: min-height 44 px, soft background, name weight 600 */
+#main-menu .op-project-select--trigger-button { min-height: 44px; background: var(--thematiq-soft); border-radius: var(--thematiq-radius); font-weight: 600; }
+
+/* item: min-height 42 px, padding 0 10px, radius, 15 px weight 500 */
+#main-menu .main-menu-item a, #main-menu .op-submenu--item-action, #main-menu .main-menu--parent-node,
+#main-menu .main-menu--children-menu-header {
+  min-height: 42px; height: 42px; line-height: 42px; font-size: 15px; font-weight: 500; border-radius: var(--thematiq-radius);
+}
+#main-menu .op-submenu--item-action { padding: 0 10px; }
+
+/* active item: primary-light background, primary-deep text, weight 600 */
+#main-menu .op-submenu--item-action.selected, #main-menu .main-menu-item a.selected, #main-menu .selected > a {
+  background: var(--thematiq-primary-light); color: var(--thematiq-primary-deep); font-weight: 600;
+}
+
+/* group title: 12 px weight 600, uppercase, letter-spacing 0.06em, muted */
+#main-menu .op-submenu--title, #main-menu .op-submenu--title button {
+  font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--thematiq-muted);
+}
+
+/* search input in the menu: the canon input, 40 px high, radius-lg */
+#main-menu .op-submenu--search-input { height: 40px; border-radius: var(--thematiq-radius-lg); border-color: var(--thematiq-field); }

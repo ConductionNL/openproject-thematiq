@@ -21,7 +21,7 @@ The designs are on [identity.conduction.nl/screens](https://identity.conduction.
 - `spike/`: the throwaway plugin, the generated stylesheet and the measuring scripts from the spike, kept as a reference.
 - `spike/OP-TWIN-canon.md`: the sizes the shell is measured against.
 
-To build and run it, follow [docs/development.md](docs/development.md).
+To build and run it, follow [docs/development.md](docs/development.md). To connect it to thematiq, follow [docs/admin-page.md](docs/admin-page.md).
 
 ## Licence
 

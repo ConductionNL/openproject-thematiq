@@ -1,0 +1,74 @@
+<% html_title t(:label_administration), t("thematiq.admin.title") %>
+<% active = @store.active_token_set %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.admin.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       t("thematiq.admin.title")]
+    )
+    header.with_description { t("thematiq.admin.description") }
+  end
+%>
+
+<% if active.bundled? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, test_selector: "thematiq-bundled-banner")) do %>
+    <%= t(@store.base_url.blank? ? "thematiq.admin.bundled_not_configured" : "thematiq.admin.bundled_no_fetch") %>
+  <% end %>
+<% end %>
+
+<% if @store.last_error %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, test_selector: "thematiq-error-banner")) do %>
+    <%= t("thematiq.admin.last_fetch_failed", message: thematiq_error_message(@store.last_error, @store.last_error_detail)) %>
+  <% end %>
+<% end %>
+
+<% if active.rejected.any? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, test_selector: "thematiq-rejected-banner")) do %>
+    <%= t("thematiq.admin.rejected_tokens", tokens: active.rejected.join(", ")) %>
+  <% end %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.admin.connection") }
+end %>
+
+<%= form_with(url: admin_thematiq_path, method: :post, data: { turbo: false }, id: "thematiq-connection-form") do %>
+  <%= render(Primer::Alpha::TextField.new(
+        name: :base_url,
+        id: "thematiq-base-url",
+        label: t("thematiq.admin.base_url"),
+        caption: t("thematiq.admin.base_url_caption"),
+        value: @base_url,
+        type: :url,
+        placeholder: "https://cloud.example.org",
+        input_width: :large
+      )) %>
+
+  <%= render(Primer::Box.new(mt: 3, display: :flex)) do %>
+    <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, mr: 2)) { t("thematiq.admin.save") } %>
+    <%= render(Primer::Beta::Button.new(type: :submit, name: "check", value: "1", test_selector: "thematiq-check")) { t("thematiq.admin.check_connection") } %>
+  <% end %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.admin.active_design_system") }
+end %>
+
+<%= render(AttributeGroups::AttributeGroupComponent.new) do |component|
+  component.with_attribute(key: t("thematiq.admin.name"), value: active.name)
+  component.with_attribute(key: t("thematiq.admin.revision"), value: active.revision)
+  component.with_attribute(
+    key: t("thematiq.admin.source"),
+    value: t(active.bundled? ? "thematiq.admin.source_bundled" : "thematiq.admin.source_thematiq")
+  )
+  component.with_attribute(key: t("thematiq.admin.last_fetched"), value: thematiq_time(active.bundled? ? nil : @store.fetched_at))
+  component.with_attribute(key: t("thematiq.admin.last_checked"), value: thematiq_time(@store.checked_at))
+end %>
+
+<%= form_with(url: admin_thematiq_refresh_path, method: :post, data: { turbo: false }, id: "thematiq-refresh-form") do %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 3, disabled: @store.base_url.blank?)) { t("thematiq.admin.refresh_now") } %>
+<% end %>
+
+<p class="color-fg-muted mt-3"><%= t("thematiq.admin.picker_hint") %></p>
