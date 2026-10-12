@@ -124,7 +124,7 @@ class AssetsTest < Minitest::Test
   def test_a_set_whose_logo_is_not_redistributable_keeps_openprojects_logo
     assert_nil bundled.logo_url(set("amsterdam"))
     assert_nil bundled.logo_url(set("cunningham"))
-    assert_equal 14, Catalogue.bundled.sets.count { |token_set| bundled.logo_url(token_set) }
+    assert_equal 15, Catalogue.bundled.sets.count { |token_set| bundled.logo_url(token_set) }
   end
 
   def test_a_custom_set_keeps_the_logo_of_its_base

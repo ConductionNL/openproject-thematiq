@@ -36,8 +36,8 @@ A custom design system gets the same check. The picker marks it when a pair fall
 
 The same pairs are computed for each set's dark block, with links on the page background in place of white.
 
-- Seven dark blocks are not used at all, because their main text does not read on their page background: `conduction` (1.61), `enschede` (1.27), `hoeksche-waard` (1.64), `losser` (1.19), `nora` (1.27), `purmerend` (1.19) and `zaanstad` (1.61). OpenProject's own dark colours apply there. The fix belongs in thematiq's dark derivation.
-- In the other 56, the selected menu item fails as the catalogue gives it, in 52 of them. The plugin's contrast rule picks a text colour that reads. After that rule no pair fails in any dark block that is used.
+- No bundled dark block is left out any more. The rule stays: a dark block whose main text does not read on its page background, 4.5 to 1, is not used. Until the catalogue of 13 October 2026 it left out seven sets.
+- The selected menu item reads in every bundled dark block as the catalogue gives it. The plugin's contrast rule still picks a text colour that reads, for a design system you import.
 
 ### What the check does not cover
 

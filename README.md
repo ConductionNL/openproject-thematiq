@@ -104,7 +104,7 @@ If you skip step 1, the table stays in the database. OpenProject works with it t
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 14 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 

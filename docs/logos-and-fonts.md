@@ -6,7 +6,7 @@ A design system can have a logo and a font. The plugin ships the files it may pa
 
 | Path | What it holds |
 |---|---|
-| `public/thematiq/logos/` | 20 logo files, for 14 design systems |
+| `public/thematiq/logos/` | 21 logo files, for 15 design systems |
 | `public/thematiq/fonts/` | 47 font files in 13 families, and their licence texts |
 | `lib/open_project/thematiq/assets.rb` | Which file belongs to which design system |
 
@@ -16,7 +16,7 @@ The plugin adds one static file handler to OpenProject. It answers for the files
 
 Only what the catalogue marks `"redistributable": true`. For the rest the plugin has no file, and never fetches one.
 
-- **Logos:** 14 of the 64 design systems. The other 50 keep OpenProject's logo.
+- **Logos:** 15 of the 64 design systems. The other 49 keep OpenProject's logo.
 - **Fonts:** 13 families: Barlow, Clear Sans, Figtree, Fira Sans, IBM Plex Sans, Inter, Lato, Lexend, Open Sans, Red Hat Text, Roboto, Source Sans 3 and Source Sans Pro. They are under the SIL Open Font License 1.1, and Clear Sans under Apache 2.0. `OFL.txt`, `OFL-inter.txt` and `APACHE-2.0.txt` sit next to the files.
 
 The files were copied from thematiq at the commit the catalogue names in `generated_from`.

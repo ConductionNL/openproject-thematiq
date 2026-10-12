@@ -102,7 +102,8 @@ class ContrastTest < Minitest::Test
 
   # The bundled sets whose dark block is not used, because its main text does not read on its page
   # background. For these the dark theme keeps OpenProject's own colours. Measured on the vendored catalogue.
-  DARK_NOT_USED = %w[conduction enschede hoeksche-waard losser nora purmerend zaanstad].freeze
+  # Seven until the catalogue of 13 October 2026, which corrected the dark blocks. Now none.
+  DARK_NOT_USED = %w[].freeze
 
   def test_the_dark_blocks_that_are_not_used_are_exactly_the_known_ones
     not_used = Catalogue.bundled.sets.select(&:dark?).reject { |token_set| Contrast.dark_usable?(token_set) }.map(&:id)
@@ -116,13 +117,14 @@ class ContrastTest < Minitest::Test
     end
   end
 
-  def test_the_catalogues_own_selected_item_colours_fail_in_the_dark_theme_which_is_why_the_rule_is_there
+  # 59 sets failed here until the catalogue corrected its dark blocks. The rule stays for an imported file.
+  def test_the_catalogues_own_selected_item_colours_read_in_the_dark_theme_since_the_corrected_blocks
     raw_failures = Catalogue.bundled.sets.select(&:dark?).count do |token_set|
       dark = token_set.dark_tokens
       (Contrast.ratio(dark["primary-deep"], dark["primary-light"]) || 99) < Contrast::MINIMUM
     end
 
-    assert_equal 59, raw_failures
+    assert_equal 0, raw_failures
   end
 
   def test_a_set_without_a_dark_block_has_no_dark_report

@@ -56,8 +56,8 @@ For such a set the generator writes one more block, for `body[data-color-mode="d
 
 Two rules guard the dark theme:
 
-- **A dark block is only used when its main text reads on its page background**, 4.5 to 1. Seven bundled sets fail that: `conduction`, `enschede`, `hoeksche-waard`, `losser`, `nora`, `purmerend` and `zaanstad`. For those the dark theme keeps OpenProject's own colours.
-- **The text on the selected menu item follows a contrast rule.** The dark blocks keep the light theme's `primary-deep`, a dark colour, on a dark `primary-light`. As given, that pair fails in 59 sets. The plugin takes the block's own `primary-deep` when it reads, and otherwise whichever of its `ink` and white reads best.
+- **A dark block is only used when its main text reads on its page background**, 4.5 to 1. No bundled set fails that since the catalogue of 13 October 2026. Before it, seven did. The rule stays for a design system you import: when it fails, the dark theme keeps OpenProject's own colours.
+- **The text on the selected menu item follows a contrast rule.** The plugin takes the dark block's own `primary-deep` when it reads on its `primary-light`, and otherwise whichever of its `ink` and white reads best. No bundled set needs the second step since the corrected catalogue.
 
 With these two rules, every dark block that is used reaches 4.5 to 1 on all six pairs. A test holds that.
 

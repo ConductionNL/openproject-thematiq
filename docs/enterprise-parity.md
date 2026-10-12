@@ -20,7 +20,7 @@ The left column comes from reading OpenProject 17's source: `app/controllers/cus
 | Corners | Not offered | The tokens `radius` and `radius-lg` | Built, more than theirs |
 | Font of the interface | Not offered | The token `font-family`, with 13 font families served by the plugin | Built, not checked live |
 | Sizes of top bar, menu, buttons, rows | Not offered | The geometry layer | Built, measured live in an earlier round |
-| Logo | Upload | A bundled logo for 14 of the 64 design systems. Upload for a custom design system: SVG, PNG, JPEG or WebP, with a second file for the coloured top bar | Built, not checked live |
+| Logo | Upload | A bundled logo for 15 of the 64 design systems. Upload for a custom design system: SVG, PNG, JPEG or WebP, with a second file for the coloured top bar | Built, not checked live |
 | Mobile logo | Upload | Upload for a custom design system, shown below 850 px | Built, not checked live |
 | Favicon | Upload | Upload for a custom design system: PNG, ICO or SVG | Built, not checked live |
 | Touch icon | Upload | Upload for a custom design system: PNG | Built, not checked live |
@@ -92,7 +92,7 @@ What follows from that:
 | Header, button, accent and selected item colours, light theme | **The plugin** | The Enterprise page writes them on `:root`. The plugin writes them on the `body` element, which is closer to every element on the page, and it comes later |
 | Main menu background, light theme | **The plugin, with white** | Same reason. An Enterprise main menu colour would be lost. This is the gap in the table above |
 | The same colours in the dark theme and the high contrast themes | **OpenProject and its Design page** | The plugin writes no colours there unless the design system has a `dark` block |
-| The logo | **The plugin**, for the 14 design systems that bring one and for a custom design system with an uploaded logo. Otherwise the Enterprise logo stays | The plugin's logo rule is more specific and comes later |
+| The logo | **The plugin**, for the 15 design systems that bring one and for a custom design system with an uploaded logo. Otherwise the Enterprise logo stays | The plugin's logo rule is more specific and comes later |
 | Favicon, touch icon | **Not known.** Both write a link when both have a file | The Enterprise links come after the plugin's first hook and before its second |
 | PDF export | **The Enterprise page** | The plugin does not touch it |
 | Sizes | **The plugin** | The Enterprise page has no sizes |
