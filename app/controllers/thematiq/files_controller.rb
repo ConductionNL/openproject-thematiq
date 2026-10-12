@@ -18,7 +18,8 @@ module Thematiq
     Uploads = OpenProject::Thematiq::Uploads
 
     def show
-      record = Thematiq::Upload.find_record(params[:token].to_s)
+      # The router also matches the id with a slash after it. One file has one address, so that is refused here.
+      record = request.original_fullpath.to_s.split("?").first.to_s.end_with?("/#{params[:token]}") ? Thematiq::Upload.find_record(params[:token].to_s) : nil
       return refuse(404) unless record
 
       Uploads::Response.headers(record).each { |name, value| headers[name] = value }

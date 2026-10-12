@@ -23,6 +23,11 @@ class UploadsInspectorTest < Minitest::Test
     assert_equal ["font"], Uploads::KINDS.values.reject(&:single).map(&:name)
   end
 
+  def test_sizes_are_stated_in_units_of_1024
+    assert_equal ["512 KB", "256 KB", "128 KB", "2 MB"], [512, 256, 128, 2048].map { |kb| Uploads.human_size(kb * 1024) }
+    assert_equal ["900 bytes", "1.2 KB", "1.5 MB"], [900, 1234, 1_572_864].map { |bytes| Uploads.human_size(bytes) }
+  end
+
   def test_an_unknown_kind_is_refused
     ["", "export_logo", "../logo", nil, 7].each { |kind| assert_equal "unknown_kind", refused(kind, UploadSamples.png) }
   end

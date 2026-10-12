@@ -38,7 +38,7 @@
                    alt="<%= t("thematiq.uploads.preview_alt", kind: t("thematiq.uploads.kinds.#{kind.name}.label")) %>">
             </div>
             <p class="thematiq-editor__hint">
-              <%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: number_to_human_size(record.byte_size)) %>
+              <%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: uploads.human_size(record.byte_size)) %>
               <% if record.width && record.height %><%= t("thematiq.uploads.current_pixels", width: record.width, height: record.height) %><% end %>
               <% if record.label %><%= t("thematiq.uploads.current_name", name: record.label) %><% end %>
             </p>
@@ -53,7 +53,7 @@
           <input type="file" name="file" id="<%= field_id %>" accept="<%= accept.call(kind) %>" required aria-describedby="<%= field_id %>-limits">
           <p class="thematiq-editor__hint" id="<%= field_id %>-limits">
             <%= t(kind.formats.include?("svg") ? "thematiq.uploads.limit_image" : "thematiq.uploads.limit_raster",
-                  types: type_names.call(kind), size: number_to_human_size(kind.max_bytes),
+                  types: type_names.call(kind), size: uploads.human_size(kind.max_bytes),
                   min: kind.min_side, width: kind.max_width, height: kind.max_height) %>
           </p>
           <div class="thematiq-files__actions">
@@ -92,7 +92,7 @@
               <span>
                 <strong><%= record.face.family %></strong>
                 <%= t("thematiq.uploads.font_face", weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"), style: t("thematiq.uploads.styles.#{record.face.style}")) %>
-                <span class="thematiq-editor__role"><%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: number_to_human_size(record.byte_size)) %></span>
+                <span class="thematiq-editor__role"><%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: uploads.human_size(record.byte_size)) %></span>
               </span>
               <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, size: :small, name: "remove", value: record.token, formnovalidate: true,
                                                   "aria-label": t("thematiq.uploads.remove_font_label", family: record.face.family,
@@ -134,7 +134,7 @@
         </div>
       </div>
       <p class="thematiq-editor__hint" id="thematiq-file-font-limits">
-        <%= t("thematiq.uploads.limit_font", types: type_names.call(font_kind), size: number_to_human_size(font_kind.max_bytes), count: uploads::MAX_FONTS) %>
+        <%= t("thematiq.uploads.limit_font", types: type_names.call(font_kind), size: uploads.human_size(font_kind.max_bytes), count: uploads::MAX_FONTS) %>
       </p>
       <p class="thematiq-editor__hint" id="thematiq-file-font-family-hint"><%= t("thematiq.uploads.font_family_hint") %></p>
       <div class="thematiq-files__actions">

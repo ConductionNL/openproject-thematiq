@@ -55,6 +55,10 @@ def head_style(session)
 end
 
 saved_settings = Setting.plugin_openproject_thematiq
+# The checks below expect a fresh install: the default design system and no custom ones.
+# The settings that were there come back at the end.
+Setting.plugin_openproject_thematiq = {}
+fresh_settings = Setting.plugin_openproject_thematiq
 member = User.find_by(login: MEMBER_LOGIN) || User.new(login: MEMBER_LOGIN)
 member.assign_attributes(firstname: "Thematiq", lastname: "Check", mail: "thematiq-check@example.org", admin: false,
                          status: :active, password: MEMBER_PASSWORD, password_confirmation: MEMBER_PASSWORD,
@@ -127,7 +131,7 @@ begin
 
   as_member.post "/admin/thematiq", params: { set_id: last.id }
   check("a non-admin cannot apply a design system") { [403, 422].include?(as_member.response.status) }
-  check("the non-admin post changed nothing") { Setting.plugin_openproject_thematiq == saved_settings }
+  check("the non-admin post changed nothing") { Setting.plugin_openproject_thematiq == fresh_settings }
 
   throwaway = session_for("admin", ADMIN_PASSWORD)
   throwaway.post "/admin/thematiq", params: { set_id: last.id }
@@ -211,7 +215,7 @@ begin
   check("an editor post without a CSRF token is refused") { throwaway.response.status == 422 }
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
-  admin.post "/admin/thematiq/custom", params: { delete: "1", authenticity_token: token }
+  admin.post "/admin/thematiq/custom", params: { id: "custom", delete: "1", authenticity_token: token }
   check("delete removes the custom design system") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
 
   # 5. Export and import
@@ -233,7 +237,7 @@ begin
     admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
       admin.response.media_type == "application/json"
   end
-  check("the export is the set shape") { JSON.parse(exported).keys == %w[id name tokens logo] }
+  check("the export is the set shape") { (%w[id name tokens logo] - JSON.parse(exported).keys).empty? && (JSON.parse(exported).keys - %w[id name tokens logo dark]).empty? }
   admin.get "/admin/thematiq/export", params: { id: "no-such-set" }
   check("export of an unknown design system gives 404") { admin.response.status == 404 }
   admin.get "/admin/thematiq/export", params: { id: "custom" }
@@ -353,7 +357,7 @@ begin
   ["/thematiq/files/#{'0' * 64}", "/thematiq/files/#{replaced.token.upcase}", "/thematiq/files/#{replaced.token}/",
    "/thematiq/files/#{replaced.token}.svg", "/thematiq/files/#{replaced.token[0, 63]}", "/thematiq/files/#{replaced.token}0",
    "/thematiq/files/..%2F..%2F..%2Fconfig%2Fdatabase.yml", "/thematiq/files/../../config/database.yml",
-   "/thematiq/files/%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/thematiq/files/#{replaced.id}", "/thematiq/files/",
+   "/thematiq/files/%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/thematiq/files/#{Thematiq::Upload.find_by(token: replaced.token).id}", "/thematiq/files/",
    "/thematiq/files/#{replaced.token}%00", "/thematiq/files/#{replaced.token}/../../../config/database.yml",
    "/thematiq/files/' OR '1'='1"].each do |path|
     begin

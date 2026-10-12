@@ -186,7 +186,7 @@ module Thematiq
       return {} unless kind
 
       { types: kind.formats.map { |format| OpenProject::Thematiq::Uploads::FORMATS.fetch(format)[:label] }.join(", "),
-        size: helpers.number_to_human_size(kind.max_bytes), min: kind.min_side, width: kind.max_width, height: kind.max_height,
+        size: OpenProject::Thematiq::Uploads.human_size(kind.max_bytes), min: kind.min_side, width: kind.max_width, height: kind.max_height,
         count: OpenProject::Thematiq::Uploads::MAX_FONTS }
     end
 

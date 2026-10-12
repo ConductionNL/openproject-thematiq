@@ -57,6 +57,16 @@ module OpenProject
         KINDS[name.to_s]
       end
 
+      # A size as the page states it: 1 KB is 1024 bytes, as the limits above count.
+      # OpenProject's own helper counts in thousands and rounds 512 KB to "500 kB", which is not the limit.
+      def self.human_size(bytes)
+        bytes = bytes.to_i
+        return "#{bytes} bytes" if bytes < KILOBYTE
+
+        unit, size = bytes >= KILOBYTE * KILOBYTE ? ["MB", bytes.fdiv(KILOBYTE * KILOBYTE)] : ["KB", bytes.fdiv(KILOBYTE)]
+        "#{size.round(1).to_s.delete_suffix('.0')} #{unit}"
+      end
+
       require "open_project/thematiq/uploads/record"
       require "open_project/thematiq/uploads/svg"
       require "open_project/thematiq/uploads/inspector"

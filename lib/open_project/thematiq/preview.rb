@@ -71,8 +71,10 @@ module OpenProject
         Contrast.best_on(value(role), ["#ffffff", value("ink"), "#1b1c1d"])
       end
 
+      # An optional role, such as "menu", has no last resort value. A set without it shows white,
+      # which is what the page does. Without this the editor failed for every set that has no menu role.
       def value(key)
-        @token_set[key] || NEUTRAL.fetch(key)
+        @token_set[key] || NEUTRAL.fetch(key, "#ffffff")
       end
 
       def css(declarations)
