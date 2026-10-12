@@ -40,6 +40,14 @@ A logo's `file` is the path it has in thematiq. The plugin uses the file name on
 
 `fonts` is read by `OpenProject::Thematiq::Assets`. [logos-and-fonts.md](logos-and-fonts.md) explains how.
 
+## The plugin's own sets
+
+`data/catalogue/openproject-themes.json` has the same shape and is written by hand. It holds OpenProject's own three colour themes as design systems: "OpenProject (default)", "OpenProject Gray" and "OpenProject Navy Blue". The five colours of each come from `lib/open_project/custom_styles/color_themes.rb` in OpenProject 17.9.1. The other values are OpenProject's defaults.
+
+The loader reads the generated file first and adds these. A set in this file cannot replace a generated one.
+
+These three are the only sets with the optional role `menu`, the background of the main menu. [tokens.md](tokens.md) explains it.
+
 ## What the loader does
 
 - It checks every value with the same validator as any other input. A file in the plugin is not trusted more than an uploaded one.

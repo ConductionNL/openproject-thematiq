@@ -63,8 +63,38 @@ class ContrastTest < Minitest::Test
       { "id" => "pale", "name" => "Pale", "tokens" => { "primary" => "#ffee00", "action" => "#1f883d", "muted" => "#bbbbbb", "ground" => "#ffffff" } }
     )
 
-    assert_includes Contrast.failures(token_set), "on-primary"
+    assert_equal "#1b1c1d", Contrast.on(token_set, "primary"), "white does not read on yellow, so the text goes dark"
+    refute_includes Contrast.failures(token_set), "on-primary"
     assert_includes Contrast.failures(token_set), "muted-on-ground"
     refute_includes Contrast.failures(token_set), "on-action"
+  end
+
+  # --- the rule for text on a background ---
+
+  def test_best_on_keeps_the_first_candidate_when_it_reads
+    assert_equal "#ffffff", Contrast.best_on("#1a67a3", ["#ffffff", "#000000"])
+    assert_equal "#000000", Contrast.best_on("#fafafa", ["#ffffff", "#000000"])
+    assert_equal "#ffffff", Contrast.best_on("#0e2045", ["#1f2328", "#ffffff"])
+    assert_equal "#ffffff", Contrast.best_on("not a colour", ["#ffffff", "#000000"]), "unknown background: the first candidate"
+  end
+
+  def test_every_set_generated_from_thematiq_keeps_white_text_on_primary_and_action
+    (Catalogue.bundled.sets.map(&:id) - Catalogue.own_ids).each do |id|
+      token_set = Catalogue.bundled.find(id)
+
+      assert_equal "#ffffff", Contrast.on(token_set, "primary"), id
+      assert_equal "#ffffff", Contrast.on(token_set, "action"), id
+      assert_equal token_set["primary-deep"], Contrast.on_selected(token_set), id
+    end
+  end
+
+  def test_the_text_on_a_menu_colour_reads_for_every_set_that_has_one
+    Catalogue.own_ids.each do |id|
+      report = Contrast.report(Catalogue.bundled.find(id))
+
+      assert_operator report["text-on-menu"], :>=, Contrast::MINIMUM, id
+      assert_operator report["on-primary"], :>=, Contrast::MINIMUM, id
+      assert_operator report["primary-deep-on-primary-light"], :>=, Contrast::MINIMUM, id
+    end
   end
 end

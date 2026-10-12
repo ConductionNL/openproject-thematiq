@@ -10,11 +10,11 @@ The left column comes from reading OpenProject 17's source: `app/controllers/cus
 
 | Capability | Theirs | Ours | Status |
 |---|---|---|---|
-| Preset themes | Three colour themes: OpenProject, OpenProject Gray and OpenProject Navy Blue | 64 design systems in the catalogue, with search and a preview per set | Built, not checked live |
+| Preset themes | Three colour themes: OpenProject, OpenProject Gray and OpenProject Navy Blue | 64 design systems from thematiq, checked live, plus those same three themes as design systems of the plugin's own making | The three: built, not checked live |
 | Primary button colour | `primary-button-color` | The tokens `action` and `action-deep` | Built, not checked live |
 | Accent colour | `accent-color`, used for links and highlights | The token `link`. The token `accent` exists and no OpenProject variable uses it yet | Built, not checked live |
 | Header background | `header-bg-color` | The token `primary` | Built, measured live in an earlier round |
-| Main menu background | `main-menu-bg-color` | Always white in the light theme. No token sets it | **Gap** |
+| Main menu background | `main-menu-bg-color` | The optional role `menu`. The text on it follows a contrast rule | Built, not checked live |
 | Selected menu item | `main-menu-bg-selected-background` | The tokens `primary-light` and `primary-deep` | Built, measured live in an earlier round |
 | Text, lines, fields, page background | Not offered | The tokens `ink`, `muted`, `line`, `soft`, `ground` and `field` | Built, more than theirs |
 | Corners | Not offered | The tokens `radius` and `radius-lg` | Built, more than theirs |

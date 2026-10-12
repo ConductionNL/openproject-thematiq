@@ -1,5 +1,5 @@
 <% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.editor.title") %>
-<% kinds = OpenProject::Thematiq::Tokens::TokenSet::KINDS %>
+<% kinds = OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS %>
 <% preview_set = @draft.token_set %>
 
 <%=

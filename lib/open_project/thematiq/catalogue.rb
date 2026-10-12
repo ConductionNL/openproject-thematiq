@@ -15,6 +15,8 @@ module OpenProject
       DIRECTORY = File.expand_path("../../../data/catalogue", __dir__)
       FILE = File.join(DIRECTORY, "shell-catalogue.json")
       # The logos sit in public/, because the plugin serves them as static files.
+      # Design systems written for this plugin, not generated: OpenProject's own colour themes.
+      OWN_FILE = File.join(DIRECTORY, "openproject-themes.json")
       LOGO_DIRECTORY = File.expand_path("../../../public/thematiq/logos", __dir__)
 
       SUPPORTED_VERSION = 1
@@ -27,8 +29,10 @@ module OpenProject
       # error: nil, or a short code that says why the file could not be used.
       attr_reader :sets, :skipped, :generated_from, :error
 
+      # The catalogue generated from thematiq, plus the sets of the plugin's own making.
+      # The second file can only add sets. An id the first file has already is skipped.
       def self.bundled
-        @bundled ||= load(FILE)
+        @bundled ||= load(FILE).with(load(OWN_FILE))
       end
 
       def self.load(path, logo_directory: LOGO_DIRECTORY)
@@ -74,6 +78,20 @@ module OpenProject
         @generated_from = generated_from
         @error = error
         @logo_directory = logo_directory
+      end
+
+      # This catalogue with the usable sets of another one added. A failed other catalogue adds nothing.
+      def with(other)
+        return self if other.error
+
+        added = other.sets.reject { |token_set| @by_id.key?(token_set.id) }
+        self.class.new(sets: sets + added, skipped: skipped + other.skipped + (other.sets.size - added.size),
+                       generated_from:, error:, logo_directory: @logo_directory)
+      end
+
+      # True for a set of the plugin's own making, as opposed to one generated from thematiq.
+      def self.own_ids
+        @own_ids ||= load(OWN_FILE).then { |own| own.error ? [] : own.sets.map(&:id) }.freeze
       end
 
       def find(id)

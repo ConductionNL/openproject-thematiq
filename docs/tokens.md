@@ -12,6 +12,18 @@ This page explains what a design system is to the plugin and how its tokens reac
 
 The plugin makes no network requests. Every design system comes from a file in the plugin or from OpenProject's own settings. [catalogue.md](catalogue.md) describes the file.
 
+## One optional role: the menu background
+
+A design system may have a nineteenth value, `menu`: the background colour of the main menu. Without it the menu is white, as before.
+
+With it, the plugin works out the text colours itself, so a dark menu stays readable:
+
+- The text on the menu is the set's `ink` when that reaches 4.5 to 1 on the menu, and white or near black otherwise.
+- The text on the selected item is the set's `primary-deep` when that reads on `primary-light`, and white or near black otherwise.
+- Inside the menu, the plugin's colour aliases take the menu's values. Rules written for a white menu keep working on a coloured one.
+
+The same rule decides the text on the top bar and on the main button: white wherever white reads. That is so for all 64 sets from thematiq, so nothing changes for them. A set with a light top bar gets dark text.
+
 ## How a value is checked
 
 A token value ends up inside a `<style>` tag. So the plugin accepts a value only when its whole text matches a known syntax:

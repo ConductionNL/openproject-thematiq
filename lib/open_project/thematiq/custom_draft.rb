@@ -67,7 +67,7 @@ module OpenProject
       private
 
       def clean
-        Tokens::TokenSet::KINDS.each_with_object({}) do |(key, kind), result|
+        Tokens::TokenSet::ALL_KINDS.each_with_object({}) do |(key, kind), result|
           given = @raw[key]
           next if given.nil? || (given.is_a?(String) && given.strip.empty?)
 

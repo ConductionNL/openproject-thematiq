@@ -88,6 +88,46 @@ class GeneratorTest < Minitest::Test
     assert_equal Generator.new(TokenSet.fallback).css, css
   end
 
+  # --- the optional menu colour ---
+
+  def test_a_set_without_a_menu_colour_generates_what_it_did_before_the_role_existed
+    css = Generator.new(set(FULL)).css
+
+    assert_includes css, "  --main-menu-bg-color: #ffffff;"
+    assert_includes css, "  --header-item-font-color: #ffffff;"
+    assert_includes css, "  --main-menu-selected-font-color: #234a78;"
+    refute_includes css, "#main-menu"
+    assert_equal 3, css.count("{")
+  end
+
+  def test_a_dark_menu_gets_light_text_and_its_own_block
+    css = Generator.new(set(FULL.merge("menu" => "#0e2045", "primary-light" => "#3270db", "primary-deep" => "#0e2045"))).css
+    light = blocks(css)[Generator::LIGHT_SCOPE]
+    menu = css[/#{Regexp.escape(Generator::LIGHT_SCOPE)} #main-menu \{\n(.*?)\n\}/m, 1]
+
+    assert_operator light.rindex("--main-menu-bg-color: #0e2045;"), :>, light.index("--main-menu-bg-color: #ffffff;"), "the later declaration decides"
+    assert_includes light, "  --thematiq-on-menu: #ffffff;"
+    assert_includes menu, "  --thematiq-ink: #ffffff;"
+    assert_includes menu, "  --thematiq-surface: #0e2045;"
+    assert_includes menu, "  --thematiq-primary-deep: #ffffff;", "the selected item's text is white on the blue item"
+  end
+
+  def test_a_light_header_gets_dark_text
+    light = blocks(Generator.new(set(FULL.merge("primary" => "#fafafa"))).css)[Generator::LIGHT_SCOPE]
+
+    assert_includes light, "  --header-item-font-color: #1b1c1d;"
+    assert_includes light, "  --thematiq-on-primary: #1b1c1d;"
+  end
+
+  def test_a_hostile_menu_colour_is_dropped
+    HOSTILE_VALUES.each do |value|
+      token_set = set(FULL.merge("menu" => value))
+
+      assert_nil token_set["menu"]
+      assert_safe Generator.new(token_set).css, value.inspect
+    end
+  end
+
   # --- the early variant, for the top of the head ---
 
   def test_the_early_variant_puts_everything_that_depends_on_order_on_the_body

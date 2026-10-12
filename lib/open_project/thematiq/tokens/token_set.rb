@@ -26,9 +26,15 @@ module OpenProject
           "font-family" => :font_family
         }.freeze
 
+        # Roles a set may have on top of the eighteen. They have no last resort value:
+        # a set without one keeps what the plugin did before the role existed.
+        #   menu  the background of the main menu. Without it the menu is white.
+        OPTIONAL_KINDS = { "menu" => :color }.freeze
+        ALL_KINDS = KINDS.merge(OPTIONAL_KINDS).freeze
+
         SET_KEYS = %w[id name tokens logo dark].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
-        DARK_KEYS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
+        DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
@@ -58,7 +64,7 @@ module OpenProject
           raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
 
           if strict
-            unknown = (set.keys - SET_KEYS) + (tokens.keys - KINDS.keys) + (logo.keys - LOGO_KEYS) +
+            unknown = (set.keys - SET_KEYS) + (tokens.keys - ALL_KINDS.keys) + (logo.keys - LOGO_KEYS) +
                       ((set["dark"] || {}).keys - DARK_KEYS)
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
@@ -119,7 +125,7 @@ module OpenProject
         end
 
         def clean(raw, base)
-          KINDS.each_with_object({}) do |(key, kind), result|
+          ALL_KINDS.each_with_object({}) do |(key, kind), result|
             given = raw[key]
             value = Validator.public_send(kind, given)
             @rejected << key if !given.nil? && value.nil?

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open_project/thematiq/contrast"
+
 module OpenProject
   module Thematiq
     module Variables
@@ -17,6 +19,8 @@ module OpenProject
       # An entry whose token is missing from the set is left out, so OpenProject's own value stays.
       class Generator
         LIGHT_SCOPE = 'body[data-color-mode="light"][data-light-theme="light"]'
+        # What a hover or a line looks like on a menu of any colour: a little of the opposite, see-through.
+        MENU_OVERLAY = "rgba(127, 127, 127, 0.25)"
         DARK_SCOPE = 'body[data-color-mode="dark"][data-dark-theme="dark"]'
         MODE_SCOPE = "[data-color-mode]"
         # The same block for a page where this CSS comes before OpenProject's own stylesheets:
@@ -27,8 +31,8 @@ module OpenProject
         # OpenProject's own design variables, the ones its Enterprise design page writes.
         OPENPROJECT_COLORS = {
           "--header-bg-color" => :primary,
-          "--header-item-font-color" => WHITE,
-          "--header-item-font-hover-color" => WHITE,
+          "--header-item-font-color" => :on_primary,
+          "--header-item-font-hover-color" => :on_primary,
           "--header-item-bg-hover-color" => :"primary-deep",
           "--header-border-bottom-width" => "0",
           "--header-border-bottom-color" => :"primary-deep",
@@ -40,7 +44,7 @@ module OpenProject
           "--button--primary-background-color" => :action,
           "--button--primary-background-hover-color" => :"action-deep",
           "--button--primary-border-color" => :"action-deep",
-          "--button--primary-font-color" => WHITE,
+          "--button--primary-font-color" => :on_action,
           "--button--background-color" => WHITE,
           "--button--font-color" => :ink,
           "--main-menu-bg-color" => WHITE,
@@ -92,8 +96,10 @@ module OpenProject
           "--thematiq-chip" => [:chip, "var(--bgColor-neutral-muted)"],
           "--thematiq-field" => [:field, "var(--borderColor-default)"],
           "--thematiq-surface" => [WHITE, "var(--bgColor-default)"],
-          "--thematiq-on-primary" => [WHITE, "var(--header-item-font-color)"],
-          "--thematiq-on-action" => [WHITE, "var(--button-primary-fgColor-rest)"]
+          "--thematiq-on-primary" => [:on_primary, "var(--header-item-font-color)"],
+          "--thematiq-on-action" => [:on_action, "var(--button-primary-fgColor-rest)"],
+          "--thematiq-menu" => [WHITE, "var(--main-menu-bg-color)"],
+          "--thematiq-on-menu" => [:ink, "var(--main-menu-font-color)"]
         }.freeze
 
         ROOT_SHAPE = {
@@ -125,8 +131,9 @@ module OpenProject
             block(":root", declarations(@early ? ROOT_ALIASES : ROOT_SHAPE)),
             block(@early ? EARLY_MODE_SCOPE : MODE_SCOPE,
                   (@early ? declarations(BODY_FONT) : []) + declarations(PRIMER_SHAPE) + fallback_aliases),
-            block(LIGHT_SCOPE, declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS) + light_aliases)
+            block(LIGHT_SCOPE, declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS) + light_aliases + menu_color_declarations)
           ]
+          blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"]
           blocks << block(DARK_SCOPE, dark_declarations) if @token_set.dark?
           blocks.join("\n")
         end
@@ -148,8 +155,36 @@ module OpenProject
           declarations(COLOR_ALIASES.transform_values(&:first))
         end
 
+        # :on_primary and :on_action are not tokens. They are the text colour for that background,
+        # from the contrast rule: white wherever white reads, which is every set generated from thematiq.
         def resolve(source)
-          source.is_a?(Symbol) ? @token_set[source.to_s] : source
+          case source
+          when :on_primary then @token_set["primary"] && Contrast.on(@token_set, "primary")
+          when :on_action then @token_set["action"] && Contrast.on(@token_set, "action")
+          when Symbol then @token_set[source.to_s]
+          else source
+          end
+        end
+
+        # A set with a menu colour gets the menu's variables from that colour, and the text on it from a
+        # contrast rule: the set's ink when it reads on the menu, white or near black otherwise.
+        def menu_color_declarations
+          menu = @token_set["menu"]
+          return [] unless menu
+
+          text = Contrast.on_menu(@token_set)
+          ["  --main-menu-bg-color: #{menu};", "  --main-menu-font-color: #{text};", "  --main-menu-hover-font-color: #{text};",
+           "  --main-menu-bg-hover-background: #{MENU_OVERLAY};", "  --thematiq-menu: #{menu};", "  --thematiq-on-menu: #{text};"]
+        end
+
+        # Inside the main menu the aliases get the menu's values, so every rule written for a white menu
+        # keeps working on a coloured one without knowing about it.
+        def menu_declarations
+          text = Contrast.on_menu(@token_set)
+          selected = Contrast.on_selected(@token_set)
+          ["  --thematiq-surface: #{@token_set['menu']};", "  --thematiq-ink: #{text};", "  --thematiq-text: #{text};",
+           "  --thematiq-muted: #{text};", "  --thematiq-soft: #{MENU_OVERLAY};", "  --thematiq-line: #{MENU_OVERLAY};",
+           "  --thematiq-primary-deep: #{selected};", "  --main-menu-selected-font-color: #{selected};"]
         end
 
         # The dark theme only gets what the design system's dark block names. A literal such as white

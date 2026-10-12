@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "generated_from": "written by hand for this plugin from OpenProject 17.9.1, lib/open_project/custom_styles/color_themes.rb",
+  "sets": [
+    {
+      "id": "openproject-default",
+      "name": "OpenProject (default)",
+      "tokens": {
+        "primary": "#1a67a3", "primary-deep": "#124872", "primary-light": "#175a8e",
+        "action": "#1f883d", "action-deep": "#197032", "link": "#1a67a3", "accent": "#1a67a3",
+        "ink": "#1f2328", "text": "#454c54", "muted": "#59636e", "line": "#d1d9e0", "soft": "#f6f8fa",
+        "ground": "#ffffff", "chip": "#f6f8fa", "field": "#d1d9e0", "radius": "6px", "radius-lg": "6px",
+        "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif",
+        "menu": "#ffffff"
+      },
+      "logo": { "file": null, "inverse_file": null, "licence": null, "redistributable": false }
+    },
+    {
+      "id": "openproject-gray",
+      "name": "OpenProject Gray",
+      "tokens": {
+        "primary": "#fafafa", "primary-deep": "#1f2328", "primary-light": "#a9a9a9",
+        "action": "#1f883d", "action-deep": "#197032", "link": "#1a67a3", "accent": "#1a67a3",
+        "ink": "#1f2328", "text": "#454c54", "muted": "#59636e", "line": "#d1d9e0", "soft": "#f6f8fa",
+        "ground": "#ffffff", "chip": "#f6f8fa", "field": "#d1d9e0", "radius": "6px", "radius-lg": "6px",
+        "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif",
+        "menu": "#ececec"
+      },
+      "logo": { "file": null, "inverse_file": null, "licence": null, "redistributable": false }
+    },
+    {
+      "id": "openproject-navy-blue",
+      "name": "OpenProject Navy Blue",
+      "tokens": {
+        "primary": "#05002c", "primary-deep": "#0e2045", "primary-light": "#3270db",
+        "action": "#1f883d", "action-deep": "#197032", "link": "#1a67a3", "accent": "#1a67a3",
+        "ink": "#1f2328", "text": "#454c54", "muted": "#59636e", "line": "#d1d9e0", "soft": "#f6f8fa",
+        "ground": "#ffffff", "chip": "#f6f8fa", "field": "#d1d9e0", "radius": "6px", "radius-lg": "6px",
+        "font-family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif",
+        "menu": "#0e2045"
+      },
+      "logo": { "file": null, "inverse_file": null, "licence": null, "redistributable": false }
+    }
+  ],
+  "fonts": []
+}

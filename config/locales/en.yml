@@ -84,6 +84,7 @@ en:
         muted-on-ground: "muted text on the page background"
         link-on-white: "links on white"
         primary-deep-on-primary-light: "the selected menu item"
+        text-on-menu: "text on the main menu"
     fonts:
       loaded: "The font %{family} comes with the plugin."
       next_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see %{next_family}, which does."
@@ -124,6 +125,7 @@ en:
       radius: { label: "Radius", hint: "buttons and menu items" }
       radius-lg: { label: "Radius, large", hint: "inputs and panels" }
       font-family: { label: "Font", hint: "all text" }
+      menu: { label: "Menu", hint: "background of the main menu, white when empty" }
     shell:
       settings:
         title: "App switcher"

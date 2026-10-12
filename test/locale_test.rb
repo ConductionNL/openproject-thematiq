@@ -22,7 +22,7 @@ class LocaleTest < Minitest::Test
   end
 
   def test_every_token_has_a_label_and_a_hint
-    OpenProject::Thematiq::Tokens::TokenSet::KINDS.each_key do |key|
+    OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.each_key do |key|
       assert_kind_of String, lookup("thematiq.tokens.#{key}.label"), key
       assert_kind_of String, lookup("thematiq.tokens.#{key}.hint"), key
     end
