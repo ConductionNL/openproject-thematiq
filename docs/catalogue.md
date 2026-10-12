@@ -32,7 +32,7 @@ The design systems ship inside the plugin, in one JSON file. This page explains 
 }
 ```
 
-The file in the plugin is generated from thematiq. `generated_from` names the thematiq commit. It holds 64 design systems, each with all eighteen tokens. [tokens.md](tokens.md) lists the tokens.
+The file in the plugin is generated from thematiq. `generated_from` says where it came from and ends in a digest of its sets. It holds 64 design systems, each with all eighteen tokens, and 63 of them with a `dark` block. `basis` on a logo or a font says why its `redistributable` answer is what it is; the plugin reads past it. `licence_files` on a font names the notices that must travel with its files. [tokens.md](tokens.md) lists the tokens.
 
 `redistributable` is `true`, `false` or `null`. `null` means the generator found nothing that says the file may be passed on. The plugin treats `null` like `false`. Of the 64 sets, 14 have a logo the plugin may ship.
 

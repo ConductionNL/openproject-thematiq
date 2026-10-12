@@ -134,7 +134,7 @@ module OpenProject
             block(LIGHT_SCOPE, declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS) + light_aliases + menu_color_declarations)
           ]
           blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"]
-          blocks << block(DARK_SCOPE, dark_declarations) if @token_set.dark?
+          blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
           blocks.join("\n")
         end
 
@@ -189,11 +189,26 @@ module OpenProject
 
         # The dark theme only gets what the design system's dark block names. A literal such as white
         # has no dark counterpart in the token set, so those entries stay OpenProject's own.
+        # The text on the top bar and on the main button follows the same contrast rule as in the light theme.
         def dark_declarations
-          OPENPROJECT_COLORS.merge(PRIMER_COLORS).merge(COLOR_ALIASES.transform_values(&:first)).filter_map do |variable, source|
-            value = source.is_a?(Symbol) ? @token_set.dark_tokens[source.to_s] : nil
+          dark = @token_set.dark_tokens
+          colours = OPENPROJECT_COLORS.merge(PRIMER_COLORS).merge(COLOR_ALIASES.transform_values(&:first)).filter_map do |variable, source|
+            value = case source
+                    when :on_primary then dark["primary"] && Contrast.on(dark, "primary")
+                    when :on_action then dark["action"] && Contrast.on(dark, "action")
+                    when Symbol then dark[source.to_s]
+                    end
             "  #{variable}: #{value};" if value
           end
+          colours + dark_selected_declarations(dark)
+        end
+
+        # The selected menu item in the dark theme: its text from the contrast rule, written last so it decides.
+        def dark_selected_declarations(dark)
+          return [] unless dark["primary-light"]
+
+          text = Contrast.dark_on_selected(dark)
+          ["  --main-menu-selected-font-color: #{text};", "  --thematiq-primary-deep: #{text};"]
         end
 
         def block(selector, lines)

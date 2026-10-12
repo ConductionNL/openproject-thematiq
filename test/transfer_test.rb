@@ -33,6 +33,17 @@ class TransferTest < Minitest::Test
     end
   end
 
+  def test_every_set_entry_of_the_catalogue_files_imports_as_it_is_written_there
+    [OpenProject::Thematiq::Catalogue::FILE, OpenProject::Thematiq::Catalogue::OWN_FILE].each do |file|
+      JSON.parse(File.read(file))["sets"].each do |entry|
+        imported = Transfer.import(JSON.generate(entry))
+
+        assert_equal entry["id"], imported.id
+        assert_equal entry["dark"].nil?, !imported.dark?, entry["id"]
+      end
+    end
+  end
+
   def test_a_custom_design_system_survives_export_and_import
     base = TokenSet.fallback
     draft = CustomDraft.new(base:, name: "Mine", overrides: { "primary" => "#aa0055", "chip" => "#eeeeee" })

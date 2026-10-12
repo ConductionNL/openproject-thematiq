@@ -97,4 +97,36 @@ class ContrastTest < Minitest::Test
       assert_operator report["primary-deep-on-primary-light"], :>=, Contrast::MINIMUM, id
     end
   end
+
+  # --- the dark theme ---
+
+  # The bundled sets whose dark block is not used, because its main text does not read on its page
+  # background. For these the dark theme keeps OpenProject's own colours. Measured on the vendored catalogue.
+  DARK_NOT_USED = %w[conduction enschede hoeksche-waard losser nora purmerend zaanstad].freeze
+
+  def test_the_dark_blocks_that_are_not_used_are_exactly_the_known_ones
+    not_used = Catalogue.bundled.sets.select(&:dark?).reject { |token_set| Contrast.dark_usable?(token_set) }.map(&:id)
+
+    assert_equal DARK_NOT_USED, not_used.sort
+  end
+
+  def test_every_dark_block_that_is_used_reaches_the_minimum_on_every_pair
+    Catalogue.bundled.sets.select { |token_set| Contrast.dark_usable?(token_set) }.each do |token_set|
+      assert_empty Contrast.dark_failures(token_set), "#{token_set.id}: #{Contrast.dark_report(token_set)}"
+    end
+  end
+
+  def test_the_catalogues_own_selected_item_colours_fail_in_the_dark_theme_which_is_why_the_rule_is_there
+    raw_failures = Catalogue.bundled.sets.select(&:dark?).count do |token_set|
+      dark = token_set.dark_tokens
+      (Contrast.ratio(dark["primary-deep"], dark["primary-light"]) || 99) < Contrast::MINIMUM
+    end
+
+    assert_equal 59, raw_failures
+  end
+
+  def test_a_set_without_a_dark_block_has_no_dark_report
+    assert_nil Contrast.dark_report(Catalogue.bundled.find("nextcloud"))
+    refute Contrast.dark_usable?(Catalogue.bundled.find("nextcloud"))
+  end
 end

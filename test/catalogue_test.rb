@@ -43,7 +43,8 @@ class CatalogueTest < Minitest::Test
       css = OpenProject::Thematiq::Variables::Generator.new(token_set).css
 
       refute_match(/[<>\\@]|url\(|!important/, css, token_set.id)
-      assert_equal token_set["menu"] ? 4 : 3, css.count("{"), token_set.id
+      expected = 3 + (token_set["menu"] ? 1 : 0) + (OpenProject::Thematiq::Contrast.dark_usable?(token_set) ? 1 : 0)
+      assert_equal expected, css.count("{"), token_set.id
     end
   end
 
@@ -62,6 +63,15 @@ class CatalogueTest < Minitest::Test
   def test_the_last_resort_values_are_cunningham_from_the_catalogue
     assert_equal Catalogue.bundled.find("cunningham").tokens, Defaults::TOKENS
     assert_equal Catalogue.bundled.find("cunningham").name, Defaults::NAME
+  end
+
+  def test_all_but_the_stock_nextcloud_set_bring_a_dark_block
+    without = Catalogue.bundled.sets.reject(&:dark?).map(&:id) - Catalogue.own_ids
+
+    assert_equal %w[nextcloud], without
+    Catalogue.bundled.sets.select(&:dark?).each do |token_set|
+      assert_equal OpenProject::Thematiq::Tokens::TokenSet::DARK_KEYS - ["menu"], token_set.dark_tokens.keys, token_set.id
+    end
   end
 
   def test_every_bundled_set_has_all_eighteen_tokens

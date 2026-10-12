@@ -168,7 +168,10 @@ class GeneratorTest < Minitest::Test
     assert_includes dark, "  --fgColor-default: #f0f6fc;"
     assert_includes dark, "  --primary-button-color: #2ea043;"
     assert_includes dark, "  --thematiq-ink: #f0f6fc;"
-    refute_includes dark, "#ffffff", "white surfaces of the light theme do not leak into the dark theme"
+    refute_includes dark, "--button--background-color", "white surfaces of the light theme do not leak into the dark theme"
+    refute_includes dark, "--thematiq-surface"
+    assert_includes dark, "  --header-item-font-color: #ffffff;", "the text on the top bar follows the contrast rule"
+    assert_includes dark, "  --button--primary-font-color: #1b1c1d;", "white does not read on this green, so the text goes dark"
     refute_includes dark, "--main-menu-bg-color", "what the dark block does not name stays OpenProject's"
     refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#0b1f33"
   end
@@ -205,9 +208,36 @@ class GeneratorTest < Minitest::Test
 
     assert_equal({ "primary" => "#0b1f33" }, copy.dark_tokens)
     assert_equal "unknown_keys", assert_raises(TokenSet::InvalidSet) {
-      TokenSet.from_set(token_set.to_set.merge("dark" => { "radius" => "9px" }), strict: true)
+      TokenSet.from_set(token_set.to_set.merge("dark" => { "tokens" => { "shadow" => "9px" } }), strict: true)
     }.message
     refute_includes set(FULL).to_set.keys, "dark"
+  end
+
+  def test_the_dark_block_reads_in_the_shape_the_catalogue_writes_and_ignores_radius_and_font
+    token_set = dark_set("tokens" => { "primary" => "#0b1f33", "radius" => "9px", "font-family" => "Arial" })
+
+    assert_equal({ "primary" => "#0b1f33" }, token_set.dark_tokens)
+    assert_empty token_set.rejected
+    assert_equal({ "tokens" => { "primary" => "#0b1f33" } }, token_set.to_set["dark"])
+    assert_equal "unknown_keys", assert_raises(TokenSet::InvalidSet) {
+      TokenSet.from_set(token_set.to_set.merge("dark" => { "tokens" => {}, "script" => "x" }), strict: true)
+    }.message
+  end
+
+  def test_a_dark_block_whose_text_does_not_read_on_its_ground_is_not_used
+    unreadable = dark_set("ink" => "#222222", "ground" => "#292b2f", "primary" => "#0b1f33")
+
+    assert unreadable.dark?
+    refute OpenProject::Thematiq::Contrast.dark_usable?(unreadable)
+    refute_includes Generator.new(unreadable).css, Generator::DARK_SCOPE
+  end
+
+  def test_the_selected_item_in_the_dark_theme_gets_text_that_reads
+    css = Generator.new(dark_set("primary-light" => "#0c1c32", "primary-deep" => "#203c63", "ink" => "#e2e3e4", "ground" => "#292b2f")).css
+    dark = css[/#{Regexp.escape(Generator::DARK_SCOPE)} \{\n(.*?)\n\}/m, 1]
+
+    assert_operator dark.rindex("--thematiq-primary-deep: #ffffff;"), :>, dark.index("--thematiq-primary-deep: #203c63;"), "the rule comes last, so it decides"
+    assert_includes dark, "  --main-menu-selected-font-color: #ffffff;"
   end
 
   def test_a_custom_set_keeps_the_dark_block_of_its_base

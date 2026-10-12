@@ -32,10 +32,17 @@ The plugin does not change these colours. They come from thematiq, and the fix b
 
 A custom design system gets the same check. The picker marks it when a pair falls short.
 
+### The dark theme
+
+The same pairs are computed for each set's dark block, with links on the page background in place of white.
+
+- Seven dark blocks are not used at all, because their main text does not read on their page background: `conduction` (1.61), `enschede` (1.27), `hoeksche-waard` (1.64), `losser` (1.19), `nora` (1.27), `purmerend` (1.19) and `zaanstad` (1.61). OpenProject's own dark colours apply there. The fix belongs in thematiq's dark derivation.
+- In the other 56, the selected menu item fails as the catalogue gives it, in 52 of them. The plugin's contrast rule picks a text colour that reads. After that rule no pair fails in any dark block that is used.
+
 ### What the check does not cover
 
 - It reads hex colours, `rgb()` and `rgba()`. For another syntax it answers "unknown". The test fails when a bundled set has an unknown pair, so none has one today.
-- It covers the light theme. In the dark theme and the high contrast themes the colours are OpenProject's own.
+- It covers the light theme and the dark blocks. In the high contrast themes the colours are OpenProject's own.
 - It covers six pairs, not every text on every surface.
 
 ## Not checked in a browser

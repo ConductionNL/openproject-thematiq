@@ -12,7 +12,7 @@ module OpenProject
       # The set shape, shared by the bundled catalogue, the export file and the import file:
       #   { "id": "...", "name": "...", "tokens": { eighteen roles },
       #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
-      #     "dark": { colour roles for the dark theme, optional } }
+      #     "dark": { "tokens": { colour roles for the dark theme } } }   optional
       class TokenSet
         class InvalidSet < StandardError; end
 
@@ -38,6 +38,19 @@ module OpenProject
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+
+        # The dark block as the catalogue writes it is { "tokens" => { roles } }. The roles on their own are
+        # read as well. Either way only the colour roles count: radius and font do not change with the theme.
+        def self.dark_roles(dark)
+          dark.is_a?(Hash) && dark["tokens"].is_a?(Hash) ? dark["tokens"] : dark
+        end
+
+        # For an imported file: what is in its dark block that is not a role.
+        def self.unknown_dark_keys(dark)
+          return [] unless dark.is_a?(Hash)
+
+          (dark.key?("tokens") ? dark.keys - ["tokens"] : []) + ((dark_roles(dark) || {}).keys - ALL_KINDS.keys)
+        end
 
         # The last resort: the values in Defaults. Used when the catalogue cannot be read.
         def self.fallback
@@ -65,7 +78,7 @@ module OpenProject
 
           if strict
             unknown = (set.keys - SET_KEYS) + (tokens.keys - ALL_KINDS.keys) + (logo.keys - LOGO_KEYS) +
-                      ((set["dark"] || {}).keys - DARK_KEYS)
+                      unknown_dark_keys(set["dark"])
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
           end
@@ -105,7 +118,7 @@ module OpenProject
           set = { "id" => id, "name" => name, "tokens" => tokens.dup,
                   "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
                               "redistributable" => !logo_file.nil? } }
-          set["dark"] = dark_tokens.dup if dark?
+          set["dark"] = { "tokens" => dark_tokens.dup } if dark?
           set
         end
 
@@ -114,6 +127,7 @@ module OpenProject
         # The optional dark block: colour roles only, no fallback. A role it does not name, or names with
         # a value that fails, stays OpenProject's own dark colour.
         def clean_dark(raw)
+          raw = self.class.dark_roles(raw)
           return {} unless raw.is_a?(Hash)
 
           DARK_KEYS.each_with_object({}) do |key, result|

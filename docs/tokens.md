@@ -46,17 +46,26 @@ The last resort values are Cunningham's, the default design system. A test keeps
 
 ## The dark theme
 
-A design system may bring a `dark` block next to `tokens`: the fifteen colour roles, each optional.
+A design system may bring a `dark` block next to `tokens`, with the colour roles for the dark theme. The catalogue has one for 63 of its 64 sets. thematiq derives them; the plugin derives nothing.
 
 ```json
-{ "id": "example", "name": "Example", "tokens": { "primary": "#1a67a3" }, "dark": { "primary": "#0b1f33", "ink": "#f0f6fc" } }
+{ "id": "example", "name": "Example", "tokens": { "primary": "#1a67a3" }, "dark": { "tokens": { "primary": "#558fe3", "ink": "#e2e3e4" } } }
 ```
 
-When a set has one, the generator writes a fourth block for `body[data-color-mode="dark"][data-dark-theme="dark"]`. It holds only the roles the block names. Everything else stays OpenProject's own dark colour. White surfaces of the light theme are never copied into the dark theme.
+For such a set the generator writes one more block, for `body[data-color-mode="dark"][data-dark-theme="dark"]`. It holds only the roles the dark block names. Everything else stays OpenProject's own dark colour. White surfaces of the light theme are never copied into the dark theme. Radius and font in a dark block are ignored: they do not change with the theme.
 
-None of the 64 bundled design systems has a `dark` block today, and the plugin does not derive one. So the dark theme keeps OpenProject's own colours, and only radius and font follow the tokens there. The two high contrast themes always keep OpenProject's colours.
+Two rules guard the dark theme:
 
-"Sync with OS" was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
+- **A dark block is only used when its main text reads on its page background**, 4.5 to 1. Seven bundled sets fail that: `conduction`, `enschede`, `hoeksche-waard`, `losser`, `nora`, `purmerend` and `zaanstad`. For those the dark theme keeps OpenProject's own colours.
+- **The text on the selected menu item follows a contrast rule.** The dark blocks keep the light theme's `primary-deep`, a dark colour, on a dark `primary-light`. As given, that pair fails in 59 sets. The plugin takes the block's own `primary-deep` when it reads, and otherwise whichever of its `ink` and white reads best.
+
+With these two rules, every dark block that is used reaches 4.5 to 1 on all six pairs. A test holds that.
+
+A set without a dark block, and the three OpenProject themes, keep OpenProject's own dark colours.
+
+**High contrast.** The two high contrast themes always keep OpenProject's own colours. A person who asks for more contrast should get the colours that were made for that.
+
+**Sync with OS** was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
 
 ## Run the tests
 

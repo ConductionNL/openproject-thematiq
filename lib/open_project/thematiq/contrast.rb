@@ -74,6 +74,40 @@ module OpenProject
         result
       end
 
+      # A dark block is only used when its main text reads on its page background. One that fails that
+      # would make every page unreadable, so for such a set the dark theme keeps OpenProject's own colours.
+      def dark_usable?(token_set)
+        return false unless token_set.dark?
+
+        value = ratio(token_set.dark_tokens["ink"], token_set.dark_tokens["ground"])
+        value.nil? || value >= MINIMUM
+      end
+
+      # The text on the selected menu item in the dark theme. The dark blocks keep the light theme's
+      # primary-deep, a dark colour, on a dark primary-light. So the rule decides: the block's own
+      # primary-deep when it reads, else whichever of its ink and white reads best.
+      def dark_on_selected(dark)
+        best_on(dark["primary-light"], [dark["primary-deep"], dark["ink"], "#ffffff"])
+      end
+
+      # The contrast in the dark theme as the plugin draws it, or nil when the set has no dark block.
+      # In the dark theme links sit on the ground colour, not on white.
+      def dark_report(token_set)
+        return nil unless token_set.dark?
+
+        dark = token_set.dark_tokens
+        { "on-primary" => ratio(on(dark, "primary"), dark["primary"]),
+          "on-action" => ratio(on(dark, "action"), dark["action"]),
+          "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
+          "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
+          "link-on-ground" => ratio(dark["link"], dark["ground"]),
+          "primary-deep-on-primary-light" => ratio(dark_on_selected(dark), dark["primary-light"]) }
+      end
+
+      def dark_failures(token_set)
+        (dark_report(token_set) || {}).select { |_pair, value| value && value < MINIMUM }.keys
+      end
+
       # The names of the pairs under 4.5:1. A pair that cannot be computed is not listed here, see #unknown.
       def failures(token_set)
         report(token_set).select { |_pair, value| value && value < MINIMUM }.keys
