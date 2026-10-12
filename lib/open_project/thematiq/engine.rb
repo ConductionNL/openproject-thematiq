@@ -12,7 +12,14 @@ module OpenProject
       register "openproject-thematiq",
                author_url: "https://github.com/ConductionNL/openproject-thematiq",
                bundled: false,
-               settings: { default: { "base_url" => "" } }
+               settings: { default: { "base_url" => "" } } do
+        menu :admin_menu,
+             :thematiq_design,
+             { controller: "/thematiq/admin", action: :show },
+             if: ->(_) { User.current.admin? },
+             caption: ->(*) { I18n.t("thematiq.admin.menu") },
+             icon: "paintbrush"
+      end
 
       config.to_prepare do
         require "open_project/thematiq/store"

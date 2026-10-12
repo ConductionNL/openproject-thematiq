@@ -60,6 +60,7 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/variables/` | The variable layer: tokens to CSS variables |
 | `lib/open_project/thematiq/store.rb` | What the plugin keeps in OpenProject's settings |
 | `app/workers/thematiq/` | The background job that keeps the tokens current |
+| `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `test/` | The unit tests, run with `bin/test` |
 | `app/views/thematiq/hooks/` | The partials the hooks render |
 | `stylesheets/` | The static CSS layers the head hook inlines after the variable layer, in file name order |
@@ -69,4 +70,4 @@ Then run the `docker run` command again.
 
 `lib/open_project/thematiq/shell/` and `app/views/thematiq/shell/` are reserved for the shared top bar and project menu.
 
-Next, read [tokens.md](tokens.md) for how the tokens reach the page and [geometry.md](geometry.md) for the sizes.
+Next, read [tokens.md](tokens.md) for how the tokens reach the page, [geometry.md](geometry.md) for the sizes and [admin-page.md](admin-page.md) for the page an administrator uses.
