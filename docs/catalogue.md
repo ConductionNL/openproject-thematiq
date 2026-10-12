@@ -21,14 +21,23 @@ The design systems ship inside the plugin, in one JSON file. This page explains 
       "id": "cunningham",
       "name": "Cunningham",
       "tokens": { "primary": "#1a67a3", "radius": "3px", "font-family": "Arial, sans-serif" },
-      "logo": { "file": null, "inverse_file": null, "licence": null, "redistributable": false }
+      "logo": { "file": "img/logos/cunningham.svg", "inverse_file": null, "licence": "...", "redistributable": null, "basis": "..." }
     }
   ],
-  "fonts": []
+  "fonts": [
+    { "family": "Fira Sans", "sets": ["amsterdam"], "shipped": true, "files": ["css/fonts/..."], "licence": "OFL-1.1",
+      "licence_files": ["css/fonts/OFL.txt"], "redistributable": true, "basis": "..." }
+  ]
 }
 ```
 
-A set has up to eighteen tokens. [tokens.md](tokens.md) lists them. The loader does not read `fonts` yet.
+The file in the plugin is generated from thematiq. `generated_from` names the thematiq commit. It holds 64 design systems, each with all eighteen tokens. [tokens.md](tokens.md) lists the tokens.
+
+`redistributable` is `true`, `false` or `null`. `null` means the generator found nothing that says the file may be passed on. The plugin treats `null` like `false`. Of the 64 sets, 14 have a logo the plugin may ship.
+
+A logo's `file` is the path it has in thematiq. The plugin uses the file name only and looks it up in its own folder.
+
+The loader does not read `fonts` yet.
 
 ## What the loader does
 
@@ -42,6 +51,7 @@ A set has up to eighteen tokens. [tokens.md](tokens.md) lists them. The loader d
 
 ## Replace the catalogue
 
-1. Copy the new `shell-catalogue.json` over `data/catalogue/shell-catalogue.json`.
+1. Copy the new `shell-catalogue.json` over `data/catalogue/shell-catalogue.json`. Do not edit it by hand.
 2. Copy only the logos of sets with `"redistributable": true` into `data/catalogue/logos/`.
-3. Run `bin/test`. It fails when a value in the file is refused, when a named logo is missing and when a logo is in the folder that no set names.
+3. Change the number of sets in `test/catalogue_test.rb` when it changed.
+4. Run `bin/test`. It fails when a value in the file is refused, when a named logo is missing, when a logo is in the folder that no redistributable set names and when a logo file holds a script or a link.

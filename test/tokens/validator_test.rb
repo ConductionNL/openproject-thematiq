@@ -56,7 +56,7 @@ class ValidatorTest < Minitest::Test
     hostile = HOSTILE_VALUES + [
       "Arial; } body { display:none", "Arial, ", ",Arial", "'Fira Sans", "'Fira' Sans'", %('Fira"), "Arial}", "Arial{",
       "Arial\\", "Arial, url(x)", "Arial</style>", "'a;b'", "'a}b'", "Arial\nsans-serif", "x" * 401,
-      (["Arial"] * 13).join(", "), "1Arial"
+      (["Arial"] * 21).join(", "), "1Arial"
     ]
     hostile.each { |value| assert_nil V.font_family(value), "accepted font stack #{value.inspect}" }
   end
@@ -64,7 +64,9 @@ class ValidatorTest < Minitest::Test
   def test_file_names
     assert_equal "zuiddrecht-inverse.svg", V.file_name("zuiddrecht-inverse.svg")
     assert_equal "logo_2.png", V.file_name("logo_2.png")
-    ["../a.svg", "a/b.svg", "a..svg", ".svg", "a.svg.exe", "a.SVG", "a b.svg", "a.svg\n", "a.gif", "", nil, 1].each do |value|
+    assert_equal "zuiddrecht.svg", V.file_name("img/logos/zuiddrecht.svg"), "a generator path gives the file name only"
+    ["../a.svg", "/a.svg", "a/../b.svg", "a//b.svg", "a\\b.svg", "a/b/c/d/e/f.svg", "A/b.svg", "a..svg", ".svg", "a.svg.exe",
+     "a.SVG", "a b.svg", "a.svg\n", "a.gif", "https://x/a.svg", "", nil, 1].each do |value|
       assert_nil V.file_name(value), "accepted file name #{value.inspect}"
     end
   end

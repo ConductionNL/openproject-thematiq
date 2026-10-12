@@ -16,7 +16,7 @@ module OpenProject
         QUOTED_FAMILY = /\A(["'])([A-Za-z0-9 _.-]{1,60})\1\z/
         BARE_FAMILY = /\A-?[A-Za-z_][A-Za-z0-9_-]*(?: [A-Za-z_][A-Za-z0-9_-]*)*\z/
 
-        FILE_NAME = /\A[a-z0-9][a-z0-9._-]{0,80}\.(?:svg|png)\z/
+        FILE_REFERENCE = %r{\A(?:[a-z0-9][a-z0-9_-]{0,40}/){0,4}[a-z0-9][a-z0-9._-]{0,80}\.(?:svg|png)\z}
 
         NAMED_COLORS = %w[
           aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown
@@ -36,7 +36,7 @@ module OpenProject
           teal thistle tomato transparent turquoise violet wheat white whitesmoke yellow yellowgreen
         ].freeze
 
-        MAX_FAMILIES = 12
+        MAX_FAMILIES = 20
         MAX_FONT_STACK_LENGTH = 400
 
         def color(value)
@@ -81,11 +81,13 @@ module OpenProject
           cleaned.join(", ")
         end
 
-        # The name of a bundled file: one path segment, lower case, svg or png.
+        # A reference to a bundled file: a plain svg or png name, or a path the catalogue generator wrote,
+        # such as "img/logos/zuiddrecht.svg". Returns the file name only. The plugin never opens the path as given,
+        # it looks the name up in its own folder.
         def file_name(value)
-          return nil unless value.is_a?(String) && FILE_NAME.match?(value) && !value.include?("..")
+          return nil unless value.is_a?(String) && FILE_REFERENCE.match?(value) && !value.include?("..")
 
-          value
+          File.basename(value)
         end
 
         # Plain text shown on the admin page. Never written into CSS.

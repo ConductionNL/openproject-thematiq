@@ -82,7 +82,7 @@ class TokenSetTest < Minitest::Test
     assert_nil not_free.logo_file
     assert_nil truthy.logo_file
 
-    ["../a.svg", "/etc/passwd", "a/b.svg", "a.svg/..", "a..svg", "a.exe", "A.svg", "a.svg\n", "https://x/a.svg",
+    ["../a.svg", "/etc/passwd", "a/../b.svg", "a.svg/..", "a..svg", "a.exe", "A.svg", "a.svg\n", "https://x/a.svg",
      "a.svg?x", %(a".svg), 7, nil].each do |file|
       set = TokenSet.from_set(set_hash({}, "logo" => { "file" => file, "inverse_file" => file, "redistributable" => true }))
 

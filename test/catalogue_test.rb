@@ -53,8 +53,37 @@ class CatalogueTest < Minitest::Test
     assert_equal named, present
   end
 
-  def test_cunningham_matches_the_last_resort_values
-    assert_equal Defaults::TOKENS, Catalogue.bundled.find("cunningham").tokens.slice(*Defaults::TOKENS.keys)
+  def test_the_bundled_catalogue_is_the_one_generated_from_thematiq
+    assert_match(/\Athematiq /, Catalogue.bundled.generated_from)
+    assert_equal 64, Catalogue.bundled.sets.size
+  end
+
+  def test_every_bundled_set_has_all_eighteen_tokens
+    Catalogue.bundled.sets.each do |token_set|
+      assert_equal OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys, token_set.tokens.keys, token_set.id
+    end
+  end
+
+  def test_only_logos_marked_redistributable_are_used
+    raw = JSON.parse(File.read(Catalogue::FILE))["sets"].to_h { |set| [set["id"], set["logo"]] }
+
+    Catalogue.bundled.sets.each do |token_set|
+      if raw[token_set.id]["redistributable"] == true
+        assert_equal File.basename(raw[token_set.id]["file"]), token_set.logo_file, token_set.id
+        refute_nil Catalogue.bundled.logo_path(token_set), token_set.id
+      else
+        assert_nil token_set.logo_file, token_set.id
+        assert_nil Catalogue.bundled.logo_path(token_set), token_set.id
+      end
+    end
+  end
+
+  def test_no_bundled_logo_can_run_or_load_anything
+    Dir[File.join(Catalogue::LOGO_DIRECTORY, "*")].each do |file|
+      svg = File.read(file)
+
+      refute_match(/<script|<foreignObject|\son[a-z]+\s*=|javascript:|<!ENTITY|href\s*=\s*["'](?!#)/i, svg, file)
+    end
   end
 
   # --- loading ---

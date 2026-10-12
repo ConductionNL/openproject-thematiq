@@ -18,7 +18,7 @@ A token value ends up inside a `<style>` tag. So the plugin accepts a value only
 
 - Colours: hex, a named colour, or `rgb()`, `hsl()`, `hwb()`, `lab()`, `lch()`, `oklab()` and `oklch()` with plain numbers.
 - Lengths: `0`, or a number with `px`, `rem`, `em` or `%`.
-- Font stacks: up to 12 families, each a plain name or a quoted name.
+- Font stacks: up to 20 families, each a plain name or a quoted name.
 
 A value that fails falls back to the last resort value for that token, in `lib/open_project/thematiq/tokens/defaults.rb`. A file that ships with the plugin gets the same check as any other input.
 

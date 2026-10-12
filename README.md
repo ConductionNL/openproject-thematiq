@@ -8,7 +8,7 @@ The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes
 
 ## How it works
 
-1. The plugin ships a catalogue of design systems. Each one is a set of eighteen design tokens.
+1. The plugin ships a catalogue of 64 design systems, generated from thematiq. Each one is a set of eighteen design tokens.
 2. An administrator picks a design system on the "Thematiq design" page in OpenProject's administration.
 3. The plugin writes the tokens to the CSS variables OpenProject already uses, and adds a geometry layer for sizes and spacing.
 4. It renders the shared top bar and project menu through OpenProject's layout hooks.

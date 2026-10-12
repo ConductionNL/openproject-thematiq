@@ -26,7 +26,7 @@ module OpenProject
         }.freeze
 
         SET_KEYS = %w[id name tokens logo].freeze
-        LOGO_KEYS = %w[file inverse_file licence redistributable].freeze
+        LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
@@ -63,7 +63,7 @@ module OpenProject
           token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:,
                           logo_file: logo["redistributable"] == true ? Validator.file_name(logo["file"]) : nil,
                           logo_inverse_file: logo["redistributable"] == true ? Validator.file_name(logo["inverse_file"]) : nil,
-                          logo_licence: Validator.label(logo["licence"]))
+                          logo_licence: Validator.label(logo["licence"], max: 300))
           raise InvalidSet, "token_invalid" if strict && token_set.rejected.any?
 
           token_set
