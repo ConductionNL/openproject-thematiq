@@ -45,8 +45,10 @@ A failing hook does not break the page. `OpenProject::Hook.call_hook` rescues th
 | Item in the design | Mechanism | Status |
 |---|---|---|
 | Bar height, order, spacing | CSS | Built |
-| Logo first, app switcher second | Override `top_menu_left_menu_items`: call `super`, move the first element to the end. Done in the markup so the focus order matches what you see | Built |
-| App name as real text | Override `render_logo`: `super` plus a `<strong>` with `Setting.app_title` | Built |
+| Logo first, then the row of apps, then the app switcher | Override `top_menu_left_menu_items`: call `super`, add the row, move the app switcher to the end. Done in the markup so the focus order matches what you see | Built |
+| No app name in the bar | The logo names the product and the marked tile names the place. The logo link keeps core's name, "Home" | Built |
+| Brand block as wide as the sidebar | CSS in the geometry layer: the block takes `--main-menu-width`, the logo starts 24 px in, the rule is the block's last pixel. The geometry layer pins that width to 264 px, so the rule stays at 264 when the sidebar is collapsed, and on pages without a sidebar | Built |
+| Row of apps and modules | The same override renders it. See "The row of apps" below | Built |
 | Logo of the design system | One CSS rule from the head hook sets the background image of core's logo link. Without a logo in the token set, OpenProject's own logo stays | Built |
 | App switcher as a two column popover | CSS on core's dialog. It stays a modal dialog, so focus trap and Escape keep working | Built |
 | App switcher, Nextcloud column | Hook `module_menu_dialog_content_before` renders a fixed list of six links. Only when a Nextcloud address is set | Built. The list is fixed |
@@ -59,6 +61,30 @@ A failing hook does not break the page. `OpenProject::Hook.call_hook` rescues th
 | Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super`. Core's own account menu opens | Built |
 | No green quick add button | CSS turns it into a plain icon button. Hiding it would take "new project" and "invite user" away from the bar, and the project menu does not offer those | Built as a plain plus. See open questions |
 | Outline icons in the bar | CSS mask per icon | Built for six icons |
+
+### The row of apps
+
+Core's top bar helpers take a row of items without a view override. `top_menu_left_menu_items` returns the parts of the left side as a list, and the override adds one part to it.
+
+| Part | Where it comes from | Status |
+|---|---|---|
+| OpenProject's modules | `more_top_menu_items`, core's own list for the app switcher. It runs each item's `if:` condition, so a user only gets what core would show them | Built |
+| Nextcloud's apps | The fixed list of `Shell::NextcloudApps`, only when a Nextcloud address is set | Built |
+| Which entries, in which order | The plugin setting `top_bar_apps`, a list of keys. See below | Built. No field on the admin page yet |
+| Icon | The outline icon of the design for the modules the design draws. Any other module keeps the icon core gives it | Built |
+| Name | Real text in the link. It shows under the icon on the current tile and on hover and focus | Built |
+| Current tile | `aria-current="page"`, a fill and a line under the tile. It follows core's `current_menu_item`, so a project's work package page marks Work packages. Wiki, Members, Project settings and the administration mark nothing | Built |
+| A current entry outside the row takes the last place | `Shell::AppRow.pick` | Built |
+| Below 1240 px the row folds, the current tile stays | CSS | Built. The current tile sits after the button on screen and before it in the focus order |
+| Below 1012 px | No tile. Core's compact header has no room for one | Built |
+| App switcher as the nine-dot button at the end | Core's own dialog button, moved | Built. It keeps core's name "Global modules" and has no `aria-expanded`: both are set inside a core helper |
+| The list: heading, a line of text per entry, current entry, "Manage apps" | Core renders the module list. A second line and a current mark need a replacement of a private core method | Not built |
+
+**The setting.** `top_bar_apps` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.top_bar_apps`. It is a list of keys separated by commas. A Nextcloud app has the key of its name (`files`, `mail`, `calendar`, `tasks`, `talk`, `contacts`). A module has the name of its item in core's top menu (`home`, `my_page`, `projects`, `work_packages`, `gantt`, `team_planners`, `boards`, `meetings`, `news`, `cost_reports_global`, `wikis`). Empty gives the default, `none` gives no row, and there are at most twelve.
+
+**The default** is the row of the design: `files, mail, calendar, work_packages, boards, gantt, meetings`.
+
+**When an entry is not there for this user**, because no Nextcloud address is set or core hides the module, it is left out and the row is filled up to its length from core's own order: Home, My page, My time tracking, then Projects, Work packages, Gantt, Team planners, Boards, Meetings, News, Time and costs, Wiki. So without a Nextcloud address the default row is Work packages, Boards, Gantt, Meetings, Home, My page, My time tracking. A module the instance has no licence for is never in the row. It stays in the app switcher, where core marks it.
 
 ### What the account button shows
 
@@ -203,9 +229,9 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 
 | Core file | What leans on it | What guards it |
 |---|---|---|
-| `lib/redmine/menu_manager/top_menu_helper.rb` | `Shell::TopBar#top_menu_left_menu_items` and `#render_logo`, both through `super` | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/top_menu_helper.rb` | `Shell::TopBar#top_menu_left_menu_items`, through `super` | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/user_menu.rb` | `Shell::TopBar#lateral_user_menu_button`, a private method with two arguments | Checksum in `core_guard.rb` |
-| `lib/redmine/menu_manager/top_menu/module_menu.rb` | The hook `module_menu_dialog_content_before` and the dialog markup the popover CSS styles | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/top_menu/module_menu.rb` | The hook `module_menu_dialog_content_before`, the dialog markup the popover CSS styles, and the private `more_top_menu_items` the row of apps reads | Checksum in `core_guard.rb` |
 | `app/views/layouts/base.html.erb` | The header and menu markup the files in `stylesheets/shell/` style, and where the hooks run | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/menu_helper.rb` | `Shell::ProjectMenu::Helper`: `render_menu`, `render_menu_node`, `render_menu_toggler`, `badge_for`. One of them fills in a label core leaves empty | Checksum in `core_guard.rb` |
 | `frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts` | The two-layer menu: the arrow button's `descend` must keep toggling `open` on the row | Checksum in `core_guard.rb` |
@@ -230,11 +256,11 @@ The checksums do not cover the Angular bundle. The search field, the unread indi
 
 ### When an OpenProject upgrade breaks this
 
-You notice it in one of three ways: `script/check-core.rb` exits 1, the log says "The top bar overrides are off" or "The project menu overrides are off", or the shell shows without the app name, the account name, the create action or the group titles.
+You notice it in one of three ways: `script/check-core.rb` exits 1, the log says "The top bar overrides are off" or "The project menu overrides are off", or the shell shows without the row of apps, the account name, the create action or the group titles.
 
 1. Run `script/check-core.rb` in the new image. It names the core files that changed.
 2. Open each one next to the override that leans on it. The table above says which.
-   - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `render_logo` still returns the logo block, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
+   - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `more_top_menu_items` still returns the menu items of the app switcher, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
    - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still sets `@menu`, `render_menu_node` still returns one `<li>` per item, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
    - For `stylesheets/shell/30-nested-menu.css` and the script: a row with a submenu is still `li` with `div.main-item-wrapper` and `ul.main-menu--children`, the arrow button still toggles `open` on the row, and a module's frame still uses the `op-submenu--*` classes.
 3. If they hold, nothing in the plugin needs to change. Update the checksum and `CORE_VERSION` in `core_guard.rb`.

@@ -201,9 +201,13 @@
   box-shadow: inset 0 -3px 0 var(--thematiq-on-primary);
 }
 
-/* Between 1360 and 1240 px the account button keeps the avatar and the chevron. */
+/* Between 1360 and 1240 px the account button keeps the avatar and the chevron. The search field may
+ * get a little narrower than its 320 px there, or the bar would be wider than the screen. */
 @media screen and (max-width: 1359px) {
   .thematiq-account { display: none; }
+}
+@media screen and (min-width: 1012px) and (max-width: 1359px) {
+  .op-app-header { grid-template-columns: auto minmax(260px, 460px) minmax(max-content, 1fr); }
 }
 
 /* Below 1240 px the row folds into the app switcher. The current tile stays, after the button.
@@ -212,6 +216,12 @@
   .thematiq-app-row > li:not(:has([aria-current="page"])) { display: none; }
   .thematiq-app-row { order: 1; margin-left: 0; }
   .op-app-header .op-app-menu > .Button--iconOnly { margin-left: 12px; }
+}
+
+/* OpenProject's compact header has no room for a tile. The app switcher holds every entry. */
+@media screen and (max-width: 1011px) {
+  .thematiq-app-row { display: none; }
+  .op-app-header .op-app-menu > .Button--iconOnly { margin-left: 0; }
 }
 
 /* The small logo is a square mark in a 130 px box. With the app switcher after it, that box
