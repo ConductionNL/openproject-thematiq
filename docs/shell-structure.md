@@ -6,7 +6,7 @@ This page lists every way a plugin can change OpenProject's top bar and project 
 
 - OpenProject builds the top bar and the project menu in **helper methods**, not in views. A view override cannot reach either.
 - Four view hooks touch the shell. All four only **add** markup. None can replace or reorder what core renders.
-- Most of the design is reachable with CSS on core's own markup, one hook, and three small helper overrides that call `super`.
+- Most of the design is reachable with CSS on core's own markup, one hook, and a handful of small helper overrides that call `super`.
 - This plugin overrides **no core view**.
 
 ## Where core renders the shell
@@ -78,13 +78,18 @@ OpenProject opens these links in a new tab, because its link handling treats ano
 
 | Item in the design | Mechanism | Status |
 |---|---|---|
-| Width, item height, active item | CSS | Other lane |
-| Members and Project settings at the bottom | CSS. Core already renders them last | Not built |
-| "Create work package" on top | No hook renders above the menu. Options: override `render_projects_top_menu_node` to add a link before the project switcher, or add it below with a hook and move it with CSS `order`. The second breaks the focus order | Not built |
-| Project switcher with initials and a "Project" label | The switcher is a view component, so a view override cannot reach it. Override the public `Header::ProjectSelectComponent#trigger_label` to return the initials, the label and the name | Not built |
-| Group titles (Plan, Work together) | The project menu is a flat list. Needs an override of `render_menu` that inserts title rows between items, with a fixed map from item name to group. Core still decides which items a user sees | Not built |
-| Count badges | A menu item's `badge:` is a translation key. A number needs an override of the private `badge_for`, and one count query per page for each badge | Not built |
-| Saved queries on the work package page | Core swaps the project menu for the query list. See below | Not changed |
+| Width, item height, active item | CSS in the geometry layer | Built |
+| "Create work package" on top | No hook renders above the menu. Override `render_projects_top_menu_node`: a link plus `super`. Only for a user who may add work packages in the project | Built |
+| Project switcher with initials and a "Project" label | The switcher is a view component, so a view override cannot reach it. Override the public `Header::ProjectSelectComponent#trigger_label` | Built |
+| Group titles (Plan, Work together) | The project menu is a flat list. Override `render_menu_node`: `super`, with a title row before the first item of a group. A fixed map says which item goes under which title | Built |
+| Count on Work packages | A menu item's `badge:` is a translation key. Override the private `badge_for`: `super` plus the number of open work packages the user may see. One count query per project page | Built |
+| Members and Project settings at the bottom | The same override puts a spacer row before the first of the two. Core already renders them last | Built |
+| Outline icons | CSS mask per item, for the twelve items the design draws | Built. Other items keep core's icon |
+| Saved queries on the work package page | See below | Built: the project menu stays, the queries open with the arrow |
+
+Which items a user sees is still core's decision. The overrides add rows around the items that `first_level_menu_items_for` and `render_menu_node` let through. A user who may not see Members gets no Members row, and no spacer.
+
+An item this plugin does not know, from another plugin for example, stays in the group of the item before it.
 
 ### Saved queries
 
@@ -92,11 +97,13 @@ On the work package page core "descends" into the Work packages item: the projec
 
 The query list is a real feature. A user needs it to open a saved view. Three ways to keep both:
 
-1. **Leave it.** Core's behaviour, restyled by the other lane. Nothing can break. The design is not met on this one page.
-2. **Show the queries under the Work packages item.** CSS keeps the root menu visible and shows the child list in place. It reaches the design's frame, but the list has a search field and about a dozen entries, so it pushes every item below it off the screen. It also fights the Stimulus controller `menus--main`, which sets the open and closed classes.
+1. **Leave it.** Core's behaviour. The design is not met on this one page.
+2. **Keep the project menu, open the queries with the arrow.** Core already renders an arrow button on every item with a submenu, and its own controller opens and closes the submenu. On the work package page the plugin renders the list in its open state, so the project menu shows and the arrow leads to the queries. One click more than core, nothing removed.
 3. **Move the queries to the page.** A dropdown next to the page title. That is new interface in the Angular work package page, and a plugin cannot add it without a frontend build.
 
-The least risky is the first. The second is worth a try in a later change, with the list collapsed by default.
+The plugin does the second. It takes two small changes to what core returns: the class of the list (`menu_root closed` becomes `menu_root open`) and the class of the Work packages row. The arrow also gets its name back, "Open Work packages sub-menu". Core leaves that name empty on the selected item, because core never shows the arrow there.
+
+This applies to the items in `ProjectMenu::STAY_ON_PROJECT_MENU`, which holds `work_packages` only. Gantt, Boards, Meetings, Wiki, Members and Project settings keep core's behaviour: on their pages the submenu shows. Their submenus are how you move between boards or between settings pages, so hiding them behind a click costs more there. Add a name to the list to change one.
 
 ## Icons
 
@@ -106,11 +113,13 @@ OpenProject draws icons from three places:
 2. The package `@openproject/octicons-angular`. These are compiled into the frontend bundle.
 3. The old icon font `openproject-icon-font`, used through classes such as `icon-search`.
 
-A plugin without a frontend build can only reach the first one, by patching the gem's symbol table at boot. That would leave the Angular pages, including the work package table, on filled icons, so the result would be mixed. Replacing all three means rebuilding the frontend and drawing a font with a few hundred glyphs. That is a fork in all but name.
+A plugin without a frontend build can only reach the first one, by patching the gem's symbol table at boot. That would leave the Angular pages, including the work package table, on filled icons, so the result would be mixed. Replacing all three means rebuilding the frontend and drawing a replacement for the whole icon font. That is a fork in all but name.
 
-What works is a swap per icon in a region the plugin owns: hide core's SVG and draw the outline icon as a CSS mask. The button keeps its accessible name. The top bar does this for six icons. The project menu has about twenty and could do the same.
+What works is a swap per icon in the shell: hide core's SVG and draw the outline icon as a CSS mask in the colour of the text. The button or link keeps its accessible name, because the name was never in the icon. The top bar does this for six icons and the project menu for twelve. Markup the plugin renders itself, the create action and the Nextcloud tiles, uses inline SVG with `currentColor`.
 
-**Finding: a wholesale swap is not feasible without forking core. A swap per region is.**
+Items the design does not draw keep core's filled icon: News, Budgets, Documents, Activity, Roadmap, Forums and Repository, and anything another plugin adds. Each one needs a drawn outline icon and one CSS line.
+
+**Finding: the shell's own icons are swapped. A swap across the application is not feasible without forking core.** The cost of the rest: a frontend build in the release pipeline for the Angular icons, and a replacement font with the same code points for every glyph of the icon font, kept in step with every OpenProject release.
 
 ## Upgrade guard
 
@@ -125,11 +134,14 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 | `lib/redmine/menu_manager/top_menu_helper.rb` | `Shell::TopBar#top_menu_left_menu_items` and `#render_logo`, both through `super` | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/user_menu.rb` | `Shell::TopBar#lateral_user_menu_button`, a private method with two arguments | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/module_menu.rb` | The hook `module_menu_dialog_content_before` and the dialog markup the popover CSS styles | Checksum in `core_guard.rb` |
-| `app/views/layouts/base.html.erb` | The header markup `stylesheets/shell/10-top-bar.css` styles, and where the hooks run | Checksum in `core_guard.rb` |
+| `app/views/layouts/base.html.erb` | The header and menu markup the files in `stylesheets/shell/` style, and where the hooks run | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/menu_helper.rb` | `Shell::ProjectMenu::Helper`: `render_menu`, `render_menu_node`, `render_menu_toggler`, `menu_node_options`, `badge_for`. Two of them replace a class or a label in the string core returns | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/top_menu/projects_menu.rb` | `Shell::ProjectMenu::Helper#render_projects_top_menu_node` | Checksum in `core_guard.rb` |
+| `app/components/header/project_select_component.rb` and `.html.erb` | `Shell::ProjectMenu::Switcher#trigger_label`, which the template prints inside the button | Checksum in `core_guard.rb` |
 
 `lib/open_project/thematiq/shell/core_guard.rb` records the SHA-256 of each file in OpenProject 17.9.1.
 
-- **At boot** the plugin compares them. If one differs, it does not install the helper overrides. Core's own top bar renders, and the log has an error that names the files.
+- **At boot** the plugin compares them, for the top bar and for the project menu apart. If a file of one part differs, the overrides of that part are not installed. Core's own top bar or project menu renders, and the log has an error that names the files.
 - **In a check** you run `script/check-core.rb` inside the image. It exits 1 and prints the files that changed.
 
 ```bash
@@ -141,15 +153,17 @@ The checksums do not cover the Angular bundle. The search field, the unread indi
 
 ### When an OpenProject upgrade breaks this
 
-You notice it in one of three ways: `script/check-core.rb` exits 1, the log says "The top bar overrides are off", or the top bar shows without the app name and the account name.
+You notice it in one of three ways: `script/check-core.rb` exits 1, the log says "The top bar overrides are off" or "The project menu overrides are off", or the shell shows without the app name, the account name, the create action or the group titles.
 
 1. Run `script/check-core.rb` in the new image. It names the core files that changed.
-2. Open each one next to `lib/open_project/thematiq/shell/top_bar.rb`. Three things matter: `top_menu_left_menu_items` still returns the app switcher first, `render_logo` still returns the logo block, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
+2. Open each one next to the override that leans on it. The table above says which.
+   - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `render_logo` still returns the logo block, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
+   - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still writes `class="menu_root closed"` and sets `@menu`, `render_menu_node` still returns one `<li>` per item, `menu_node_options` still returns the `open` class, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
 3. If they hold, nothing in the plugin needs to change. Update the checksum and `CORE_VERSION` in `core_guard.rb`.
 4. If one moved, change the override to fit, then update the checksum.
 5. Start the instance and compare the top bar with the design, with `spike/pixdiff.py`.
 
-Until someone does this, OpenProject keeps working. Its own top bar renders with the plugin's colours and sizes, and without the app name and the account label.
+Until someone does this, OpenProject keeps working. Its own top bar and project menu render with the plugin's colours and sizes, and without what the overrides add.
 
 ## Open questions
 
@@ -157,4 +171,6 @@ Until someone does this, OpenProject keeps working. Its own top bar renders with
 - **Search placeholder.** The design says "Search files, work packages or people". Core's search finds work packages and projects, so the plugin keeps core's text.
 - **Nextcloud apps.** The fixed list should become a call to Nextcloud's navigation API, cached per user.
 - **Nextcloud address.** The setting `nextcloud_url` needs a field on the admin page.
+- **Submenus.** Only the work package page keeps the project menu in view. The design shows it on every project page. Extending `STAY_ON_PROJECT_MENU` does that, at the price of one more click to reach a board list or a settings page.
+- **Count position.** The count sits after the label. The design puts it at the right edge of the row.
 - **Narrow screens.** The geometry layer sets the desktop columns at every width. The shell layer puts core's compact header back below 1012 px. That reset belongs in the geometry layer.
