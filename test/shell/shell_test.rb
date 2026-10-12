@@ -100,26 +100,41 @@ class ShellTest < Minitest::Test
     assert_equal Shell::CoreGuard::FILES.keys.sort, Shell::CoreGuard::PARTS.values.flatten.uniq.sort
   end
 
-  def test_app_row_count_has_a_default_and_limits
+  def test_app_row_setting
     row = Shell::AppRow
 
-    assert_equal 7, row.count(nil)
-    assert_equal 7, row.count("many")
-    assert_equal 7, row.count("-3")
-    assert_equal 0, row.count("0")
-    assert_equal 5, row.count(" 5 ")
-    assert_equal 12, row.count("40")
+    assert_equal row::DEFAULT, row.wanted(nil)
+    assert_equal row::DEFAULT, row.wanted("  ")
+    assert_equal row::DEFAULT, row.wanted("<script>")
+    assert_empty row.wanted("none")
+    assert_equal %w[files gantt], row.wanted("Files, gantt , files")
+    assert_equal 12, row.wanted((1..40).map { |n| "m#{n}" }.join(",")).size
   end
 
-  def test_app_row_marks_the_module_of_the_page
+  def test_app_row_leaves_out_what_the_user_cannot_open_and_fills_up
     row = Shell::AppRow
+    modules = %w[home my_page projects work_packages gantt boards meetings news]
 
-    assert row.current?("/", "/")
-    refute row.current?("/projects", "/")
-    assert row.current?("/projects/demo/work_packages", "/projects")
-    assert row.current?("/work_packages/", "http://localhost:8233/work_packages?query_id=3")
-    refute row.current?("/work_packages_other", "/work_packages")
-    refute row.current?("/my/page", "/my/time-tracking")
+    assert_equal %w[files mail calendar work_packages boards gantt meetings],
+                 row.pick(row::DEFAULT, %w[files mail calendar tasks talk contacts] + modules)
+    assert_equal %w[work_packages boards gantt meetings home my_page projects], row.pick(row::DEFAULT, modules)
+    assert_equal %w[home], row.pick(row::DEFAULT, %w[home])
+    assert_empty row.pick([], modules)
+  end
+
+  def test_app_row_gives_the_last_place_to_a_current_entry_outside_it
+    row = Shell::AppRow
+    modules = %w[home my_page projects work_packages gantt boards meetings news]
+
+    assert_equal %w[work_packages boards news], row.pick(%w[work_packages boards gantt], modules, "news")
+    assert_equal %w[work_packages boards gantt], row.pick(%w[work_packages boards gantt], modules, "boards")
+    assert_equal %w[work_packages boards gantt], row.pick(%w[work_packages boards gantt], modules, "members")
+  end
+
+  def test_app_row_knows_the_global_module_of_a_project_page
+    assert_equal "team_planners", Shell::AppRow.current_key(:team_planner_view)
+    assert_equal "work_packages", Shell::AppRow.current_key(:work_packages)
+    assert_equal "", Shell::AppRow.current_key(nil)
   end
 
   def test_the_menu_script_cannot_close_its_script_tag

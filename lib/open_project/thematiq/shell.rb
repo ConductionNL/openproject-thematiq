@@ -10,7 +10,7 @@ module OpenProject
     #   Shell::TopBar         two small overrides of OpenProject's top menu helpers
     #   Shell::ProjectMenu    the overrides of the project menu helpers and the project switcher
     #   Shell::NextcloudApps  the Nextcloud column of the app switcher
-    #   Shell::AppRow         how many icons the top bar shows, and which one is the current place
+    #   Shell::AppRow         which apps and modules the top bar shows as icons
     #   Shell::Logo           the logo of the active design system, as a CSS rule
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
@@ -27,13 +27,15 @@ module OpenProject
         NextcloudApps.normalize(value)
       end
 
-      # The plugin setting that says how many apps and modules show as icons in the top bar.
-      # It is one optional key in Setting.plugin_openproject_thematiq. Zero switches the row off.
+      # The plugin setting that says which apps and modules show as icons in the top bar, in order:
+      # "files, mail, calendar, work_packages, boards, gantt, meetings". It is one optional key in
+      # Setting.plugin_openproject_thematiq. Empty gives the row of the design, "none" gives no row.
       TOP_BAR_APPS_SETTING = "top_bar_apps"
 
+      # The wanted keys, see Shell::AppRow.
       def self.top_bar_apps
         settings = Setting.plugin_openproject_thematiq
-        AppRow.count(settings.respond_to?(:to_h) ? settings.to_h.stringify_keys[TOP_BAR_APPS_SETTING] : nil)
+        AppRow.wanted(settings.respond_to?(:to_h) ? settings.to_h.stringify_keys[TOP_BAR_APPS_SETTING] : nil)
       end
 
       # Called from the engine's to_prepare block.

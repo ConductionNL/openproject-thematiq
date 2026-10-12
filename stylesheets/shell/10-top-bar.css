@@ -143,47 +143,75 @@
 .thematiq-account--name { font-size: 15px; font-weight: 700; }
 .thematiq-account--role { font-size: 13px; font-weight: 400; opacity: 0.85; }
 
-/* The row of apps and modules after the brand block. Each one is a link with its name in a tooltip. */
+/* The row of apps and modules after the brand block (canon: Global menu). A tile is a link with an
+ * icon and its name. The name shows under the icon on the current tile and on hover and focus.
+ * Otherwise it is kept for screen readers only. */
 .thematiq-app-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin: 0;
+  margin: 0 0 0 12px; /* 16 px after the rule, with the 4 px gap of the bar */
   padding: 0;
   list-style: none;
 }
-.thematiq-app-row > li { position: relative; margin: 0; padding: 0; list-style: none; }
+.thematiq-app-row > li { margin: 0; padding: 0; list-style: none; }
 .op-app-header .thematiq-app-row--item {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  gap: 2px;
+  box-sizing: border-box;
+  min-width: 44px;
+  height: 48px;
+  padding: 0 10px;
   border-radius: var(--thematiq-radius);
   color: var(--thematiq-on-primary);
+  line-height: 1;
   text-decoration: none;
 }
-.op-app-header .thematiq-app-row--item svg { width: 20px; height: 20px; color: inherit; fill: currentColor; }
-.op-app-header .thematiq-app-row--item svg[fill="none"] { fill: none; }
-.op-app-header .thematiq-app-row--item:hover { background: var(--shell-hover); color: var(--thematiq-on-primary); }
-.op-app-header .thematiq-app-row--item:focus-visible { outline: 2px solid var(--thematiq-on-primary); outline-offset: -2px; }
-.thematiq-app-row--letter { font-size: 15px; font-weight: 700; }
-/* Where you are: a filled tile and a short line under the icon, so it does not rest on colour alone. */
-.op-app-header .thematiq-app-row--item[aria-current="page"] { background: var(--shell-hover); }
-.op-app-header .thematiq-app-row--item[aria-current="page"]::after {
-  content: "";
+.op-app-header .thematiq-app-row--item svg { flex: none; width: 22px; height: 22px; color: inherit; }
+.op-app-header .thematiq-app-row--item svg:not([fill="none"]) { fill: currentColor; }
+.thematiq-app-row--letter { font-size: 16px; font-weight: 700; line-height: 22px; }
+.thematiq-app-row--name {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 3px;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--thematiq-on-primary);
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 13px;
+}
+.op-app-header .thematiq-app-row--item:hover .thematiq-app-row--name,
+.op-app-header .thematiq-app-row--item:focus-visible .thematiq-app-row--name,
+.op-app-header .thematiq-app-row--item[aria-current="page"] .thematiq-app-row--name {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}
+.op-app-header .thematiq-app-row--item:hover { background: var(--shell-hover); color: var(--thematiq-on-primary); text-decoration: none; }
+.op-app-header .thematiq-app-row--item:focus-visible { outline: 2px solid var(--thematiq-on-primary); outline-offset: -2px; }
+/* Where you are: a fill and a line under the tile, so it does not rest on colour alone. */
+.op-app-header .thematiq-app-row--item[aria-current="page"] {
+  background: color-mix(in srgb, var(--thematiq-on-primary) 16%, transparent);
+  box-shadow: inset 0 -3px 0 var(--thematiq-on-primary);
 }
 
-/* Below 1200 px the row gives its room to the search field. Everything in it is in the app switcher too. */
-@media screen and (max-width: 1199px) {
-  .thematiq-app-row { display: none; }
+/* Between 1360 and 1240 px the account button keeps the avatar and the chevron. */
+@media screen and (max-width: 1359px) {
+  .thematiq-account { display: none; }
+}
+
+/* Below 1240 px the row folds into the app switcher. The current tile stays, after the button.
+ * Everything in the row is in the app switcher too. */
+@media screen and (max-width: 1239px) {
+  .thematiq-app-row > li:not(:has([aria-current="page"])) { display: none; }
+  .thematiq-app-row { order: 1; margin-left: 0; }
+  .op-app-header .op-app-menu > .Button--iconOnly { margin-left: 12px; }
 }
 
 /* The small logo is a square mark in a 130 px box. With the app switcher after it, that box
@@ -202,11 +230,10 @@
 /* ---------- Desktop ---------- */
 
 @media screen and (min-width: 1012px) {
-  /* After the brand block: the row of apps, then the app switcher as the "more" button.
-   * The brand block is as wide as the sidebar (geometry/20-top-bar.css), so its rule on the right
-   * sits on the sidebar's edge. */
+  /* The brand block is as wide as the sidebar (geometry/20-top-bar.css). Its rule is its last pixel,
+   * so it sits on the sidebar's edge. Then the row of apps, then the app switcher. */
   .op-app-header .op-app-menu { gap: 4px; }
-  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { position: relative; margin-right: 8px; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { position: relative; }
   .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon)::after {
     content: "";
     position: absolute;
@@ -216,6 +243,8 @@
     height: 28px;
     background: var(--shell-divider);
   }
+  .op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button { width: 44px; height: 44px; }
+  .op-app-header .op-app-menu > .Button--iconOnly::before { width: 22px; height: 22px; }
 
   /* Right side: 6 px between the buttons. Core adds Primer spacing utilities, which are !important. */
   .op-app-header--end { align-items: center; gap: 6px; }
@@ -266,9 +295,9 @@
 
   .op-app-header .op-app-menu dialog.Overlay.op-app-menu--item {
     position: fixed;
-    inset: 72px auto auto var(--main-menu-width, 264px);
+    inset: 72px auto auto calc(var(--main-menu-width, 264px) + 16px);
     width: 640px;
-    max-width: calc(100vw - var(--main-menu-width, 264px) - 16px);
+    max-width: calc(100vw - var(--main-menu-width, 264px) - 32px);
     height: auto;
     max-height: calc(100vh - 88px);
     margin: 0;

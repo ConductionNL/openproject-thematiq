@@ -39,54 +39,63 @@ module OpenProject
           super(dialog, safe_join([avatar, thematiq_account_label]))
         end
 
-        # The first apps and modules as icon links. Everything in the row is also in the app switcher,
-        # so nothing is lost when the row is hidden on a narrow screen.
+        # The row of apps and modules: links with an icon and a name. Everything in the row is also in
+        # the app switcher, so nothing is lost when the row folds on a narrow screen.
         def thematiq_app_row
-          entries = thematiq_app_row_entries.first(Shell.top_bar_apps)
+          entries = thematiq_app_row_entries
           return if entries.empty?
 
           tag.ul(class: "thematiq-app-row") do
-            entries.each_with_index { |entry, index| concat thematiq_app_row_item(entry, index) }
+            entries.each { |entry| concat tag.li(thematiq_app_row_item(entry)) }
           end
         end
 
-        # Nextcloud's apps first, when an address is set, then OpenProject's global modules in the
-        # order of the app switcher. The modules come from core's own menu and permission helpers.
-        # A module the instance has no licence for stays in the app switcher, where core marks it.
+        # Which entries, in which order: Shell::AppRow decides from the setting, from what this user
+        # can open, and from the page. What a user can open is core's decision: the modules come from
+        # core's own menu and permission helpers. A module the instance has no licence for stays in
+        # the app switcher, where core marks it.
         def thematiq_app_row_entries
-          entries = []
+          all = thematiq_app_row_candidates
+          current = AppRow.current_key(current_menu_item)
+          current = nil unless all.key?(current)
+
+          AppRow.pick(Shell.top_bar_apps, all.keys, current).map { |key| all.fetch(key).merge(current: key == current) }
+        end
+
+        def thematiq_app_row_candidates
+          all = {}
           if (base = Shell.nextcloud_url)
             NextcloudApps::APPS.each do |app|
-              entries << { label: t("thematiq.shell.app_switcher.apps.#{app.key}"),
-                           href: NextcloudApps.url_for(app, base), path: app.icon, external: true }
+              all[app.key.to_s] = { label: t("thematiq.shell.app_switcher.apps.#{app.key}"),
+                                    href: NextcloudApps.url_for(app, base), path: app.icon, external: true }
             end
           end
 
           mine, others = more_top_menu_items.reject(&:heading?).partition { |item| item.context == :my }
           (mine + others).reject(&:enterprise_feature_missing?).each do |item|
-            href = url_for(item.url)
-            entries << { label: item.caption, href:, octicon: item.icon, current: AppRow.current?(request.path, href) }
+            all[item.name.to_s] ||= { label: item.caption, href: url_for(item.url),
+                                      path: AppRow::ICONS[item.name.to_s], octicon: item.icon }
           end
-          entries
+          all
         end
 
-        def thematiq_app_row_item(entry, index)
-          id = "thematiq-app-row-#{index}"
-          options = { id:, href: entry[:href], class: "thematiq-app-row--item", "aria-labelledby": "#{id}-name" }
+        # The name is real text in the link. The stylesheet shows it under the icon on the current
+        # tile and on hover and focus, and keeps it for screen readers otherwise.
+        def thematiq_app_row_item(entry)
+          options = { href: entry[:href], class: "thematiq-app-row--item" }
           options[:"aria-current"] = "page" if entry[:current]
           options[:"data-allow-external-link"] = "true" if entry[:external]
 
-          tag.li do
-            concat tag.a(thematiq_app_row_icon(entry), **options)
-            concat render(Primer::Alpha::Tooltip.new(for_id: id, id: "#{id}-name", type: :label, text: entry[:label].to_s,
-                                                     direction: :s))
+          tag.a(**options) do
+            concat thematiq_app_row_icon(entry)
+            concat tag.span(entry[:label].to_s, class: "thematiq-app-row--name")
           end
         end
 
-        # Nextcloud's apps use the outline icon of the design. A module uses the icon core gives it.
+        # An outline icon of the design where there is one. Otherwise the icon core gives the module.
         def thematiq_app_row_icon(entry)
           if entry[:path]
-            tag.svg(tag.path(d: entry[:path]), width: 20, height: 20, viewBox: "0 0 24 24", fill: "none",
+            tag.svg(tag.path(d: entry[:path]), width: 22, height: 22, viewBox: "0 0 24 24", fill: "none",
                                                stroke: "currentColor", "stroke-width": "1.75",
                                                "stroke-linecap": "round", "stroke-linejoin": "round",
                                                "aria-hidden": "true", focusable: "false")
