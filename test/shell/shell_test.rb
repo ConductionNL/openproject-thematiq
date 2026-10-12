@@ -109,13 +109,20 @@ class ShellTest < Minitest::Test
 
   def test_the_nested_menu_only_applies_while_the_overrides_are_on
     css = File.read(File.expand_path("../../stylesheets/shell/30-nested-menu.css", __dir__)).gsub(%r{/\*.*?\*/}m, "")
-    selectors = css.gsub(/@media[^{]*\{/, "").scan(/([^{}]+)\{/).flatten.flat_map { |list| list.split(",") }.map(&:strip).reject(&:empty?)
+    selectors = css.gsub(/@media[^{]*\{/, "").scan(/([^{}]+)\{/).flatten.flat_map { |list| split_selectors(list) }
 
     refute_empty selectors
     selectors.each { |selector| assert_includes selector, "#main-menu:has(.thematiq-project--initials)", selector }
   end
 
   private
+
+  # Splits a selector list on its commas, leaving the commas inside :is() and :has() alone.
+  def split_selectors(list)
+    depth = 0
+    list.each_char.slice_when { |char, _| depth += { "(" => 1, ")" => -1 }.fetch(char, 0); char == "," && depth.zero? }
+        .map { |chars| chars.join.delete_suffix(",").strip }.reject(&:empty?)
+  end
 
   def changed(files, root)
     files.reject { |path, sum| Digest::SHA256.file(File.join(root, path)).hexdigest == sum }.keys

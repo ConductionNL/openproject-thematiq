@@ -146,6 +146,9 @@ en:
         create_work_package: "Create work package"
         project: "Project"
         open: "open"
+        expand: "Expand %{name}"
+        collapse: "Collapse %{name}"
+        show_all: "Show all %{count}"
         groups:
           plan: "Plan"
           together: "Work together"

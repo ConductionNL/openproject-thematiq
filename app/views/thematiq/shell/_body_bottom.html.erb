@@ -1,4 +1,6 @@
-<%# The script of the two-layer project menu: it mirrors core's menu classes into ARIA state. See Shell::ProjectMenu. %>
+<%# The script of the two-layer project menu: ARIA state from core's menu classes, and "Show all" in a long submenu. See Shell::ProjectMenu. %>
+<% menu_texts = { expand: t("thematiq.shell.project_menu.expand"), collapse: t("thematiq.shell.project_menu.collapse"), show_all: t("thematiq.shell.project_menu.show_all") } %>
 <%= nonced_javascript_tag do %>
+window.thematiqProjectMenuTexts = <%= raw json_escape(menu_texts.to_json) %>;
 <%= raw OpenProject::Thematiq::Shell::ProjectMenu.script %>
 <% end %>
