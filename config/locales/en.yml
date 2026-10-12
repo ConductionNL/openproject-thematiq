@@ -142,3 +142,10 @@ en:
           tasks: "Tasks"
           talk: "Talk"
           contacts: "Contacts"
+      project_menu:
+        create_work_package: "Create work package"
+        project: "Project"
+        open: "open"
+        groups:
+          plan: "Plan"
+          together: "Work together"
