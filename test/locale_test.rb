@@ -52,3 +52,61 @@ class LocaleTest < Minitest::Test
     end
   end
 end
+
+# The keys of the upload section are built from the kinds, the weights and the error codes,
+# so the scan above does not see them. This class looks each one up.
+class UploadsLocaleTest < Minitest::Test
+  Uploads = OpenProject::Thematiq::Uploads
+  EN = LocaleTest::EN
+  ROOT = LocaleTest::ROOT
+
+  def lookup(key)
+    key.split(".").reduce(EN) { |node, part| node.is_a?(Hash) ? node[part] : nil }
+  end
+
+  def test_every_kind_has_a_label_and_a_hint
+    Uploads::KINDS.each_key do |kind|
+      assert_kind_of String, lookup("thematiq.uploads.kinds.#{kind}.label"), kind
+      assert_kind_of String, lookup("thematiq.uploads.kinds.#{kind}.hint"), kind
+    end
+  end
+
+  def test_every_weight_and_style_has_a_name
+    Uploads::FontFace::WEIGHTS.each { |weight| assert_kind_of String, lookup("thematiq.uploads.weights.w#{weight.tr(' ', '_')}"), weight }
+    Uploads::FontFace::STYLES.each { |style| assert_kind_of String, lookup("thematiq.uploads.styles.#{style}"), style }
+  end
+
+  def test_every_error_the_controller_passes_on_has_a_message
+    controller = File.read(File.join(ROOT, "app/controllers/thematiq/admin_controller.rb"))
+    codes = controller[/UPLOAD_ERRORS = %w\[(.*?)\]/m, 1].split
+
+    assert_operator codes.size, :>, 10
+    codes.each { |code| assert_kind_of String, lookup("thematiq.uploads.errors.#{code}"), code }
+  end
+
+  def test_every_code_the_checks_raise_is_one_the_controller_passes_on
+    controller = File.read(File.join(ROOT, "app/controllers/thematiq/admin_controller.rb"))
+    codes = controller[/UPLOAD_ERRORS = %w\[(.*?)\]/m, 1].split
+    sources = Dir[File.join(ROOT, "{lib/open_project/thematiq/uploads,app/models/thematiq,app/controllers/thematiq}/**/*.rb")] +
+              [File.join(ROOT, "lib/open_project/thematiq/uploads.rb")]
+    raised = sources.flat_map { |file| File.read(file).scan(/(?<!Transfer::)Refused, "([a-z_]+)"/).flatten }.uniq
+
+    assert_operator raised.size, :>, 10
+    assert_empty raised - codes
+  end
+
+  def test_every_key_the_files_partial_picks_between_exists
+    partial = File.read(File.join(ROOT, "app/views/thematiq/admin/_files.html.erb"))
+    keys = partial.scan(/"(thematiq\.uploads\.[a-z_.]+)"/).flatten.uniq.reject { |key| key.end_with?(".") }
+
+    assert_operator keys.size, :>, 15
+    keys.each { |key| refute_nil lookup(key), key }
+  end
+
+  # An error message may only name numbers the controller hands it.
+  def test_error_messages_only_use_the_values_the_controller_gives
+    lookup("thematiq.uploads.errors").each do |code, text|
+      assert_empty text.scan(/%\{(\w+)\}/).flatten - %w[types size min width height count], code
+    end
+  end
+end

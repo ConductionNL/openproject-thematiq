@@ -1,0 +1,4 @@
+<%# The favicon and touch icon an administrator uploaded for the active design system. Nothing without an upload. %>
+<% OpenProject::Thematiq.icon_links(root: OpenProject::Configuration["rails_relative_url_root"].to_s).each do |icon| %>
+<%= tag.link(rel: icon[:rel], href: icon[:href], type: icon[:type], sizes: icon[:sizes], data: { thematiq: "icon" }) %>
+<% end %>

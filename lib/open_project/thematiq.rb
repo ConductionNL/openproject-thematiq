@@ -55,6 +55,14 @@ module OpenProject
       Assets.bundled.font_face_css(active_token_set, root:)
     end
 
+    # The favicon and touch icon of the active design system, as attributes for link elements.
+    # Empty unless an administrator uploaded them. It never raises, for the same reason as above.
+    def self.icon_links(root: "")
+      Assets.bundled.icon_links(active_token_set, root:)
+    rescue StandardError
+      []
+    end
+
     require "open_project/thematiq/engine" if defined?(::Rails::Engine)
   end
 end

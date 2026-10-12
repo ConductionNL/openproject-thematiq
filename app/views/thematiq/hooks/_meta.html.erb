@@ -10,3 +10,5 @@
 <% end %>
 <%# The logo rule is specific enough to win from here too, so the logo-only layout gets the logo as well. %>
 <%= render partial: "thematiq/shell/head", locals: { style_id: "openproject-thematiq-early-logo" } %>
+<%# OpenProject writes its own favicon link after this hook. On layouts/base the head hook writes ours again after it. %>
+<%= render partial: "thematiq/hooks/icons" %>

@@ -33,6 +33,12 @@ module OpenProject
         require "open_project/thematiq/hooks"
         require "open_project/thematiq/shell"
         OpenProject::Thematiq::Shell.install!
+
+        # The uploaded files of a custom design system come from the plugin's table. A page asks several
+        # times while it is drawn, so the answer is kept for the length of one request.
+        OpenProject::Thematiq::Assets.upload_source = lambda do |set_id|
+          RequestStore.fetch([:thematiq_uploads, set_id]) { ::Thematiq::Upload.records_for(set_id) }
+        end
       end
     end
   end

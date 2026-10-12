@@ -32,7 +32,9 @@ module OpenProject
         OPTIONAL_KINDS = { "menu" => :color }.freeze
         ALL_KINDS = KINDS.merge(OPTIONAL_KINDS).freeze
 
-        SET_KEYS = %w[id name tokens logo dark].freeze
+        # "uploads" is a note an export file carries when the design system had uploaded files. They do not
+        # travel in the file. Transfer writes and reads the note. A token set does not keep it.
+        SET_KEYS = %w[id name tokens logo dark uploads].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
         DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
@@ -75,6 +77,7 @@ module OpenProject
           raise InvalidSet, "tokens_missing" unless tokens.is_a?(Hash)
           raise InvalidSet, "logo_invalid" unless logo.is_a?(Hash)
           raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
+          raise InvalidSet, "uploads_invalid" unless set["uploads"].nil? || set["uploads"].is_a?(Hash)
 
           if strict
             unknown = (set.keys - SET_KEYS) + (tokens.keys - ALL_KINDS.keys) + (logo.keys - LOGO_KEYS) +
