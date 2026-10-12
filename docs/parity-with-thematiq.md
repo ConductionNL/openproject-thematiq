@@ -5,7 +5,7 @@ This page maps what thematiq does against what this plugin does, so the work to 
 Read on 12 October 2026 from:
 
 - thematiq `development` at `06c92322`. The capability list is thematiq's own: `openspec/parity/capabilities.json`, which it last compared on 26 September.
-- This repository: `development` at `f7355d2`, open pull requests #5 and #6, and the branch `feat/shell-top-bar`.
+- This repository: `development` at `f7355d2`, open pull requests #5 to #8, and the branch `feat/shell-top-bar`.
 - The boards `OpThemePicker` and `OpThemeEditor`.
 - OpenProject 17.9.1, read from the `openproject/openproject:17` image without starting it.
 
@@ -18,9 +18,9 @@ Nothing on this page was run in a browser.
 | Status | Rows |
 |---|---|
 | in plugin | 20 |
-| being built | 35 |
+| being built | 34 |
 | to build, as is | 51 |
-| to build, adapted | 56 |
+| to build, adapted | 57 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -40,14 +40,14 @@ Nothing on this page was run in a browser.
 | Status | Items |
 |---|---|
 | has | 5 |
-| being built | 13 |
-| missing | 6 |
+| being built | 14 |
+| missing | 5 |
 | Total | 24 |
 
 ### What to know before you set a budget
 
-1. **107 of 165 rows still have to be built, and 35 more are in flight.** The rows to build are sized 74 S, 28 M and 5 L. Rows that share work with another row are sized S, so the total is on the high side.
-2. **"Being built" is thinner than it sounds.** 17 of the 35 rows in flight lean on the picker, the editor, export and import, logo, favicon or PDF styling. None of those has a branch on the remote yet. The catalogue in PR #6 holds one set, `cunningham`. thematiq ships 63 sets, and no generator for the catalogue is on either remote.
+1. **108 of 165 rows still have to be built, and 34 more are in flight.** The rows to build are sized 75 S, 28 M and 5 L. Rows that share work with another row are sized S, so the total is on the high side.
+2. **"Being built" is thinner than it sounds.** Pull requests #5 to #8 are open and stacked: standalone, catalogue, picker, editor. By their own text, none of the four was rendered in a browser. 6 of the 34 rows in flight lean on export and import, logo, favicon or PDF styling, which have no branch on the remote. The catalogue in PR #6 holds one set, `cunningham`. thematiq ships 63 sets, and no generator for the catalogue is on either remote.
 3. **The plugin knows 18 values per house style. thematiq knows the full token vocabulary.** Three of the five L rows come from that gap: component tokens, the component bridge and the NL Design System converter. Question 4 decides whether they are built in that form.
 4. **The boards and PR #5 disagree.** The boards say one choice switches both products together. PR #5 removes the link to thematiq and forbids any connection. Wave 7 waits on that choice (question 1).
 5. **Only 3 rows have no counterpart.** 4 of the 20 "in plugin" rows are things OpenProject core already does, just as Nextcloud core does them for thematiq.
@@ -69,14 +69,14 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `cat-bigcity-systems` | Use the full design systems of the large cities (Utrecht, Amsterdam, Den Haag, Rotterdam) | `specs/extended-token-sets` | being built | PR #6, with `cat-rijkshuisstijl`. Only the 18 shell roles carry over, not the full component layer |  |
 | `cat-vng` | Apply the VNG house style for a municipal association or shared service | `specs/vng-token-set` | being built | PR #6, with `cat-rijkshuisstijl` |  |
 | `cat-lasuite` | Make the workspace match the French La Suite numerique look so a sovereign workplace bundle shows no visual seam | `specs/token-sets` | being built | PR #6: `cunningham` is the one set in the catalogue and the default |  |
-| `cat-searchable-picker` | Find a house style by typing its name in a searchable picker that scales to hundreds of entries (thematiq has this in part) | `specs/token-set-dropdown` | being built | PR #6 has `Catalogue#search`. The picker page has no branch pushed yet, and its board shows no search field | S |
-| `cat-swatch-preview` | See a colour swatch and the primary colour of each house style before choosing it | `specs/token-set-dropdown` | being built | Picker, no branch pushed yet. Board `OpThemePicker` draws a card per set |  |
+| `cat-searchable-picker` | Find a house style by typing its name in a searchable picker that scales to hundreds of entries (thematiq has this in part) | `specs/token-set-dropdown` | being built | PR #7: a search field on the picker, run on the server |  |
+| `cat-swatch-preview` | See a colour swatch and the primary colour of each house style before choosing it | `specs/token-set-dropdown` | being built | PR #7: a small picture of the shell per set |  |
 | `cat-stock-option` | Switch back to stock Nextcloud styling with one choice, removing every added stylesheet | `specs/theming-sync` | to build, as is | A choice that emits no stylesheet at all | S |
 | `cat-completeness-badge` | See how complete a house style's token vocabulary is before you rely on it | `changes/archive/2026-10-09-token-set-vocabulary-audit` | to build, adapted | Count how many of the 18 roles a set fills. The store already keeps the refused keys | S |
 | `cat-design-system-choice` | Choose between whole design systems (NL Design System, La Suite, high contrast, a soft light theme), not only colour sets | `specs/css-architecture` | to build, adapted | The plugin has one geometry layer for every set. A design system would bring its own layer. Unclear how far this should go | M |
 | `cat-design-system-docs` | Follow a link from the settings page to the design system's own documentation (thematiq has this in part) | `specs/admin-settings` | to build, as is |  | S |
 | `cat-community-sets` | Use community-maintained brand sets for organisations that are not a municipality | `specs/extended-token-sets` | being built | PR #6, with `cat-rijkshuisstijl` |  |
-| `cat-starter-templates` | Start from a ready-made template or example theme and adapt it instead of starting blank | `specs/admin-settings` | being built | Editor, no branch pushed yet. Board `OpThemeEditor` starts from an existing set ("Based on Cunningham") |  |
+| `cat-starter-templates` | Start from a ready-made template or example theme and adapt it instead of starting blank | `specs/admin-settings` | being built | PR #8: "Customise" takes any set as the base |  |
 | `cat-marketplace` | Download additional themes from a marketplace or gallery maintained by the vendor or community | `specs/upstream-freshness` | to build, adapted | PR #5 forbids any connection, so a gallery means a file you fetch yourself and import. See question 2 | M |
 | `cat-provincial-sets` | Apply a house style for a province or water board (thematiq has this in part) | `specs/extended-token-sets` | being built | PR #6, with `cat-rijkshuisstijl` |  |
 | `cat-living-token-docs` | Generate living documentation of the house style's tokens as a core feature | `specs/token-reference` | to build, as is | Generate `docs/tokens.md` from the role list | S |
@@ -85,23 +85,23 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
-| `app-one-click` | Re-brand the whole workspace, its apps and the login page in one action | `specs/css-architecture` | being built | Picker, no branch pushed yet. PR #6 says the picker follows next | M |
+| `app-one-click` | Re-brand the whole workspace, its apps and the login page in one action | `specs/css-architecture` | being built | PR #7: select and "Apply" |  |
 | `app-diff-dialog` | See exactly which colour values will change before you apply a new house style | `specs/token-set-apply-dialog` | to build, as is |  | M |
 | `app-choose-what-changes` | Tick which individual values to take over when switching house style, and keep the rest | `specs/token-set-apply-dialog` | to build, as is | With `app-diff-dialog` | S |
 | `app-no-reload` | Switch house style and see it repaint the page you are on without reloading | `specs/theming-sync` | to build, adapted | Swap the inline `<style id="openproject-thematiq">` tag. OpenProject pages mix Turbo and Angular, so both need a check | M |
-| `app-live-preview-shell` | Preview the house style on a mock of the real app shell (header, navigation, buttons) inside the settings page | `specs/admin-settings` | being built | Editor, no branch pushed yet. Board `OpThemeEditor` has a live preview of the shell |  |
+| `app-live-preview-shell` | Preview the house style on a mock of the real app shell (header, navigation, buttons) inside the settings page | `specs/admin-settings` | being built | PR #8: "Preview" draws the shell on the server and saves nothing |  |
 | `app-login-preview` | Preview how the login page will look before publishing | `specs/admin-settings` | to build, as is | After `sur-login-page` | S |
-| `app-trial-session` | Try a house style in your own session only, while everyone else keeps the current one | `specs/theme-preview` | to build, as is | The picker board has a Preview button. It does not say whether that is a trial in your own session | M |
+| `app-trial-session` | Try a house style in your own session only, while everyone else keeps the current one | `specs/theme-preview` | to build, as is | The preview in PR #8 is a drawing on the admin page. A trial on the real pages, in your own session, is not built | M |
 | `app-trial-banner` | See a banner reminding you that you are looking at a trial theme, with a way back | `specs/theme-preview` | to build, as is | With `app-trial-session` | S |
 | `app-trial-publish` | Publish a theme you have been trialling to everyone in one step | `specs/theme-preview` | to build, as is | With `app-trial-session` | S |
 | `app-trial-discard` | Discard a trial theme and return to what everyone else sees | `specs/theme-preview` | to build, as is | With `app-trial-session` | S |
 | `app-component-playground` | Look at buttons, inputs, note cards, list items and the login card in each of their states while you edit the tokens they read | `specs/theme-preview` | to build, adapted | Show Primer components instead of Nextcloud ones | M |
 | `app-primary-lock` | Make the brand primary colour drive every component, or deliberately let components keep their own colours | `specs/component-tokens` | to build, adapted | One switch: the `action` role follows `primary`, or keeps its own value | S |
-| `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | being built | PR #6: the store keeps the id of the active set in OpenProject settings. Changing it needs the picker |  |
+| `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | being built | PR #7 |  |
 | `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | to build, adapted | An OpenProject background job instead of a Nextcloud one. `test/no_network_test.rb` in PR #5 refuses a background job today, so that test changes | M |
 | `app-rollback-history` | Roll back to an earlier version of the theme from a version history | `specs/theming-audit` | to build, as is |  | M |
 | `app-reset-core` | Reset Nextcloud's own theming values back to stock in one action | `specs/theming-sync` | to build, adapted | Reset OpenProject's own design values (`CustomStyle`, `DesignColor`). See question 6 | S |
-| `app-simple-theme-switch` | Let people who are not token specialists switch between brand themes without learning the token editor | `specs/token-set-dropdown` | being built | Picker, no branch pushed yet |  |
+| `app-simple-theme-switch` | Let people who are not token specialists switch between brand themes without learning the token editor | `specs/token-set-dropdown` | being built | PR #7 |  |
 | `app-branding-package` | Ship the tokens, templates and the theme stylesheet as one branding package that applies itself when a site is connected | `specs/theme-as-code` | to build, adapted | Apply a configuration bundle at boot from a file or an environment variable | M |
 
 ### Bringing your own brand
@@ -110,16 +110,16 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 |---|---|---|---|---|---|
 | `aut-upload-css` | Upload your own house style as a CSS file of design tokens | `specs/custom-token-sets` | to build, adapted | A thematiq CSS file has the full vocabulary. The plugin needs the mapping to 18 roles, which today is PHP in thematiq (`ShellTokenController`) | M |
 | `aut-upload-dtcg` | Upload your own house style as a W3C Design Tokens (DTCG) JSON file | `specs/custom-token-sets` | to build, adapted | Same mapping as `aut-upload-css`, from DTCG JSON | M |
-| `aut-upload-validate` | Get told on upload which tokens are missing or invalid before the set is accepted | `specs/custom-token-sets` | being built | PR #5 adds the strict mode for imported files. The import page has no branch pushed yet |  |
+| `aut-upload-validate` | Get told on upload which tokens are missing or invalid before the set is accepted | `specs/custom-token-sets` | being built | PR #5 adds the strict mode for imported files. The import page has no branch pushed yet. PR #8 names it as next |  |
 | `aut-upload-security` | Be protected from uploaded styles that could run script or load outside resources (unsafe content is refused with reasons) | `specs/custom-token-sets` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` |  |
-| `aut-custom-list-delete` | List, activate and delete the house styles you uploaded | `specs/custom-token-sets` | being built | Picker and import, no branch pushed yet | S |
+| `aut-custom-list-delete` | List, activate and delete the house styles you uploaded | `specs/custom-token-sets` | being built | PR #8: one custom set that can be picked and deleted. Several custom sets are not built | S |
 | `aut-custom-export` | Download a house style you uploaded, to reuse or share it | `specs/custom-token-sets` | being built | Export, no branch pushed yet | S |
 | `aut-convert-nlds-theme` | Convert an existing NL Design System theme from its upstream token format into a working set | `specs/theming-sync` | to build, adapted | The converter is JavaScript in thematiq (`scripts/convert-nlds-theme.mjs`). Port it or run it at build time | L |
-| `aut-token-editor` | Edit individual colour tokens in the browser with a colour picker | `specs/token-set-apply-dialog` | being built | Editor, no branch pushed yet. Board `OpThemeEditor` | M |
-| `aut-token-editor-tabs` | Browse the editable tokens grouped in tabs (for example primary, background, text, status) | `specs/token-editor-ui` | to build, adapted | The board edits four colours, type, radius and logo in one list. Tabs make sense once all 18 roles are editable | S |
-| `aut-token-reset` | Reset one edited token to its house style value without touching the others | `specs/token-editor-ui` | to build, as is | The board has "Discard changes" for everything, not per token | S |
-| `aut-token-live` | See an edited token take effect immediately, before saving | `specs/token-editor-ui` | being built | Editor, no branch pushed yet |  |
-| `aut-overrides-persist` | Save your token edits so they survive a restart and apply to everyone (thematiq has this in part) | `specs/custom-css-overrides` | being built | Editor, no branch pushed yet ("Save and apply") |  |
+| `aut-token-editor` | Edit individual colour tokens in the browser with a colour picker | `specs/token-set-apply-dialog` | being built | PR #8: a text field for each of the 18 tokens. No colour picker | S |
+| `aut-token-editor-tabs` | Browse the editable tokens grouped in tabs (for example primary, background, text, status) | `specs/token-editor-ui` | to build, adapted | PR #8 shows all 18 tokens in one form. Group them once there are more | S |
+| `aut-token-reset` | Reset one edited token to its house style value without touching the others | `specs/token-editor-ui` | being built | PR #8: "Reset" per token and "Reset all" |  |
+| `aut-token-live` | See an edited token take effect immediately, before saving | `specs/token-editor-ui` | to build, adapted | PR #8 draws the preview on request, on the server. Live needs a script that carries OpenProject's nonce | S |
+| `aut-overrides-persist` | Save your token edits so they survive a restart and apply to everyone (thematiq has this in part) | `specs/custom-css-overrides` | being built | PR #8: "Save and apply" keeps the name, the base and the overrides in OpenProject's settings |  |
 | `aut-overrides-import-export` | Export your token edits as a file and import them again on another instance | `specs/token-import-export` | being built | Export and import, no branch pushed yet |  |
 | `aut-custom-css` | Add your own free-form CSS rules for things tokens cannot express | `specs/custom-css-freeform` | to build, as is | Needs the sanitiser first | S |
 | `aut-custom-css-sanitise` | Have free-form CSS checked on the server before it is saved, with unsafe rules refused | `specs/custom-css-freeform` | to build, as is | Port thematiq's CSS sanitiser from PHP to Ruby | M |
@@ -128,7 +128,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-semantic-aliases` | Define tokens as references to other tokens so one change flows through the semantic layer (thematiq has this in part) | `specs/custom-token-sets` | to build, as is | With `aut-upload-dtcg` | S |
 | `aut-multi-brand-themes` | Maintain several brands or themes in one token source and switch between them | `specs/theming-audit` | being built | PR #6: one catalogue file holds every set |  |
 | `aut-git-sync` | Store and version the token source in a Git repository with pull requests | `specs/theme-as-code` | being built | PR #6: `data/catalogue/shell-catalogue.json` lives in the repository |  |
-| `aut-colour-only-ui` | Set a brand with nothing more than a primary colour, a background colour and a logo in a simple form | `specs/simple-brand-form` | being built | Editor, no branch pushed yet. The board is this simple form |  |
+| `aut-colour-only-ui` | Set a brand with nothing more than a primary colour, a background colour and a logo in a simple form | `specs/simple-brand-form` | to build, as is | PR #8 has 18 text fields. The short form of the board (four colours, a font, a radius, a logo) is not built | S |
 | `aut-motion-tokens` | Define motion, duration and easing as tokens of the house style | `specs/dark-mode` | to build, adapted | The 18 roles hold no motion. Add roles and use them in the geometry layer | S |
 | `aut-broken-reference-list` | See one list of every broken token reference in the house style before publishing it | `specs/custom-token-sets` | to build, as is | With `aut-upload-dtcg` | S |
 | `aut-light-dark-values` | Give a colour token separate light and dark values in the house style editor | `specs/dark-mode` | to build, as is | With `aut-dark-variant-auto` | S |
@@ -157,7 +157,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 |---|---|---|---|---|---|
 | `ast-logo-sync` | Set the workspace logo to your organisation's logo when you pick its house style | `specs/token-set-dropdown` | being built | PR #6 carries a logo per set. Its own text: "Nothing shows a bundled logo yet" | S |
 | `ast-background-sync` | Set the login background to match the house style | `specs/token-set-dropdown` | to build, adapted | OpenProject's sign-in layout (`only_logo.html.erb`) has no background image. Draw one with CSS | S |
-| `ast-upload-logo` | Upload a logo of your own | Nextcloud core Theming page | being built | Logo upload, no branch pushed yet. Board `OpThemeEditor` has "Replace" | S |
+| `ast-upload-logo` | Upload a logo of your own | Nextcloud core Theming page | being built | No branch pushed yet. PR #8 leaves it out: it needs a place for the file, a route and an upload check | S |
 | `ast-upload-background` | Upload a login background image of your own | Nextcloud core Theming page | to build, adapted | With `ast-background-sync` | S |
 | `ast-favicon` | Set the browser tab icon (favicon) to your organisation's | Nextcloud core Theming page | being built | Favicon, no branch pushed yet | S |
 | `ast-icon-library` | Reuse a library of government icons by name from any app on the instance | `specs/icon-assets` | to build, adapted | Serve the icons from a plugin route. Unclear which OpenProject plugin would use them | M |
@@ -225,7 +225,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `acc-dark-generate-cli` | Regenerate the dark variants from the command line after changing sets | `specs/dark-mode` | to build, adapted | A rake task instead of an `occ` command | S |
 | `acc-focus-indicators` | Show visible focus indicators in the house style's colours | `specs/css-architecture` | to build, as is | `lib/open_project/thematiq/variables/generator.rb` sets the focus colour. The indicator itself is not checked | S |
 | `acc-reduced-motion` | Respect a user's preference for reduced motion | `specs/dark-mode` | to build, as is |  | S |
-| `acc-keyboard-admin` | Operate the whole theming settings page with the keyboard alone | `specs/admin-panel-accessibility` | to build, as is | A check on the picker and the editor once they exist | S |
+| `acc-keyboard-admin` | Operate the whole theming settings page with the keyboard alone | `specs/admin-panel-accessibility` | to build, as is | PR #7 and #8 use native controls and no script. Not checked in a browser | S |
 | `acc-vocabulary-audit` | Check that a house style defines the full token vocabulary so nothing falls back to an unreadable default | `changes/archive/2026-10-09-token-set-vocabulary-audit` | in plugin | `lib/open_project/thematiq/tokens/token_set.rb`: a missing or refused role falls back and is listed |  |
 
 ### Governance and change control
@@ -297,7 +297,7 @@ What the plugin has or is getting, checked against thematiq.
 | A top bar that shows the person's name and role | Branch `feat/shell-top-bar`, no pull request yet | in thematiq | `specs/workplace-layout` |  |
 | An app switcher that also lists the other product's apps | Branch `feat/shell-top-bar`: a fixed list of six Nextcloud apps | to build, adapted | Nextcloud's app menu gets a column with OpenProject's modules. It needs OpenProject's address. The only mention of OpenProject in thematiq's code is `ShellTokenController` | M |
 | A pixel-diff check of the shell against the design | `spike/pixdiff.py` only. The README promises a check on every OpenProject release. No workflow runs it | to build, adapted | thematiq has Playwright visual tests for the playground (`tests/e2e/visual/`). None compares the shell with the canon | M |
-| A search field in the picker | PR #6 has `Catalogue#search`. The board `OpThemePicker` draws no search field | to build, as is | thematiq's own list says "in part" (`cat-searchable-picker`): the dropdown is a plain select with 47 options | S |
+| A search field in the picker | PR #7 | to build, as is | thematiq's own list says "in part" (`cat-searchable-picker`): the dropdown is a plain select with 47 options | S |
 | A guard that notices when the host product changed underneath | Branch `feat/shell-top-bar`: `shell/core_guard.rb` keeps checksums of four OpenProject files | in thematiq | `specs/nextcloud-variable-inventory` records every Nextcloud variable and fails a test when coverage drops. A different mechanism for the same risk |  |
 
 ## Enterprise design page
@@ -306,17 +306,17 @@ OpenProject 17.9.1 offers the items below under **Administration**, **Design**. 
 
 | Tab | What the page offers | Plugin | Remark |
 |---|---|---|---|
-| Page | Five tabs: Interface, Branding, Default colors, PDF export styles, PDF export font | being built | One page that names the active set (PR #5). The picker and editor follow, no branch pushed yet |
-| Page | Color theme select with three themes: OpenProject (default), OpenProject Gray, OpenProject Navy Blue | being built | The picker, no branch pushed yet. The board has one "OpenProject example" set. Gray and Navy Blue are in no catalogue or board |
-| Page | The select shows "(Custom)" once a colour is edited, and asks before a theme overwrites custom colours | missing | The board keeps an edited set as a named set of its own, which covers the first half. No confirmation is drawn |
+| Page | Five tabs: Interface, Branding, Default colors, PDF export styles, PDF export font | being built | PR #7 and #8 give two pages, the picker and the editor, without tabs |
+| Page | Color theme select with three themes: OpenProject (default), OpenProject Gray, OpenProject Navy Blue | being built | PR #7. The board has one "OpenProject example" set. Gray and Navy Blue are in no catalogue or board |
+| Page | The select shows "(Custom)" once a colour is edited, and asks before a theme overwrites custom colours | being built | PR #8 keeps the edited set as "Custom" next to the others. Picking another set does not overwrite it, so no warning is needed |
 | Page | A theme can bring its own logo (Gray does) | being built | PR #6: a logo per set |
 | Interface | Primary button colour | has | Role `action` (`variables/generator.rb`) |
 | Interface | Accent colour, for links and highlights | has | Role `link` |
 | Interface | Header background | has | Role `primary` |
 | Interface | Main menu background | missing | The generator fixes it to white. No role holds it |
 | Interface | Main menu when selected | has | Role `primary-light` |
-| Interface | Edit each of the five colours in a dialog, as a hex value, next to a swatch of the value in use | being built | The editor, no branch pushed yet. The board has pickers for Primary, Action, Ink and Lines |
-| Branding | Custom logo desktop: upload, preview, delete | being built | No branch pushed yet. The board has "Replace" for an SVG logo |
+| Interface | Edit each of the five colours in a dialog, as a hex value, next to a swatch of the value in use | being built | PR #8: a text field per token, no dialog and no swatch |
+| Branding | Custom logo desktop: upload, preview, delete | being built | No branch pushed yet. PR #8 leaves it out and says why. The board has "Replace" for an SVG logo |
 | Branding | Custom logo mobile: upload, preview, delete | missing | Not found in any branch, pull request, doc or board |
 | Branding | Custom favicon: upload, preview, delete | being built | Named in the programme brief. No branch pushed yet |
 | Branding | Custom touch icon: upload, preview, delete | missing | Not found anywhere. In the 17.9.1 view this upload posts to the favicon field (`_branding.html.erb`), so do not copy the form as is |
@@ -339,9 +339,9 @@ Each wave can be built and released without the next one. Sizes count the rows o
 
 | Wave | What an admin gets | Rows | Size | Needs |
 |---|---|---|---|---|
-| 0. Finish what is started | The catalogue with thematiq's sets, the picker, the editor, export and import, logo, favicon, PDF export styling and the top bar. This is the Enterprise page plus the shared shell. | 36 | 7 S, 5 M | Nothing. Every later wave needs the picker and the store from this one. |
+| 0. Finish what is started | Land pull requests #5 to #8, then the catalogue with thematiq's sets, export and import, logo, favicon, PDF export styling and the top bar. This is the Enterprise page plus the shared shell. | 35 | 7 S, 3 M | Nothing. Every later wave needs the picker and the store from this one. |
 | 1. Complete the look | Sign-in page, bundled fonts, dark values, status colours, a stock option, and the small accessibility rules (focus, forced colours, reduced motion). | 18 | 15 S, 3 M | Wave 0. An admin notices these gaps on day one: a themed app behind a stock sign-in page, and a dark theme that ignores the house style. |
-| 2. Switch safely | See what changes before you apply, try a set in your own session, switch without a reload, go back to an earlier version. | 11 | 7 S, 4 M | Wave 0 for the picker. The sign-in preview needs wave 1. |
+| 2. Switch safely | See what changes before you apply, try a set in your own session, switch without a reload, go back to an earlier version. | 12 | 8 S, 4 M | Wave 0 for the picker. The sign-in preview needs wave 1. |
 | 3. Bring your own house style | Upload CSS or DTCG tokens, convert an NL Design System theme, upload fonts, free-form CSS with a sanitiser, more roles. | 17 | 11 S, 5 M, 1 L | Wave 0 for the import. The size of this wave depends on question 4. |
 | 4. Run it in production | Audit log, configuration bundle, command line tasks, configuration from the environment, compliance report, health check, metrics, read endpoints, a delegated role, a released gem. | 26 | 21 S, 5 M | Wave 0. Independent of waves 1 to 3. |
 | 5. Scope and schedule | A set per group, a set per project, locks, a planned switch. | 9 | 5 S, 4 M | Wave 0, and wave 1 if groups should also get dark values. Question 5 decides what "per app" means here. |
@@ -349,11 +349,11 @@ Each wave can be built and released without the next one. Sizes count the rows o
 | 7. Keep both products in step | A nightly regenerated catalogue, upstream notices, a gallery, a shared light or dark choice, OpenProject's own design values. | 11 | 8 S, 2 M, 1 L | Questions 1, 2 and 6. Do not start this wave before they are answered. |
 | T. thematiq catches up | The reverse table: touch icon, mobile logo, the set file, the canon check, the app switcher column, the pixel-diff check, the picker search | 7 | 5 S, 2 M | Runs beside any wave. The set file comes first: it is what lets a set move between the products without a link. |
 
-**Wave 0, finish what is started:** `cat-rijkshuisstijl`, `cat-municipal-sets`, `cat-bigcity-systems`, `cat-vng`, `cat-lasuite`, `cat-searchable-picker`, `cat-swatch-preview`, `cat-community-sets`, `cat-starter-templates`, `cat-provincial-sets`, `app-one-click`, `app-live-preview-shell`, `app-runtime-no-deploy`, `app-simple-theme-switch`, `aut-upload-validate`, `aut-custom-list-delete`, `aut-custom-export`, `aut-token-editor`, `aut-token-live`, `aut-overrides-persist`, `aut-overrides-import-export`, `aut-multi-brand-themes`, `aut-git-sync`, `aut-colour-only-ui`, `typ-air-gapped`, `ast-logo-sync`, `ast-upload-logo`, `ast-favicon`, `ast-org-logos`, `ast-dark-logo`, `acc-high-contrast-set`, `gov-licence-clarity`, `syn-upstream-generated`, `sur-generated-documents`, `gov-no-public-cdn`, `x-workplace-layout`
+**Wave 0, finish what is started:** `cat-rijkshuisstijl`, `cat-municipal-sets`, `cat-bigcity-systems`, `cat-vng`, `cat-lasuite`, `cat-searchable-picker`, `cat-swatch-preview`, `cat-community-sets`, `cat-starter-templates`, `cat-provincial-sets`, `app-one-click`, `app-live-preview-shell`, `app-runtime-no-deploy`, `app-simple-theme-switch`, `aut-upload-validate`, `aut-custom-list-delete`, `aut-custom-export`, `aut-token-editor`, `aut-token-reset`, `aut-overrides-persist`, `aut-overrides-import-export`, `aut-multi-brand-themes`, `aut-git-sync`, `typ-air-gapped`, `ast-logo-sync`, `ast-upload-logo`, `ast-favicon`, `ast-org-logos`, `ast-dark-logo`, `acc-high-contrast-set`, `gov-licence-clarity`, `syn-upstream-generated`, `sur-generated-documents`, `gov-no-public-cdn`, `x-workplace-layout`
 
 **Wave 1, complete the look:** `cat-stock-option`, `cat-completeness-badge`, `cat-design-system-docs`, `aut-dark-variant-auto`, `typ-bundled-open-fonts`, `typ-font-login`, `typ-marianne-gated`, `ast-icon-contrast`, `sur-login-page`, `sur-error-contrast`, `sur-status-tokens`, `acc-forced-colors`, `acc-dark-mode`, `acc-focus-indicators`, `acc-reduced-motion`, `syn-upgrade-migration`, `sur-selection-colour`, `aut-light-dark-values`
 
-**Wave 2, switch safely:** `app-diff-dialog`, `app-choose-what-changes`, `app-no-reload`, `app-login-preview`, `app-trial-session`, `app-trial-banner`, `app-trial-publish`, `app-trial-discard`, `app-primary-lock`, `app-rollback-history`, `aut-token-reset`
+**Wave 2, switch safely:** `app-diff-dialog`, `app-choose-what-changes`, `app-no-reload`, `app-login-preview`, `app-trial-session`, `app-trial-banner`, `app-trial-publish`, `app-trial-discard`, `app-primary-lock`, `app-rollback-history`, `aut-token-live`, `aut-colour-only-ui`
 
 **Wave 3, bring your own house style:** `aut-upload-css`, `aut-upload-dtcg`, `aut-convert-nlds-theme`, `aut-token-editor-tabs`, `aut-custom-css`, `aut-custom-css-sanitise`, `aut-semantic-aliases`, `typ-upload-font`, `typ-font-validate`, `typ-font-list-delete`, `typ-font-tokens`, `typ-org-font-library`, `acc-contrast-on-upload`, `aut-motion-tokens`, `aut-dtcg-colour-objects`, `aut-broken-reference-list`, `aut-add-token`
 
@@ -377,7 +377,7 @@ Each wave can be built and released without the next one. Sizes count the rows o
 
 ## What this page could not determine
 
-- Whether the editor, export and import, logo, favicon and PDF styling exist anywhere. They have no branch or pull request on the remote. Their "being built" status rests on the programme brief and the boards.
+- Whether export and import, logo, favicon and PDF styling exist anywhere. They have no branch or pull request on the remote. Their "being built" status rests on the programme brief and the boards.
 - Whether a mobile logo and a touch icon are planned for the plugin. Nothing names them.
 - Whether the catalogue generator exists. PR #6 says it was not there when the catalogue was built.
 - Rows marked "not checked" in the tables: OpenProject's mobile app, an admin audit log in OpenProject, how a plugin adds a metric, and whether Nextcloud derives a touch icon.
