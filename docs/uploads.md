@@ -115,13 +115,11 @@ Every answer carries the same headers:
 
 ## Install and upgrade
 
-The table comes with a migration. The OpenProject image runs every pending migration on each start, so it runs when OpenProject starts after you install the plugin. To run it by hand, in `/app` inside the container. On the instance from [Try it locally with Docker](../README.md#try-it-locally-with-docker):
+The table comes with a migration. The OpenProject image runs every pending migration on each start, so it runs when OpenProject starts after you install the plugin. To run it by hand, in `/app` inside the container. On a container started with `docker run --name openproject-thematiq`, use `docker exec openproject-thematiq` in place of `docker compose -f docker/compose.yml exec openproject`. On the instance from [Try it locally with Docker](../README.md#try-it-locally-with-docker):
 
 ```bash
 docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake db:migrate'
 ```
-
-On a container started with `docker run --name openproject-thematiq`, use `docker exec openproject-thematiq` in place of `docker compose -f docker/compose.yml exec openproject`.
 
 Until the migration ran, the plugin behaves as if nothing was uploaded. No page fails.
 
