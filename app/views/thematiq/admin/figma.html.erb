@@ -1,0 +1,47 @@
+<% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.figma.title") %>
+<% figma = OpenProject::Thematiq::Figma %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.figma.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       t("thematiq.figma.title")]
+    )
+    header.with_description { t("thematiq.figma.description") }
+  end
+%>
+
+<% if @token_set %>
+  <%= render(Primer::Beta::Subhead.new) do |component|
+    component.with_heading(tag: :h3, size: :medium) { t("thematiq.figma.download_title", name: @token_set.name) }
+  end %>
+  <ul class="thematiq-figma__formats" data-test-selector="thematiq-figma-formats">
+    <% figma::FORMATS.each do |format| %>
+      <li class="thematiq-figma__format">
+        <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_download_path(id: @token_set.id, file_format: format),
+                                            "aria-label": t("thematiq.figma.download_as", name: @token_set.name, format: t("thematiq.figma.formats.#{format}.label")))) { t("thematiq.figma.formats.#{format}.label") } %>
+        <span class="thematiq-editor__hint"><%= t("thematiq.figma.formats.#{format}.hint") %></span>
+      </li>
+    <% end %>
+  </ul>
+  <p class="thematiq-editor__hint"><%= t("thematiq.figma.download_note") %></p>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.figma.upload_title") }
+end %>
+
+<%= form_with(url: admin_thematiq_figma_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-figma-form",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-figma-files"><%= t("thematiq.figma.files") %></label>
+  <input type="file" name="files[]" id="thematiq-figma-files" accept="application/json,.json,.tokens" multiple required
+         aria-describedby="thematiq-figma-hint">
+  <p class="thematiq-editor__hint" id="thematiq-figma-hint"><%= t("thematiq.figma.upload_hint") %></p>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.figma.upload") } %>
+<% end %>
+
+<p class="thematiq-editor__actions">
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.editor.back") } %>
+</p>

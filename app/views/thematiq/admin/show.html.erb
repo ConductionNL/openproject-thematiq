@@ -101,6 +101,8 @@
                                               "aria-label": t("thematiq.admin.edit_label", name: custom_set.name))) { t("thematiq.admin.edit_tokens") } %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: custom.id), scheme: :invisible,
                                               "aria-label": t("thematiq.transfer.export_label", name: custom_set.name))) { t("thematiq.transfer.export") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_path(id: custom.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.figma.download_label", name: custom_set.name))) { t("thematiq.figma.download") } %>
         </div>
       <% end %>
       <% @sets.each do |token_set| %>
@@ -131,6 +133,8 @@
                                               "aria-label": t("thematiq.admin.customise_label", name: token_set.name))) { t("thematiq.admin.customise") } %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: token_set.id), scheme: :invisible,
                                               "aria-label": t("thematiq.transfer.export_label", name: token_set.name))) { t("thematiq.transfer.export") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_path(id: token_set.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.figma.download_label", name: token_set.name))) { t("thematiq.figma.download") } %>
         </div>
       <% end %>
     </fieldset>
@@ -155,6 +159,11 @@ end %>
   </p>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.transfer.import") } %>
 <% end %>
+
+<p class="thematiq-editor__hint">
+  <%= t("thematiq.figma.from_figma") %>
+  <%= link_to t("thematiq.figma.upload"), admin_thematiq_figma_path, data: { test_selector: "thematiq-figma-link" } %>
+</p>
 
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium) { t("thematiq.shell.settings.title") }

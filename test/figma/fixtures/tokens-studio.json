@@ -1,0 +1,31 @@
+{
+  "core": {
+    "brand": { "blue": { "$value": "#0055aa", "$type": "color" } },
+    "nldesign": { "color": { "accent": { "$value": "#cc0000", "$type": "color" } } }
+  },
+  "brand/light": {
+    "nldesign": {
+      "color": {
+        "primary": { "$value": "{brand.blue}", "$type": "color" },
+        "primary-hover": { "$value": "#000000", "$type": "color" }
+      },
+      "border": { "radius": { "$value": "4px", "$type": "borderRadius" } }
+    }
+  },
+  "brand/tweaks": {
+    "nldesign": { "color": { "primary-hover": { "$value": "#003377", "$type": "color" } } }
+  },
+  "brand/dark": {
+    "nldesign": { "color": { "primary": { "$value": "#88bbff", "$type": "color" } } }
+  },
+  "unused": {
+    "nldesign": { "color": { "text": { "$value": "#ff00ff", "$type": "color" } } }
+  },
+  "$themes": [
+    { "id": "light", "name": "Light", "group": "Fixture brand",
+      "selectedTokenSets": { "core": "source", "brand/light": "enabled", "brand/tweaks": "enabled", "unused": "disabled" } },
+    { "id": "dark", "name": "Dark", "group": "Fixture brand",
+      "selectedTokenSets": { "core": "source", "brand/light": "enabled", "brand/tweaks": "enabled", "brand/dark": "enabled" } }
+  ],
+  "$metadata": { "tokenSetOrder": ["core", "brand/light", "brand/tweaks", "brand/dark", "unused"] }
+}

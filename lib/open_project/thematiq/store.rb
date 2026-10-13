@@ -85,7 +85,8 @@ module OpenProject
         return nil unless stored.is_a?(Hash) && stored["overrides"].is_a?(Hash)
 
         base = catalogue.find(stored["based_on"]) || catalogue.default
-        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"], id:, logo: stored["logo"])
+        draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"], id:, logo: stored["logo"],
+                                dark: stored["dark"])
         draft.name ? draft : nil
       end
 

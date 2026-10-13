@@ -24,6 +24,7 @@ module OpenProject
     require "open_project/thematiq/editor"
     require "open_project/thematiq/custom_draft"
     require "open_project/thematiq/transfer"
+    require "open_project/thematiq/figma"
     require "open_project/thematiq/contrast"
     require "open_project/thematiq/uploads"
     require "open_project/thematiq/assets"

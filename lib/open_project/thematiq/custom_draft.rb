@@ -17,13 +17,16 @@ module OpenProject
 
       # logo: the logo reference an imported file brought along, { "file" => ..., "inverse_file" => ... }.
       # It only counts when it names a file the plugin has. Without it the draft keeps the logo of its base.
-      def initialize(base:, name:, overrides:, id: ID, logo: nil)
+      # dark: colours for the dark theme that an imported file brought along, role to value. They go on top of
+      # the dark colours of the base. The editor has no fields for them yet.
+      def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil)
         @base = base
         @id = id.is_a?(String) && ID_PATTERN.match?(id) ? id : ID
         @logo = logo.is_a?(Hash) ? logo : {}
         @raw_name = name
         @raw = overrides.is_a?(Hash) ? overrides : {}
         @errors = []
+        @dark = clean_dark(dark)
         @overrides = clean
         @errors << "name" unless self.name
         @errors.freeze
@@ -61,7 +64,7 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens,
+        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens.merge(dark),
                              logo_file: logo_file || base.logo_file,
                              logo_inverse_file: logo_file ? logo_inverse_file : base.logo_inverse_file,
                              logo_licence: base.logo_licence)
@@ -71,6 +74,7 @@ module OpenProject
       def definition
         definition = { "name" => name, "based_on" => base.id, "overrides" => overrides.dup }
         definition["logo"] = { "file" => logo_file, "inverse_file" => logo_inverse_file } if logo_file
+        definition["dark"] = dark.dup if dark.any?
         definition
       end
 
@@ -83,7 +87,20 @@ module OpenProject
         Tokens::Validator.file_name(@logo["inverse_file"])
       end
 
+      # The valid dark colours this draft brought along. A value that fails is left out.
+      attr_reader :dark
+
       private
+
+      def clean_dark(raw)
+        return {}.freeze unless raw.is_a?(Hash)
+
+        Tokens::TokenSet::DARK_KEYS.each_with_object({}) do |key, result|
+          given = raw[key]
+          value = given.is_a?(String) && given.length <= MAX_INPUT ? Tokens::Validator.color(given) : nil
+          result[key] = value if value && value != base.dark_tokens[key]
+        end.freeze
+      end
 
       def clean
         Tokens::TokenSet::ALL_KINDS.each_with_object({}) do |(key, kind), result|
