@@ -67,20 +67,25 @@ module OpenProject
 
       # --- logos ---
 
-      # The address of the logo for the top bar, or nil. The top bar has the primary colour as background,
-      # so the variant for dark backgrounds comes first.
-      # An uploaded logo wins over a bundled one, and there too the variant for the coloured bar comes first.
-      def logo_url(token_set, root: "", uploads: self.class.uploads_for(token_set))
-        uploaded = %w[logo_inverse logo].filter_map { |kind| upload(uploads, kind) }.first
-        return uploaded.url(root:) if uploaded
-
-        file = [token_set.logo_inverse_file, token_set.logo_file].compact.find do |name|
-          File.file?(File.join(Catalogue::LOGO_DIRECTORY, name))
-        end
-        file ? "#{root}#{URL_PREFIX}/logos/#{file}" : nil
+      # The address of the logo for the top bar, or nil. On the primary colour the variant for dark backgrounds
+      # comes first; with on_light, on a light bar, the plain logo comes first.
+      # Uploaded logos win over bundled ones as a whole, and there too the variant for the bar comes first.
+      def logo_url(token_set, root: "", uploads: self.class.uploads_for(token_set), on_light: false)
+        variants = on_light ? %w[logo logo_inverse] : %w[logo_inverse logo]
+        variants.lazy.filter_map { |variant| logo_variant_url(token_set, variant, root:, uploads:) }.first
       end
 
-      # The address of the logo for narrow screens, or nil. Only an upload gives one: the catalogue has none.
+      # The address of one variant only, or nil: "logo", the logo for a light background, or "logo_inverse",
+      # the one for a dark background. An upload wins over a bundled file of the same variant.
+      # When a logo was uploaded, only uploads count: a bundled file belongs to the design system it was based on.
+      def logo_variant_url(token_set, variant, root: "", uploads: self.class.uploads_for(token_set))
+        logos = uploads.select { |record| %w[logo logo_inverse].include?(record.kind) }
+        return upload(logos, variant)&.url(root:) unless logos.empty?
+
+        file = variant == "logo_inverse" ? token_set.logo_inverse_file : token_set.logo_file
+        file && File.file?(File.join(Catalogue::LOGO_DIRECTORY, file)) ? "#{root}#{URL_PREFIX}/logos/#{file}" : nil
+      end
+
       def mobile_logo_url(token_set, root: "", uploads: self.class.uploads_for(token_set))
         upload(uploads, "logo_mobile")&.url(root:)
       end

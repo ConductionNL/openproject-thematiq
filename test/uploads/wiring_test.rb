@@ -75,6 +75,15 @@ class UploadsWiringTest < Minitest::Test
     assert_equal "/thematiq/files/#{token('b')}", assets.logo_url(custom, uploads:)
   end
 
+  # An uploaded logo for dark backgrounds only: the pale high contrast bar gets no rule, so OpenProject's own
+  # logo shows there, and not the bundled plain logo of the design system the custom one is based on.
+  def test_only_uploads_count_once_a_logo_is_uploaded
+    uploads = [record("logo_inverse", "svg", "b")]
+
+    assert_equal "/thematiq/files/#{token('b')}", assets.logo_url(custom, uploads:, on_light: true)
+    assert_nil assets.logo_variant_url(custom, "logo", uploads:)
+  end
+
   def test_a_custom_design_system_without_a_bundled_logo_gets_its_uploaded_one
     assert_nil assets.logo_url(custom("amsterdam"), uploads: [])
     assert_equal "/thematiq/files/#{token('a')}", assets.logo_url(custom("amsterdam"), uploads: [record("logo", "webp", "a")])
@@ -83,15 +92,16 @@ class UploadsWiringTest < Minitest::Test
   def test_the_logo_rule_keeps_its_selector_and_takes_the_upload
     Assets.upload_source = ->(_) { [record("logo", "svg", "a")] }
 
-    assert_equal %(.op-app-header .op-logo .op-logo--link { background-image: url("/thematiq/files/#{token('a')}"); }),
-                 Thematiq::Shell::Logo.css(custom)
+    assert_equal [%(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/files/#{token('a')}"); }),
+                  %(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("/thematiq/files/#{token('a')}"); })],
+                 Thematiq::Shell::Logo.css(custom).lines.map(&:strip)
   end
 
   def test_the_mobile_logo_gets_a_rule_for_the_element_narrow_screens_show
     Assets.upload_source = ->(_) { [record("logo", "svg", "a"), record("logo_mobile", "png", "b")] }
     css = Thematiq::Shell::Logo.css(custom, root: "/op")
 
-    assert_equal 2, css.lines.size
+    assert_equal 3, css.lines.size, "the bar, the light high contrast bar and the mobile logo"
     assert_includes css, %(.op-app-header .op-logo--icon.op-logo--link { background-image: url("/op/thematiq/files/#{token('b')}"); })
     assert_nil assets.mobile_logo_url(custom, uploads: [record("logo", "svg", "a")])
     refute_includes Thematiq::Shell::Logo.css(Catalogue.bundled.find("zuiddrecht")), "op-logo--icon"

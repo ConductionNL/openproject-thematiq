@@ -55,7 +55,7 @@ The page tells you when parts were left out. Look at the preview: a logo that re
 
 | Kind | How it reaches the page |
 |---|---|
-| Logo, logo for the coloured top bar | The one logo rule of the shell, `Shell::Logo`, fed by `Assets`. The variant for the coloured bar comes first |
+| Logo, logo for the coloured top bar | The one logo rule of the shell, `Shell::Logo`, fed by `Assets`. The variant for the coloured bar comes first; on a light bar the plain logo. Once a logo is uploaded, a bundled logo of the base no longer counts |
 | Mobile logo | A rule of the same shape for the element OpenProject shows below 850 px |
 | Favicon, touch icon | `link` elements in the page head, on every layout the plugin reaches. [layouts.md](layouts.md) says where they sit |
 | Font | One `@font-face` rule per file, with `font-display: swap` |

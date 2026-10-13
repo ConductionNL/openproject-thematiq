@@ -35,7 +35,37 @@ class ShellTest < Minitest::Test
   def test_logo_prefers_the_logo_for_dark_backgrounds
     css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht"))
 
-    assert_equal %(.op-app-header .op-logo .op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); }), css
+    assert_includes css, %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); })
+  end
+
+  # First full test, finding 12: the dark theme of Zuiddrecht has a light blue bar (#84aad7), and the white
+  # logo on it was about 2.3 to 1. Finding 5: the light high contrast bar is OpenProject's pale grey.
+  def test_logo_on_a_light_bar_is_the_plain_logo
+    css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht")).lines.map(&:strip)
+
+    assert_equal [
+      %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); }),
+      %(body[data-color-mode="dark"][data-dark-theme="dark"] .op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
+      %(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("/thematiq/logos/zuiddrecht.svg"); })
+    ], css
+  end
+
+  def test_a_dark_bar_in_the_dark_theme_keeps_the_logo_for_dark_backgrounds
+    token_set = OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht")
+    dark = token_set.to_set.merge("dark" => { "tokens" => token_set.dark_tokens.merge("primary" => "#1b2a3d") })
+    css = Shell::Logo.css(OpenProject::Thematiq::Tokens::TokenSet.from_set(dark))
+
+    refute_includes css, "data-dark-theme", "the same logo as the light theme, so no rule of its own"
+  end
+
+  def test_every_bundled_logo_on_a_light_bar_reads_on_it
+    OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
+      css = Shell::Logo.css(token_set)
+      next if css.empty?
+
+      high_contrast = css.lines.find { |line| line.include?("op-logo--link_high_contrast {") }
+      refute_match(/-dark\.svg/, high_contrast.to_s, "#{token_set.id}: the pale high contrast bar gets the plain logo")
+    end
   end
 
   def test_logo_takes_the_normal_logo_when_there_is_no_other_and_respects_the_mount_path
@@ -62,7 +92,9 @@ class ShellTest < Minitest::Test
     OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
       css = Shell::Logo.css(token_set)
 
-      assert_match(%r{\A(?:|\.op-app-header \.op-logo \.op-logo--link \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \})\z}, css, token_set.id)
+      css.lines.each do |line|
+        assert_match(%r{\A(?:body\[data-color-mode="dark"\]\[data-dark-theme="dark"\] )?\.op-app-header \.op-logo \.op-logo--link(?::not\(\.op-logo--link_high_contrast\)|\.op-logo--link_high_contrast) \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \}\n?\z}, line, token_set.id)
+      end
     end
   end
 
