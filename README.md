@@ -181,7 +181,7 @@ A custom design system can carry your own files.
 1. On **Thematiq design**, select **Edit** next to your custom design system. A new one must be saved first.
 2. Scroll to **Logo, icons and fonts**.
 3. Choose a file next to the kind you want and select **Upload**. The limits are stated next to each field.
-4. The file is in use at once. **Replace** swaps it, **Remove** takes it away.
+4. The file is in use at once. **Replace** swaps it, **Remove** takes it away after you confirm.
 
 You can upload a logo, a logo for the coloured top bar, a mobile logo, a favicon, a touch icon and up to 12 font files. For a font, type its family name and pick its weight and style. Then name the same family in the value **Font**.
 

@@ -31,6 +31,24 @@ test.describe("export, import and Figma", () => {
     expect((await exported(page, added[0])).tokens).toEqual(before.tokens);
   });
 
+  // First full test, finding 11: delete took the design system and its files at once.
+  test("delete asks first, cancel keeps it, and the keyboard confirms", async ({ page }) => {
+    const name = `E2E delete ${Date.now()}`;
+    const id = await createCustom(page, { name });
+    await page.goto(`/admin/thematiq/custom?id=${id}`);
+    await page.getByRole("button", { name: "Delete this custom design system" }).click();
+    const confirm = page.locator('[data-test-selector="thematiq-confirm"]');
+    await expect(confirm).toContainText(`Delete "${name}"?`);
+    await page.getByRole("link", { name: "Cancel" }).click();
+    expect(await customIds(page)).toContain(id);
+
+    await page.goto(`/admin/thematiq/custom?id=${id}`);
+    await page.getByRole("button", { name: "Delete this custom design system" }).click();
+    await page.getByRole("button", { name: "Delete for good" }).focus();
+    await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.keyboard.press("Enter")]);
+    expect(await customIds(page)).not.toContain(id);
+  });
+
   test("a file that is not a design system is refused and changes nothing", async ({ page }) => {
     await page.goto(PICKER);
     await page.setInputFiles("#thematiq-import-file", { name: "broken.json", mimeType: "application/json", buffer: Buffer.from("{ not json") });

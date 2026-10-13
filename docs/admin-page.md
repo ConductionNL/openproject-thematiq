@@ -39,7 +39,7 @@ The live preview, the colour picker, the search and the filter need scripts in y
 
 A value the plugin cannot use is marked, with a line that says what is expected. Nothing is saved while a field is marked.
 
-Your design systems stay at the top of the list, marked "Custom". You can pick another design system and come back to yours later. **Delete this custom design system** removes the one you have open.
+Your design systems stay at the top of the list, marked "Custom". You can pick another design system and come back to yours later. **Delete this custom design system** removes the one you have open, with its uploaded files. It asks first, on a page of its own: select **Delete for good** to go on, or **Cancel**.
 
 ### What the editor does not do
 

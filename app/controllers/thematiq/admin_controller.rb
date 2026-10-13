@@ -47,6 +47,9 @@ module Thematiq
       return refuse_new_custom unless id
 
       if params[:delete].present?
+        # A delete is asked once more, on a page of its own: it takes the uploaded files with it.
+        return confirm_delete(id) if params[:confirmed].blank?
+
         deleted = id
         @store.delete_custom(deleted)
         # Its uploaded files go with it. The id is given out again, and the next owner must not inherit them.
@@ -94,6 +97,8 @@ module Thematiq
       raise OpenProject::Thematiq::Uploads::Refused, "not_ready" unless Thematiq::Upload.ready?
 
       if params[:remove].present?
+        return confirm_remove(id, params[:remove].to_s) if params[:confirmed].blank?
+
         removed = Thematiq::Upload.remove(set_id: id, token: params[:remove].to_s)
         raise OpenProject::Thematiq::Uploads::Refused, "not_stored" unless removed.positive?
 
@@ -266,6 +271,43 @@ module Thematiq
     def custom_id_from_params
       id = params[:id].to_s
       @store.custom_draft(id) ? id : @store.next_custom_id
+    end
+
+    # The question before a delete: a page of its own with a form, so it works without scripts and by keyboard.
+    def confirm_delete(id)
+      draft = @store.custom_draft(id)
+      return render_404 unless draft
+
+      @confirm = { title: t("thematiq.editor.confirm_delete.title"),
+                   question: t("thematiq.editor.confirm_delete.question", name: draft.name),
+                   consequence: t("thematiq.editor.confirm_delete.consequence"),
+                   button: t("thematiq.editor.confirm_delete.confirm"),
+                   url: admin_thematiq_custom_path, fields: { id:, delete: "1" },
+                   back: admin_thematiq_custom_path(id:) }
+      render :confirm
+    end
+
+    # The question before an uploaded file is removed. Only a file of this design system can be asked about.
+    def confirm_remove(id, token)
+      record = Thematiq::Upload.find_record(token)
+      raise OpenProject::Thematiq::Uploads::Refused, "not_stored" unless record && record.set_id == id
+
+      @confirm = { title: t("thematiq.uploads.confirm_remove.title"),
+                   question: t("thematiq.uploads.confirm_remove.question", file: upload_description(record),
+                                                                           name: @store.custom_draft(id).name),
+                   consequence: t("thematiq.uploads.confirm_remove.consequence"),
+                   button: t("thematiq.uploads.confirm_remove.confirm"),
+                   url: admin_thematiq_custom_files_path, fields: { id:, remove: token },
+                   back: admin_thematiq_custom_path(id:) }
+      render :confirm
+    end
+
+    def upload_description(record)
+      return t("thematiq.uploads.kinds.#{record.kind}.label") unless record.face
+
+      t("thematiq.uploads.confirm_remove.font", family: record.face.family,
+                                                weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"),
+                                                style: t("thematiq.uploads.styles.#{record.face.style}"))
     end
 
     def refuse_new_custom

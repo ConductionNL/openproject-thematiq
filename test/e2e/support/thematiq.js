@@ -57,7 +57,9 @@ async function deleteCustom(page, id) {
   const remove = page.getByRole("button", { name: "Delete this custom design system" });
   // Only a stored design system has the button. An unknown id opens a new, empty one.
   if (!(await remove.count())) return;
-  await Promise.all([page.waitForURL(/\/admin\/thematiq$/), remove.click()]);
+  // The delete is asked once more on a page of its own.
+  await remove.click();
+  await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.getByRole("button", { name: "Delete for good" }).click()]);
 }
 
 // Keeps the active design system and the list of custom ones, and puts both back after the test.

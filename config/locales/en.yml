@@ -10,6 +10,7 @@ en:
       active_now_html: "Active now: <strong>%{name}</strong>."
       search_label: "Search design systems"
       search: "Search"
+      cancel: "Cancel"
       show_all: "Show all"
       count: "%{shown} of %{total} design systems"
       no_results: "No design system has that name. Try another word or show all."
@@ -90,6 +91,11 @@ en:
       preview_hint: "The preview follows the form while you type. Nothing is saved until you select \"Save and apply\". Without scripts in your browser, select \"Preview\" to draw it again."
       notice_not_saved: "The preview is up to date. Nothing is saved yet."
       notice_deleted: "The custom design system is deleted."
+      confirm_delete:
+        title: "Delete a custom design system"
+        question: "Delete \"%{name}\"?"
+        consequence: "Its uploaded logos, icons and fonts are deleted with it. This cannot be undone. When it is the active design system, OpenProject goes back to the design system chosen before."
+        confirm: "Delete for good"
       error_invalid: "Some values cannot be used. Correct the marked fields and save again."
       error_name: "Give the design system a name of at most 80 characters."
       error_color: "This is not a colour the plugin accepts. Use a hex value, a colour name or rgb()."
@@ -249,6 +255,12 @@ en:
       notice_stored: "The %{kind} is uploaded and in use."
       notice_stored_cleaned: "The %{kind} is uploaded and in use. Parts of the SVG file that the plugin does not allow were left out. Check the preview."
       notice_removed: "The file is removed."
+      confirm_remove:
+        title: "Remove an uploaded file"
+        question: "Remove the %{file} of \"%{name}\"?"
+        font: "font %{family}, %{weight}, %{style}"
+        consequence: "The file is deleted and its address stops working. This cannot be undone."
+        confirm: "Remove the file"
       kinds:
         logo: { label: "logo", hint: "top bar" }
         logo_inverse: { label: "logo for the coloured top bar", hint: "used instead of the logo when both are there" }
