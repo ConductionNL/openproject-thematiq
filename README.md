@@ -27,7 +27,7 @@ This starts a throwaway OpenProject with the plugin on your own machine. You nee
    docker compose -f docker/compose.yml up -d --build
    ```
 
-2. Wait for the first start. OpenProject creates and fills its database, which takes a few minutes. This command follows the log; stop following with Ctrl+C once the page opens.
+2. Wait for the first start. OpenProject creates and fills its database, which takes a few minutes. It took about three minutes on the machine this was tried on, with the OpenProject image already on disk. A later start is faster. This command follows the log; stop following with Ctrl+C once the page opens.
 
    ```bash
    docker compose -f docker/compose.yml logs -f
@@ -49,7 +49,7 @@ Stop it and remove its volumes, so nothing is left:
 docker compose -f docker/compose.yml down -v
 ```
 
-Port 8080 already in use? Put another port in front of every one of these commands, for example `THEMATIQ_PORT=8090 docker compose -f docker/compose.yml up -d --build`, and open that port instead.
+Is port 8080 already in use? Then the first command fails with "port is already allocated". Put another port in front of every one of these commands, for example `THEMATIQ_PORT=8090 docker compose -f docker/compose.yml up -d --build`, and open that port instead.
 
 `docker/compose.yml` holds no secret. The first start makes a random `SECRET_KEY_BASE` and keeps it in a volume, because OpenProject needs the same value on every start.
 
