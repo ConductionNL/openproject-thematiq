@@ -44,10 +44,14 @@ Each line: severity, where, how to reproduce, expected and actual, screenshot.
 14. **Minor. 214 tab stops before Apply.** In the picker every design system has three links (Customise, Export, Figma), so a keyboard user tabs through about 200 stops to reach **Apply**. Enter on a selected radio button does apply, so it is usable.
 15. **Minor. A cleaned SVG is not always reported.** Upload `hostile-processing-instruction.svg` as a logo: the processing instruction is removed, but the page says "The logo is uploaded and in use." without the note that parts were left out.
 
+16. **Minor, accessibility. The search field in the top bar is under 4.5 to 1.** axe on every page with Cunningham: white text on the tinted field (`#4e7bb0`) is 4.38 to 1. The tint is a fixed white overlay on the primary colour, so a lighter primary makes it worse. A design question: how strong the tint may be.
+17. **Minor, accessibility. The label of the current tile is under 4.5 to 1.** axe on the work package page with Cunningham: the small label "Work packages" under the current tile, white on `#5681b3`, is 4.04 to 1 at 11 px.
+18. **Minor. "Increase contrast" is the only high contrast switch.** The two other checkboxes in My account, Interface (`force_light_theme_contrast`, `force_dark_theme_contrast`) are hidden in OpenProject 17.9.1; the earlier lane's script aimed at those, which is why it could not switch. By hand, **Increase contrast** works for light and dark.
+
 ### Cosmetic
 
-16. **Cosmetic. Two arrows next to "Sign in".** Sign-in page, not signed in, top bar right. Screenshot `v-login-1440.png`.
-17. **Cosmetic. 390 wide, the work package toolbar starts left of the screen.** The **Create** button is cut off on the left. Screenshot `w390-wp.png`. Not checked whether OpenProject without the plugin does the same.
+19. **Cosmetic. Two arrows next to "Sign in".** Sign-in page, not signed in, top bar right. Screenshot `v-login-1440.png`.
+20. **Cosmetic. 390 wide, the work package toolbar starts left of the screen.** The **Create** button is cut off on the left. Screenshot `w390-wp.png`. Not checked whether OpenProject without the plugin does the same.
 
 ## Sizes against the canon
 

@@ -55,9 +55,6 @@ async function api(context, method, url, data) {
 async function createMember(baseURL) {
   const context = await request.newContext({ baseURL, storageState: path.join(AUTH, "admin.json") });
   try {
-    const found = await api(context, "GET", `/api/v3/users?filters=${encodeURIComponent(JSON.stringify([{ login: { operator: "=", values: [MEMBER_LOGIN] } }]))}`);
-    for (const user of found.json?._embedded?.elements || []) await api(context, "DELETE", `/api/v3/users/${user.id}`);
-
     const password = `E2e-${crypto.randomBytes(9).toString("hex")}-Aa1!`;
     const created = await api(context, "POST", "/api/v3/users", {
       login: MEMBER_LOGIN, firstName: "Thematiq", lastName: "E2E member", email: `${MEMBER_LOGIN}@example.org`,
@@ -76,7 +73,7 @@ async function createMember(baseURL) {
     });
     if (membership.status !== 201) throw new Error(`Cannot add the member to the project: HTTP ${membership.status}`);
     fs.writeFileSync(path.join(AUTH, "member.json.meta"), JSON.stringify({ id: created.json.id }));
-    return password;
+    return { login: MEMBER_LOGIN, password };
   } finally {
     await context.dispose();
   }
@@ -89,10 +86,10 @@ module.exports = async () => {
   try {
     const page = await adminSession(browser);
     await page.close();
-    const memberPassword = await createMember(config.baseURL);
+    const member = await createMember(config.baseURL);
 
     const memberPage = await browser.newPage({ baseURL: config.baseURL, viewport: { width: 1440, height: 1000 } });
-    const result = await signIn(memberPage, MEMBER_LOGIN, memberPassword);
+    const result = await signIn(memberPage, member.login, member.password);
     if (result !== "signed_in") throw new Error(`Cannot sign in as the member: ${result}.`);
     await dismissFirstLogin(memberPage);
     await memberPage.context().storageState({ path: path.join(AUTH, "member.json") });

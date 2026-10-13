@@ -1,8 +1,9 @@
 # The checks of the plugin.
 # - unit: bin/test and bin/check-syntax, on every pull request and push. They need Docker and the OpenProject image, nothing else.
 # - e2e: builds the image, starts the compose instance from the README and runs test/e2e. A fresh OpenProject
-#   takes minutes to seed its database, so this job runs by hand (Actions, "Test", "Run workflow") and on pushes
-#   to development and main, not on every pull request.
+#   seeds its database for a few minutes and the suite takes about ten, so the job takes about twenty minutes.
+#   It runs on every pull request anyway: this repository has few of them, and without it the suite would only
+#   run after a merge. It runs as its own job, so a red unit job shows without waiting for it.
 name: Test
 
 on:
@@ -34,7 +35,6 @@ jobs:
 
   e2e:
     name: End-to-end
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:

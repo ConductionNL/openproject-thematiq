@@ -7,7 +7,9 @@ const config = {
   project: process.env.THEMATIQ_E2E_PROJECT || "demo-project",
 };
 
-const MEMBER_LOGIN = "thematiq-e2e-member";
+// Each run makes its own member: OpenProject deletes a user in a background job, so the name of the last run's
+// member can still be taken when the next run starts.
+const MEMBER_LOGIN = `thematiq-e2e-member-${Date.now().toString(36)}`;
 
 // Signs in through the real form. Returns "signed_in", "change_password" or "refused".
 async function signIn(page, login, password) {

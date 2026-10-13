@@ -32,8 +32,8 @@ test.describe("quality", () => {
   // Known findings in the plugin's markup, open in docs/testing/2026-10-13-first-full-test.md. They are attached
   // to the report and do not fail the run. Anything else in the plugin's markup does. Remove a line once it is fixed.
   const KNOWN = [
-    /^color-contrast \(serious\): \.global-search--input$/,               // finding 18: search field in the top bar, 4.38 to 1
-    /^color-contrast \(serious\): \.thematiq-app-row--item.*\.thematiq-app-row--name$/, // finding 19: label of the current tile, 4.04 to 1
+    /^color-contrast \(serious\): \.global-search--input$/,               // finding 16: search field in the top bar, 4.38 to 1
+    /^color-contrast \(serious\): \.thematiq-app-row--item.*\.thematiq-app-row--name$/, // finding 17: label of the current tile, 4.04 to 1
   ];
 
   for (const [name, path, visitor] of [["picker", "/admin/thematiq"], ["editor", "/admin/thematiq/custom?from=cunningham"],
