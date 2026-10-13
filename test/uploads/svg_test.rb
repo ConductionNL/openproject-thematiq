@@ -169,6 +169,12 @@ class UploadsSvgTest < Minitest::Test
     assert text.start_with?(%(<?xml version="1.0" encoding="UTF-8"?>))
   end
 
+  # First full test, finding 15: the instructions were left out without a word, so the upload said nothing about it.
+  def test_processing_instructions_count_as_removed_and_comments_do_not
+    assert_equal 2, clean("hostile-processing-instruction").removed, "the xml-stylesheet before the root and the one inside"
+    assert_equal 0, clean("clean-logo").removed, "a comment and the XML declaration are not removals"
+  end
+
   def test_text_cannot_close_its_element
     text = clean("hostile-breakout").text
 

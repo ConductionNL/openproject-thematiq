@@ -60,6 +60,10 @@ test.describe("uploads", () => {
   });
 
   test("a hostile SVG is cleaned and a refused file changes nothing", async ({ page }) => {
+    // First full test, finding 15: a stripped processing instruction is reported too.
+    await upload(page, id, "logo", path.join(FIXTURES, "hostile-processing-instruction.svg"));
+    await expect(page.getByText("Parts of the SVG file that the plugin does not allow were left out.").filter({ visible: true }).first()).toBeVisible();
+
     const form = await upload(page, id, "logo", path.join(FIXTURES, "hostile-script.svg"));
     await expect(page.getByText("Parts of the SVG file that the plugin does not allow were left out.").filter({ visible: true }).first()).toBeVisible();
     const url = await shown(form);

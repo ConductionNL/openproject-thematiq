@@ -47,7 +47,7 @@ Refused whole:
 - a file with more than 5,000 elements, nested deeper than 40, or that draws more than 50,000 elements through `use`
 - a file whose root is not `svg` in the SVG namespace
 
-The page tells you when parts were left out. Look at the preview: a logo that relied on one of them may look different.
+The page tells you when parts were left out, a processing instruction included. A comment is left out without a word: drawing programs write them, and they do nothing. Look at the preview: a logo that relied on one of them may look different.
 
 `lib/open_project/thematiq/uploads/svg.rb` holds the lists. `test/fixtures/uploads/` holds the hostile files the tests feed it.
 

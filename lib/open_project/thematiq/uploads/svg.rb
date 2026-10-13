@@ -97,7 +97,9 @@ module OpenProject
           end
           drawn_size(root, ids, {}, [])
 
-          state = { nodes: 0, removed: 0 }
+          # A processing instruction before or after the root (an xml-stylesheet, say) is left out and counted,
+          # so the upload says parts were left out. The XML declaration is not one: REXML keeps it apart.
+          state = { nodes: 0, removed: root.document.children.count { |node| node.is_a?(REXML::Instruction) } }
           body = element(root, 0, state)
           raise Refused, "svg_not_svg" if body.nil?
 
@@ -139,8 +141,12 @@ module OpenProject
           when REXML::Text
             text = child.value
             TEXT_ELEMENTS.include?(parent.name) && !text.strip.empty? ? escape(text) : nil
+          when REXML::Instruction
+            # Left out and counted: an instruction is meant for a program, and the upload says parts were left out.
+            state[:removed] += 1
+            nil
           else
-            # Comments, processing instructions and anything else are left out. They are not counted as removed.
+            # Comments and anything else are left out. A comment is common in exports and harmless, so it is not counted.
             nil
           end
         end
