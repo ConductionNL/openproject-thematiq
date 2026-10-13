@@ -46,7 +46,7 @@ class PreviewTest < Minitest::Test
     preview = Preview.new(TokenSet.fallback)
 
     assert_safe all_styles(TokenSet.fallback), "fallback"
-    assert_equal "background: #1a67a3", preview.thumbnail[:top_bar]
+    assert_equal "background: #{OpenProject::Thematiq::Tokens::Defaults::TOKENS['primary']}", preview.thumbnail[:top_bar]
   end
 
   def test_every_style_of_every_bundled_set_is_safe
@@ -67,7 +67,16 @@ class PreviewTest < Minitest::Test
     assert_equal all_styles(TokenSet.fallback), all_styles(set(hostile))
   end
 
+  def test_a_swatch_for_an_optional_role_the_set_does_not_have_is_white
+    cunningham = OpenProject::Thematiq::Catalogue.bundled.default
+
+    assert_nil cunningham["menu"]
+    OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.each_key { |key| assert_match(/\Abackground: /, Preview.new(cunningham).swatch(key)) }
+    assert_includes Preview.new(cunningham).swatch("menu"), "background: #ffffff"
+  end
+
   def test_swatch
-    assert_equal "background: #aa0055; border: 1px solid #d1d9e0", Preview.new(set("primary" => "#aa0055")).swatch("primary")
+    assert_equal "background: #aa0055; border: 1px solid #{OpenProject::Thematiq::Tokens::Defaults::TOKENS['field']}",
+                 Preview.new(set("primary" => "#aa0055")).swatch("primary")
   end
 end

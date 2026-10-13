@@ -32,10 +32,17 @@ The plugin does not change these colours. They come from thematiq, and the fix b
 
 A custom design system gets the same check. The picker marks it when a pair falls short.
 
+### The dark theme
+
+The same pairs are computed for each set's dark block, with links on the page background in place of white.
+
+- No bundled dark block is left out any more. The rule stays: a dark block whose main text does not read on its page background, 4.5 to 1, is not used. Until the catalogue of 13 October 2026 it left out seven sets.
+- The selected menu item reads in every bundled dark block as the catalogue gives it. The plugin's contrast rule still picks a text colour that reads, for a design system you import.
+
 ### What the check does not cover
 
 - It reads hex colours, `rgb()` and `rgba()`. For another syntax it answers "unknown". The test fails when a bundled set has an unknown pair, so none has one today.
-- It covers the light theme. In the dark theme and the high contrast themes the colours are OpenProject's own.
+- It covers the light theme and the dark blocks. In the high contrast themes the colours are OpenProject's own.
 - It covers six pairs, not every text on every surface.
 
 ## Not checked in a browser

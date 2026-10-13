@@ -28,7 +28,7 @@ class StoreTest < Minitest::Test
     s = store
 
     assert_equal "zuiddrecht", s.activate("zuiddrecht").id
-    assert_equal({ "active_id" => "zuiddrecht", "use_custom" => false }, @backend.data)
+    assert_equal({ "active_id" => "zuiddrecht", "active_custom" => nil, "use_custom" => false }, @backend.data)
     assert_equal "#3669a5", s.active_token_set["primary"]
   end
 
@@ -53,7 +53,7 @@ class StoreTest < Minitest::Test
     s = store("something_else" => 1)
     s.activate("zuiddrecht")
 
-    assert_equal({ "something_else" => 1, "active_id" => "zuiddrecht", "use_custom" => false }, @backend.data)
+    assert_equal({ "something_else" => 1, "active_id" => "zuiddrecht", "active_custom" => nil, "use_custom" => false }, @backend.data)
   end
 
   # --- the Nextcloud address for the app switcher ---
@@ -97,5 +97,24 @@ class StoreTest < Minitest::Test
   def test_a_tampered_stored_address_is_not_given_out
     assert_nil store("nextcloud_url" => "javascript:alert(1)").nextcloud_url
     assert_nil store("nextcloud_url" => ["https://cloud.example.org"]).nextcloud_url
+  end
+
+  # --- settings left by the version that fetched from thematiq ---
+
+  def test_removes_the_keys_of_the_link_era_and_keeps_the_rest
+    s = store("base_url" => "http://cloud.example.org", "token_set" => { "id" => "x" }, "fetched_at" => "2026-10-12T16:46:55Z",
+              "checked_at" => "x", "last_error" => nil, "last_error_detail" => nil,
+              "active_id" => "zuiddrecht", "nextcloud_url" => "https://cloud.example.org")
+
+    assert_equal Store::LEGACY_KEYS.sort, s.remove_legacy_settings.sort
+    assert_equal({ "active_id" => "zuiddrecht", "nextcloud_url" => "https://cloud.example.org" }, @backend.data)
+  end
+
+  def test_does_not_write_when_there_is_nothing_to_remove
+    s = store("active_id" => "zuiddrecht")
+    before = @backend.data
+
+    assert_empty s.remove_legacy_settings
+    assert_same before, @backend.data
   end
 end

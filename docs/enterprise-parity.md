@@ -10,20 +10,21 @@ The left column comes from reading OpenProject 17's source: `app/controllers/cus
 
 | Capability | Theirs | Ours | Status |
 |---|---|---|---|
-| Preset themes | Three colour themes: OpenProject, OpenProject Gray and OpenProject Navy Blue | 64 design systems in the catalogue, with search and a preview per set | Built, not checked live |
+| Preset themes | Three colour themes: OpenProject, OpenProject Gray and OpenProject Navy Blue | 64 design systems from thematiq, checked live, plus those same three themes as design systems of the plugin's own making | The three: built, not checked live |
 | Primary button colour | `primary-button-color` | The tokens `action` and `action-deep` | Built, not checked live |
 | Accent colour | `accent-color`, used for links and highlights | The token `link`. The token `accent` exists and no OpenProject variable uses it yet | Built, not checked live |
 | Header background | `header-bg-color` | The token `primary` | Built, measured live in an earlier round |
-| Main menu background | `main-menu-bg-color` | Always white in the light theme. No token sets it | **Gap** |
+| Main menu background | `main-menu-bg-color` | The optional role `menu`. The text on it follows a contrast rule | Built, not checked live |
 | Selected menu item | `main-menu-bg-selected-background` | The tokens `primary-light` and `primary-deep` | Built, measured live in an earlier round |
 | Text, lines, fields, page background | Not offered | The tokens `ink`, `muted`, `line`, `soft`, `ground` and `field` | Built, more than theirs |
 | Corners | Not offered | The tokens `radius` and `radius-lg` | Built, more than theirs |
 | Font of the interface | Not offered | The token `font-family`, with 13 font families served by the plugin | Built, not checked live |
 | Sizes of top bar, menu, buttons, rows | Not offered | The geometry layer | Built, measured live in an earlier round |
-| Logo | Upload | A bundled logo for 14 of the 64 design systems. No upload | **Partly built** |
-| Mobile logo | Upload | None | **Not built** |
-| Favicon | Upload | None | **Not built** |
-| Touch icon | Upload | None | **Not built** |
+| Logo | Upload | A bundled logo for 15 of the 64 design systems. Upload for a custom design system: SVG, PNG, JPEG or WebP, with a second file for the coloured top bar | Built, not checked live |
+| Mobile logo | Upload | Upload for a custom design system, shown below 850 px | Built, not checked live |
+| Favicon | Upload | Upload for a custom design system: PNG, ICO or SVG | Built, not checked live |
+| Touch icon | Upload | Upload for a custom design system: PNG | Built, not checked live |
+| Fonts of the interface as files | Not offered | Upload of up to 12 font files per custom design system | Built, more than theirs, not checked live |
 | Custom colours by hand | Five colour fields | The editor: all eighteen tokens of one custom design system | Built, not checked live |
 | Move a design between installations | Not offered | Export and import as a JSON file | Built, not checked live |
 | PDF export: logo | Upload | None | **Not built, see below** |
@@ -35,15 +36,18 @@ The left column comes from reading OpenProject 17's source: `app/controllers/cus
 
 "Not checked live" means: unit tested, never rendered in a running OpenProject.
 
-## Why uploads are not built
+## How uploads are built
 
-Logo upload, mobile logo, favicon, touch icon and font upload all need the same three things: a place to keep a file, a check on what was uploaded and a way to serve it.
+The plugin keeps uploaded files in a table of its own, `thematiq_uploads`, checks every file by its content and serves it from an endpoint of its own. It uses none of the storage of the Enterprise design page. [uploads.md](uploads.md) has the limits, the checks and the storage choice.
 
-OpenProject keeps its own files of this kind on the `CustomStyle` record. The plugin must not use that. The clean way is a table of the plugin's own with OpenProject's file uploader, which means a database migration, an upload form, a check that an uploaded SVG holds no script, and a controller that serves the file to people who are not signed in.
+What differs from theirs:
 
-None of that could be run while this was written: no OpenProject instance was available to this work. A migration and a public file endpoint that have never run are not something to ship unseen. So they are left for a round with a running instance.
+- **Per design system.** Their files belong to the installation. Ours belong to one custom design system, so two design systems can have two logos.
+- **SVG.** An uploaded SVG file is rebuilt from an allow-list, so it holds no script.
+- **The favicon link.** OpenProject writes its own favicon link after the first hook a plugin gets. On normal pages the plugin writes its link again after it. On error pages, the external link warning and OAuth consent there is one hook only, and the browser picks between the two links.
+- **PDF export.** Uploaded logos and fonts do not reach PDF exports. See below.
 
-The favicon has one more problem. OpenProject writes its own favicon link after the only hook a plugin gets in that part of the head. With two links, the browser decides which one it uses. Replacing it for certain needs an override of OpenProject's `common/favicons` partial.
+"Not checked live" for these rows means: unit tested, the table and the endpoint run against a PostgreSQL without OpenProject, the form rendered without OpenProject. Not yet run in a real OpenProject.
 
 ## PDF export styling: stopped, with options
 
@@ -61,7 +65,7 @@ So the same capability cannot come from the plugin's own storage through a clean
 | Option | What it takes | Cost and risk |
 |---|---|---|
 | A. Leave PDF export as it is | Nothing | PDFs keep OpenProject's default logo and font. No risk |
-| B. Prepend the plugin's own readers to those four exporter modules | A table and upload form of the plugin's own, plus four small overrides that return the plugin's files | A few days with a running instance. It patches four core classes, so it can break on any OpenProject release, and it must be retested on each one |
+| B. Prepend the plugin's own readers to those four exporter modules | Four more kinds in the plugin's upload table, plus four small overrides that return the plugin's files | A few days with a running instance. It patches four core classes, so it can break on any OpenProject release, and it must be retested on each one |
 | C. Ask OpenProject for an extension point | An upstream issue or pull request that lets a plugin supply the export logo, cover, footer and fonts | Slow and not in our hands. The only clean route |
 | D. Write the files into the `CustomStyle` record | Not an option. It uses the storage of the Enterprise feature | Ruled out |
 
@@ -88,8 +92,9 @@ What follows from that:
 | Header, button, accent and selected item colours, light theme | **The plugin** | The Enterprise page writes them on `:root`. The plugin writes them on the `body` element, which is closer to every element on the page, and it comes later |
 | Main menu background, light theme | **The plugin, with white** | Same reason. An Enterprise main menu colour would be lost. This is the gap in the table above |
 | The same colours in the dark theme and the high contrast themes | **OpenProject and its Design page** | The plugin writes no colours there unless the design system has a `dark` block |
-| The logo | **The plugin**, for the 14 design systems that bring one. Otherwise the Enterprise logo stays | The plugin's logo rule is more specific and comes later |
-| Favicon, touch icon, PDF export | **The Enterprise page** | The plugin does not touch them |
+| The logo | **The plugin**, for the 15 design systems that bring one and for a custom design system with an uploaded logo. Otherwise the Enterprise logo stays | The plugin's logo rule is more specific and comes later |
+| Favicon, touch icon | **Not known.** Both write a link when both have a file | The Enterprise links come after the plugin's first hook and before its second |
+| PDF export | **The Enterprise page** | The plugin does not touch it |
 | Sizes | **The plugin** | The Enterprise page has no sizes |
 
 An installation with a token and this plugin should choose one of the two for colours. With both, an administrator who changes a colour on OpenProject's Design page sees no change in the light theme.

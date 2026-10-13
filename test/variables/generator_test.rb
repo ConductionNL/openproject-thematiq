@@ -61,22 +61,13 @@ class GeneratorTest < Minitest::Test
   end
 
   def test_a_missing_token_leaves_its_variables_out
-    css = Generator.new(TokenSet.fallback).css
-    light = blocks(css)[Generator::LIGHT_SCOPE]
+    partial = TokenSet.new(id: "t", name: "T", tokens: { "primary" => "#1a67a3" }, base: {})
+    light = blocks(Generator.new(partial).css)[Generator::LIGHT_SCOPE]
 
     refute_includes light, "--thematiq-accent"
     refute_includes light, "--thematiq-chip"
+    refute_includes light, "--primary-button-color"
     assert_includes light, "  --header-bg-color: #1a67a3;"
-  end
-
-  def test_the_fallback_set_gives_the_values_the_spike_had
-    light = blocks(Generator.new(TokenSet.fallback).css)[Generator::LIGHT_SCOPE]
-    spike = File.read(File.expand_path("../../spike/theme.css", __dir__))
-    spike_values = spike.scan(/^  (--[\w-]+): ([^;]+);$/).to_h
-
-    Generator::OPENPROJECT_COLORS.merge(Generator::PRIMER_COLORS).each_key do |variable|
-      assert_includes light, "  #{variable}: #{spike_values.fetch(variable)};"
-    end
   end
 
   def test_hostile_values_never_reach_the_css
@@ -95,6 +86,46 @@ class GeneratorTest < Minitest::Test
 
     assert_safe css, "all hostile"
     assert_equal Generator.new(TokenSet.fallback).css, css
+  end
+
+  # --- the optional menu colour ---
+
+  def test_a_set_without_a_menu_colour_generates_what_it_did_before_the_role_existed
+    css = Generator.new(set(FULL)).css
+
+    assert_includes css, "  --main-menu-bg-color: #ffffff;"
+    assert_includes css, "  --header-item-font-color: #ffffff;"
+    assert_includes css, "  --main-menu-selected-font-color: #234a78;"
+    refute_includes css, "#main-menu"
+    assert_equal 3, css.count("{")
+  end
+
+  def test_a_dark_menu_gets_light_text_and_its_own_block
+    css = Generator.new(set(FULL.merge("menu" => "#0e2045", "primary-light" => "#3270db", "primary-deep" => "#0e2045"))).css
+    light = blocks(css)[Generator::LIGHT_SCOPE]
+    menu = css[/#{Regexp.escape(Generator::LIGHT_SCOPE)} #main-menu \{\n(.*?)\n\}/m, 1]
+
+    assert_operator light.rindex("--main-menu-bg-color: #0e2045;"), :>, light.index("--main-menu-bg-color: #ffffff;"), "the later declaration decides"
+    assert_includes light, "  --thematiq-on-menu: #ffffff;"
+    assert_includes menu, "  --thematiq-ink: #ffffff;"
+    assert_includes menu, "  --thematiq-surface: #0e2045;"
+    assert_includes menu, "  --thematiq-primary-deep: #ffffff;", "the selected item's text is white on the blue item"
+  end
+
+  def test_a_light_header_gets_dark_text
+    light = blocks(Generator.new(set(FULL.merge("primary" => "#fafafa"))).css)[Generator::LIGHT_SCOPE]
+
+    assert_includes light, "  --header-item-font-color: #1b1c1d;"
+    assert_includes light, "  --thematiq-on-primary: #1b1c1d;"
+  end
+
+  def test_a_hostile_menu_colour_is_dropped
+    HOSTILE_VALUES.each do |value|
+      token_set = set(FULL.merge("menu" => value))
+
+      assert_nil token_set["menu"]
+      assert_safe Generator.new(token_set).css, value.inspect
+    end
   end
 
   # --- the early variant, for the top of the head ---
@@ -137,7 +168,10 @@ class GeneratorTest < Minitest::Test
     assert_includes dark, "  --fgColor-default: #f0f6fc;"
     assert_includes dark, "  --primary-button-color: #2ea043;"
     assert_includes dark, "  --thematiq-ink: #f0f6fc;"
-    refute_includes dark, "#ffffff", "white surfaces of the light theme do not leak into the dark theme"
+    refute_includes dark, "--button--background-color", "white surfaces of the light theme do not leak into the dark theme"
+    refute_includes dark, "--thematiq-surface"
+    assert_includes dark, "  --header-item-font-color: #ffffff;", "the text on the top bar follows the contrast rule"
+    assert_includes dark, "  --button--primary-font-color: #1b1c1d;", "white does not read on this green, so the text goes dark"
     refute_includes dark, "--main-menu-bg-color", "what the dark block does not name stays OpenProject's"
     refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#0b1f33"
   end
@@ -174,9 +208,36 @@ class GeneratorTest < Minitest::Test
 
     assert_equal({ "primary" => "#0b1f33" }, copy.dark_tokens)
     assert_equal "unknown_keys", assert_raises(TokenSet::InvalidSet) {
-      TokenSet.from_set(token_set.to_set.merge("dark" => { "radius" => "9px" }), strict: true)
+      TokenSet.from_set(token_set.to_set.merge("dark" => { "tokens" => { "shadow" => "9px" } }), strict: true)
     }.message
     refute_includes set(FULL).to_set.keys, "dark"
+  end
+
+  def test_the_dark_block_reads_in_the_shape_the_catalogue_writes_and_ignores_radius_and_font
+    token_set = dark_set("tokens" => { "primary" => "#0b1f33", "radius" => "9px", "font-family" => "Arial" })
+
+    assert_equal({ "primary" => "#0b1f33" }, token_set.dark_tokens)
+    assert_empty token_set.rejected
+    assert_equal({ "tokens" => { "primary" => "#0b1f33" } }, token_set.to_set["dark"])
+    assert_equal "unknown_keys", assert_raises(TokenSet::InvalidSet) {
+      TokenSet.from_set(token_set.to_set.merge("dark" => { "tokens" => {}, "script" => "x" }), strict: true)
+    }.message
+  end
+
+  def test_a_dark_block_whose_text_does_not_read_on_its_ground_is_not_used
+    unreadable = dark_set("ink" => "#222222", "ground" => "#292b2f", "primary" => "#0b1f33")
+
+    assert unreadable.dark?
+    refute OpenProject::Thematiq::Contrast.dark_usable?(unreadable)
+    refute_includes Generator.new(unreadable).css, Generator::DARK_SCOPE
+  end
+
+  def test_the_selected_item_in_the_dark_theme_gets_text_that_reads
+    css = Generator.new(dark_set("primary-light" => "#0c1c32", "primary-deep" => "#203c63", "ink" => "#e2e3e4", "ground" => "#292b2f")).css
+    dark = css[/#{Regexp.escape(Generator::DARK_SCOPE)} \{\n(.*?)\n\}/m, 1]
+
+    assert_operator dark.rindex("--thematiq-primary-deep: #ffffff;"), :>, dark.index("--thematiq-primary-deep: #203c63;"), "the rule comes last, so it decides"
+    assert_includes dark, "  --main-menu-selected-font-color: #ffffff;"
   end
 
   def test_a_custom_set_keeps_the_dark_block_of_its_base

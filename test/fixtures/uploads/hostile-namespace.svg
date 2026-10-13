@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:h="http://www.w3.org/1999/xhtml" xmlns:s="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <h:script>alert(1)</h:script>
+  <s:script>alert(2)</s:script>
+  <h:iframe src="https://evil.example/"/>
+  <rect xmlns="http://www.w3.org/1999/xhtml" width="10" height="10"/>
+  <rect id="kept" width="10" height="10" h:onclick="alert(3)"/>
+</svg>

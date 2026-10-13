@@ -129,7 +129,8 @@
 /* The initials avatar is the bar inverted, as in the design. An uploaded picture is left alone. */
 .op-app-header .op-top-menu-user-avatar .op-avatar--fallback {
   background: var(--thematiq-on-primary) !important; /* core sets a colour per user inline */
-  color: var(--thematiq-primary-deep);
+  /* The bar's own colour, which always reads on its text colour. primary-deep was dark on dark on a light bar. */
+  color: var(--thematiq-primary);
 }
 .thematiq-account {
   display: flex;

@@ -90,11 +90,21 @@ The plugin styles OpenProject by class names that can change between OpenProject
 
 ### Remove the plugin
 
-Start OpenProject on the plain `openproject/openproject:17` image again. The plugin adds no tables and changes none of OpenProject's own data. It leaves one row in the `settings` table, named `plugin_openproject_thematiq`, which OpenProject ignores without the plugin. Removing the plugin was not tested.
+The plugin changes none of OpenProject's own data. It has one table of its own, `thematiq_uploads`, for the files you upload.
+
+1. To take that table out, roll its migration back while the plugin is still installed. This deletes every uploaded file, so make a database backup first.
+
+   ```bash
+   docker exec openproject-thematiq bash -lc 'cd /app && bundle exec rake db:migrate:down VERSION=20261012090000'
+   ```
+
+2. Start OpenProject on the plain `openproject/openproject:17` image again.
+
+If you skip step 1, the table stays in the database. OpenProject works with it there. One row also stays in the `settings` table, named `plugin_openproject_thematiq`, which OpenProject ignores without the plugin. [docs/uploads.md](docs/uploads.md#remove-the-plugin) tells you how to drop the table by hand later. Removing the plugin was not tested.
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 14 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You cannot upload a logo, a favicon or a font yet, and PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
@@ -113,7 +123,20 @@ Everyone sees the chosen design system on their next page.
 3. Select **Preview** to see the shell with your values. Nothing is saved yet.
 4. Select **Save and apply**.
 
-OpenProject keeps one custom design system.
+You can keep up to 50 custom design systems.
+
+### Upload a logo, icons and fonts
+
+A custom design system can carry your own files.
+
+1. On **Thematiq design**, select **Edit** next to your custom design system. A new one must be saved first.
+2. Scroll to **Logo, icons and fonts**.
+3. Choose a file next to the kind you want and select **Upload**. The limits are stated next to each field.
+4. The file is in use at once. **Replace** swaps it, **Remove** takes it away.
+
+You can upload a logo, a logo for the coloured top bar, a mobile logo, a favicon, a touch icon and up to 12 font files. For a font, type its family name and pick its weight and style. Then name the same family in the value **Font**.
+
+The plugin checks every file by its content and refuses what it does not know. It rebuilds an SVG file without script. [docs/uploads.md](docs/uploads.md) has the limits and the checks.
 
 ### Export and import
 
@@ -121,9 +144,9 @@ Use this to move a design system from one OpenProject to another.
 
 1. On **Thematiq design**, select **Export** next to a design system. Your browser saves a small JSON file.
 2. On the other OpenProject, open **Thematiq design**. Under **Import a design system**, choose the file and select **Import**.
-3. The file becomes the custom design system there. Pick it in the list and select **Apply**.
+3. The file is added there as a new custom design system. Pick it in the list and select **Apply**.
 
-An import replaces the custom design system that was there. [docs/admin-page.md](docs/admin-page.md) has the details.
+An import never replaces a design system that is there. Uploaded files do not travel in the file: upload them again on the other OpenProject. [docs/admin-page.md](docs/admin-page.md) has the details.
 
 ## What is in this repository now
 

@@ -47,7 +47,7 @@ class TokenSetTest < Minitest::Test
     assert_equal Defaults::TOKENS["primary"], set["primary"]
     assert_equal Defaults::TOKENS["radius"], set["radius"]
     assert_equal Defaults::TOKENS["font-family"], set["font-family"]
-    assert_nil set["chip"], "chip has no last resort value, so it is left out"
+    assert_equal Defaults::TOKENS["chip"], set["chip"]
     assert_equal %w[primary chip radius font-family], set.rejected
   end
 

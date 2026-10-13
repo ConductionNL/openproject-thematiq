@@ -24,6 +24,7 @@ module OpenProject
     require "open_project/thematiq/custom_draft"
     require "open_project/thematiq/transfer"
     require "open_project/thematiq/contrast"
+    require "open_project/thematiq/uploads"
     require "open_project/thematiq/assets"
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
@@ -52,6 +53,14 @@ module OpenProject
     # The logo rule is the shell's: OpenProject::Thematiq::Shell::Logo.
     def self.asset_stylesheet(root: "")
       Assets.bundled.font_face_css(active_token_set, root:)
+    end
+
+    # The favicon and touch icon of the active design system, as attributes for link elements.
+    # Empty unless an administrator uploaded them. It never raises, for the same reason as above.
+    def self.icon_links(root: "")
+      Assets.bundled.icon_links(active_token_set, root:)
+    rescue StandardError
+      []
     end
 
     require "open_project/thematiq/engine" if defined?(::Rails::Engine)

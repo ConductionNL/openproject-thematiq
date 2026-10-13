@@ -8,14 +8,15 @@ wp-table.work-packages-split-view--tabletimeline-content {
   border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius-lg); overflow: hidden;
 }
 
-/* header row: 44 px high, th padding 12px 16px, 14 px weight 600 muted, line-height 20 px, sentence case */
+/* header row: 44 px high in all: 43 px for the cell plus its 1 px line below. Measured at 45 when both were 44.
+ * The canon's th padding of 12px 16px becomes 12px above and 11px below. 14 px weight 600 muted, line-height 20 px, sentence case */
 table.work-package-table thead th, table.generic-table thead th {
-  height: 44px; background: var(--thematiq-table-head); border-bottom: 1px solid var(--thematiq-line);
+  height: 43px; background: var(--thematiq-table-head); border-bottom: 1px solid var(--thematiq-line);
 }
 table.work-package-table thead th .generic-table--sort-header-outer,
 table.work-package-table thead th .generic-table--empty-header,
 table.generic-table thead th .generic-table--sort-header-outer {
-  height: 44px; line-height: 20px; padding: 12px 16px; box-sizing: border-box;
+  height: 43px; line-height: 20px; padding: 12px 16px 11px; box-sizing: border-box;
   font-size: 14px; font-weight: 600; color: var(--thematiq-muted); text-transform: none; background: var(--thematiq-table-head);
 }
 table.work-package-table thead th .generic-table--sort-header,

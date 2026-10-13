@@ -22,6 +22,7 @@ en:
         one: "1 value changed from %{name}"
         other: "%{count} values changed from %{name}"
       edit_tokens: "Edit"
+      edit_label: "Edit %{name}"
       customise: "Customise"
       customise_label: "Customise %{name}"
       apply: "Apply"
@@ -32,7 +33,7 @@ en:
       rejected_tokens: "Some values of the active design system were refused and replaced: %{tokens}."
     editor:
       title: "Custom design system"
-      description: "Start from a design system and change single values. The result is one custom design system, kept in OpenProject."
+      description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."
       default_name: "%{name}, custom"
       name: "Name"
       based_on: "Based on"
@@ -50,7 +51,7 @@ en:
       preview: "Preview"
       save_and_apply: "Save and apply"
       back: "Back to the list"
-      delete: "Delete the custom design system"
+      delete: "Delete this custom design system"
       delete_hint: "OpenProject goes back to the design system chosen before."
       preview_title: "Preview of the shell"
       preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
@@ -84,8 +85,10 @@ en:
         muted-on-ground: "muted text on the page background"
         link-on-white: "links on white"
         primary-deep-on-primary-light: "the selected menu item"
+        text-on-menu: "text on the main menu"
     fonts:
       loaded: "The font %{family} comes with the plugin."
+      uploaded: "The font %{family} is an uploaded file of this design system."
       next_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see %{next_family}, which does."
       not_loaded: "The font %{family} does not come with the plugin. Readers who do not have it see the next font in the list that is on their device."
     transfer:
@@ -94,9 +97,9 @@ en:
       import_title: "Import a design system"
       file: "File"
       import: "Import"
-      import_hint: "Choose a file that was exported from this page. It becomes your custom design system. It is not applied until you pick it."
-      import_hint_replaces: "Choose a file that was exported from this page. It replaces your custom design system. It is not applied until you pick it."
-      notice_imported: "\"%{name}\" is imported as your custom design system. Pick it in the list and select \"Apply\" to use it."
+      import_hint: "Choose a file that was exported from this page. It is added as a new custom design system. It is not applied until you pick it."
+      notice_imported: "\"%{name}\" is added as a custom design system. Pick it in the list and select \"Apply\" to use it."
+      notice_imported_without_files: "\"%{name}\" is added as a custom design system. Its uploaded files did not come along: %{kinds}. Open it with \"Edit\" and upload them again."
       errors:
         empty: "Choose a file first."
         too_large: "The file is too large. A design system file is at most 64 KB."
@@ -105,6 +108,78 @@ en:
         unknown_keys: "The file holds entries this plugin does not know. Nothing was imported."
         token_invalid: "The file holds a value that cannot be used as a colour, a length or a font. Nothing was imported."
         name_invalid: "The file has no usable name. Nothing was imported."
+        too_many: "There are 50 custom design systems, which is the most the plugin keeps. Delete one first."
+    uploads:
+      title: "Logo, icons and fonts"
+      description: "Upload your own files for this design system. An uploaded file is used at once and replaces the file of the design system it is based on."
+      export_note: "Uploaded files stay on this OpenProject. An export of this design system names them and does not hold them."
+      save_first: "Save this design system first. Then you can upload files for it."
+      none: "No file yet. OpenProject shows its own."
+      none_fonts: "No font files yet."
+      choose: "Choose a file for the %{kind}"
+      choose_replacement: "Choose another file for the %{kind}"
+      choose_font: "Font file"
+      upload: "Upload"
+      upload_font: "Upload font"
+      replace: "Replace"
+      remove: "Remove"
+      remove_label: "Remove the %{kind}"
+      remove_font_label: "Remove the font %{family}, %{weight}, %{style}"
+      preview_alt: "The uploaded %{kind}"
+      current: "%{type}, %{size}."
+      current_pixels: "%{width} by %{height} px."
+      current_name: "Uploaded as %{name}."
+      limit_image: "%{types}. At most %{size}. A file that is not SVG is between %{min} px and %{width} by %{height} px."
+      limit_raster: "%{types}. At most %{size}. Between %{min} px and %{width} by %{height} px."
+      limit_font: "%{types}. At most %{size} per file and %{count} files per design system."
+      font_family: "Family name"
+      font_family_hint: "Use the same family name in the value \"Font\" above. A file with the same family, weight and style replaces the one that is there."
+      font_weight: "Weight"
+      font_style: "Style"
+      font_face: "%{weight}, %{style}."
+      font_sample: "Sphinx of black quartz"
+      notice_stored: "The %{kind} is uploaded and in use."
+      notice_stored_cleaned: "The %{kind} is uploaded and in use. Parts of the SVG file that the plugin does not allow were left out. Check the preview."
+      notice_removed: "The file is removed."
+      kinds:
+        logo: { label: "logo", hint: "top bar" }
+        logo_inverse: { label: "logo for the coloured top bar", hint: "used instead of the logo when both are there" }
+        logo_mobile: { label: "mobile logo", hint: "screens narrower than 850 px" }
+        favicon: { label: "favicon", hint: "browser tab" }
+        touch_icon: { label: "touch icon", hint: "home screen of a phone or tablet" }
+        font: { label: "font", hint: "text that names its family" }
+      weights:
+        w100: "Thin, 100"
+        w200: "Extra light, 200"
+        w300: "Light, 300"
+        w400: "Regular, 400"
+        w500: "Medium, 500"
+        w600: "Semi bold, 600"
+        w700: "Bold, 700"
+        w800: "Extra bold, 800"
+        w900: "Black, 900"
+        w100_900: "Variable, 100 to 900"
+      styles:
+        normal: "upright"
+        italic: "italic"
+      errors:
+        empty: "Choose a file first."
+        too_large: "The file is too large. This kind takes at most %{size}."
+        unknown_type: "The plugin does not know this kind of file. Nothing was uploaded. Use one of: %{types}."
+        wrong_type: "This kind of file does not fit here. Nothing was uploaded. Use one of: %{types}."
+        broken: "The file is damaged or is not what its first bytes say. Nothing was uploaded."
+        too_small: "The picture is too small. Its shortest side must be at least %{min} px."
+        too_wide: "The picture is too large. It can be at most %{width} by %{height} px."
+        svg_declares: "The SVG file declares entities or a document type of its own. The plugin does not accept that. Save it as plain SVG and try again."
+        svg_not_svg: "The file is not an SVG picture. Its outer element must be svg in the SVG namespace."
+        svg_too_complex: "The SVG file is too complex. It has too many elements or draws itself too many times over."
+        font_family_invalid: "Give the font a family name of letters, digits and spaces, at most 60 characters."
+        font_weight_invalid: "Choose a weight from the list."
+        font_style_invalid: "Choose a style from the list."
+        too_many_fonts: "This design system has %{count} font files, which is the most the plugin keeps. Remove one first."
+        not_stored: "That file is no longer there."
+        not_ready: "The table for uploaded files is missing. Run the database migration of the plugin first."
+        unknown_kind: "The plugin does not know that kind of file. Nothing was uploaded."
     tokens:
       primary: { label: "Primary", hint: "top bar" }
       primary-deep: { label: "Primary, deep", hint: "hover in the top bar, selected text" }
@@ -124,6 +199,7 @@ en:
       radius: { label: "Radius", hint: "buttons and menu items" }
       radius-lg: { label: "Radius, large", hint: "inputs and panels" }
       font-family: { label: "Font", hint: "all text" }
+      menu: { label: "Menu", hint: "background of the main menu, white when empty" }
     shell:
       settings:
         title: "App switcher"

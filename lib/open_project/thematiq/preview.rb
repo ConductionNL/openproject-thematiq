@@ -1,20 +1,15 @@
 # frozen_string_literal: true
 
 require "open_project/thematiq/tokens"
+require "open_project/thematiq/contrast"
 
 module OpenProject
   module Thematiq
     # Inline styles for a small picture of a design system: a top bar, a primary button and a row.
     # No images. Every colour, length and font comes out of a TokenSet, so it has passed the Validator.
-    # A token the set does not have gets a neutral literal, never a value from outside.
+    # A token the set does not have gets the last resort value, never a value from outside.
     class Preview
-      NEUTRAL = {
-        "primary" => "#1a67a3", "primary-deep" => "#124872", "primary-light" => "#ebf3f7",
-        "action" => "#1f883d", "action-deep" => "#197032", "link" => "#175a8e",
-        "ink" => "#1f2328", "muted" => "#59636e", "line" => "#eaeaea", "soft" => "#f6f8fa",
-        "ground" => "#f6f8fa", "field" => "#d1d9e0", "radius" => "3px", "radius-lg" => "6px",
-        "font-family" => "sans-serif"
-      }.freeze
+      NEUTRAL = Tokens::Defaults::TOKENS
 
       def initialize(token_set)
         @token_set = token_set
@@ -25,9 +20,9 @@ module OpenProject
         {
           frame: css("background" => "#ffffff", "border" => "1px solid #{value('line')}", "border-radius" => value("radius-lg")),
           top_bar: css("background" => value("primary")),
-          top_bar_mark: css("background" => "#ffffff"),
-          top_bar_search: css("border" => "1px solid #ffffff", "border-radius" => value("radius")),
-          sidebar: css("background" => "#ffffff", "border-right" => "1px solid #{value('line')}"),
+          top_bar_mark: css("background" => on("primary")),
+          top_bar_search: css("border" => "1px solid #{on('primary')}", "border-radius" => value("radius")),
+          sidebar: css("background" => @token_set["menu"] || "#ffffff", "border-right" => "1px solid #{value('line')}"),
           button: css("background" => value("action"), "border" => "1px solid #{value('action-deep')}", "border-radius" => value("radius")),
           active_item: css("background" => value("primary-light"), "border-radius" => value("radius")),
           item: css("background" => value("soft"), "border-radius" => value("radius")),
@@ -43,16 +38,17 @@ module OpenProject
         {
           frame: css("background" => value("ground"), "border" => "1px solid #{value('line')}",
                      "border-radius" => value("radius-lg"), "font-family" => font, "color" => value("ink")),
-          top_bar: css("background" => value("primary"), "color" => "#ffffff"),
-          search: css("border" => "1px solid #ffffff", "border-radius" => value("radius-lg"), "color" => "#ffffff"),
-          sidebar: css("background" => "#ffffff", "border-right" => "1px solid #{value('line')}"),
+          top_bar: css("background" => value("primary"), "color" => on("primary")),
+          search: css("border" => "1px solid #{on('primary')}", "border-radius" => value("radius-lg"), "color" => on("primary")),
+          sidebar: css("background" => @token_set["menu"] || "#ffffff", "border-right" => "1px solid #{value('line')}",
+                       "color" => (@token_set["menu"] ? Contrast.on_menu(@token_set) : value("ink"))),
           action_button: css("background" => value("action"), "border" => "1px solid #{value('action-deep')}",
-                             "border-radius" => value("radius"), "color" => "#ffffff"),
+                             "border-radius" => value("radius"), "color" => on("action")),
           secondary_button: css("background" => "#ffffff", "border" => "1px solid #{value('field')}",
                                 "border-radius" => value("radius"), "color" => value("ink")),
-          nav_item: css("border-radius" => value("radius"), "color" => value("ink")),
+          nav_item: css("border-radius" => value("radius"), "color" => (@token_set["menu"] ? Contrast.on_menu(@token_set) : value("ink"))),
           nav_item_active: css("background" => value("primary-light"), "border-radius" => value("radius"),
-                               "color" => value("primary-deep")),
+                               "color" => Contrast.on_selected(@token_set) || value("primary-deep")),
           table: css("background" => "#ffffff", "border" => "1px solid #{value('line')}", "border-radius" => value("radius-lg")),
           table_head: css("color" => value("muted"), "border-bottom" => "1px solid #{value('line')}"),
           table_row: css("border-top" => "1px solid #{value('line')}"),
@@ -70,8 +66,15 @@ module OpenProject
 
       private
 
+      # The text colour on one of the set's colours, as the page will have it.
+      def on(role)
+        Contrast.best_on(value(role), ["#ffffff", value("ink"), "#1b1c1d"])
+      end
+
+      # An optional role, such as "menu", has no last resort value. A set without it shows white,
+      # which is what the page does. Without this the editor failed for every set that has no menu role.
       def value(key)
-        @token_set[key] || NEUTRAL.fetch(key)
+        @token_set[key] || NEUTRAL.fetch(key, "#ffffff")
       end
 
       def css(declarations)

@@ -33,7 +33,8 @@ class CatalogueTest < Minitest::Test
   def test_no_value_in_the_bundled_catalogue_is_refused
     raw = JSON.parse(File.read(Catalogue::FILE))
 
-    assert_equal raw["sets"].size, Catalogue.bundled.sets.size
+    own = JSON.parse(File.read(Catalogue::OWN_FILE))
+    assert_equal raw["sets"].size + own["sets"].size, Catalogue.bundled.sets.size
     Catalogue.bundled.sets.each { |token_set| assert_empty token_set.rejected, token_set.id }
   end
 
@@ -42,7 +43,8 @@ class CatalogueTest < Minitest::Test
       css = OpenProject::Thematiq::Variables::Generator.new(token_set).css
 
       refute_match(/[<>\\@]|url\(|!important/, css, token_set.id)
-      assert_equal 3, css.count("{"), token_set.id
+      expected = 3 + (token_set["menu"] ? 1 : 0) + (OpenProject::Thematiq::Contrast.dark_usable?(token_set) ? 1 : 0)
+      assert_equal expected, css.count("{"), token_set.id
     end
   end
 
@@ -55,17 +57,58 @@ class CatalogueTest < Minitest::Test
 
   def test_the_bundled_catalogue_is_the_one_generated_from_thematiq
     assert_match(/\Athematiq /, Catalogue.bundled.generated_from)
-    assert_equal 64, Catalogue.bundled.sets.size
+    assert_equal 64 + 3, Catalogue.bundled.sets.size
+  end
+
+  def test_the_last_resort_values_are_cunningham_from_the_catalogue
+    assert_equal Catalogue.bundled.find("cunningham").tokens, Defaults::TOKENS
+    assert_equal Catalogue.bundled.find("cunningham").name, Defaults::NAME
+  end
+
+  def test_all_but_the_stock_nextcloud_set_bring_a_dark_block
+    without = Catalogue.bundled.sets.reject(&:dark?).map(&:id) - Catalogue.own_ids
+
+    assert_equal %w[nextcloud], without
+    Catalogue.bundled.sets.select(&:dark?).each do |token_set|
+      assert_equal OpenProject::Thematiq::Tokens::TokenSet::DARK_KEYS - ["menu"], token_set.dark_tokens.keys, token_set.id
+    end
   end
 
   def test_every_bundled_set_has_all_eighteen_tokens
     Catalogue.bundled.sets.each do |token_set|
-      assert_equal OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys, token_set.tokens.keys, token_set.id
+      assert_equal OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys, token_set.tokens.keys - ["menu"], token_set.id
     end
   end
 
+  def test_openprojects_own_themes_are_in_and_named_as_openprojects
+    themes = Catalogue.own_ids.map { |id| Catalogue.bundled.find(id) }
+
+    assert_equal %w[openproject-default openproject-gray openproject-navy-blue], themes.map(&:id)
+    themes.each { |token_set| assert_match(/\AOpenProject /, token_set.name) }
+    assert_equal ["#ffffff", "#ececec", "#0e2045"], themes.map { |token_set| token_set["menu"] }
+    assert_equal ["#1a67a3", "#fafafa", "#05002c"], themes.map { |token_set| token_set["primary"] }
+  end
+
+  def test_only_the_plugins_own_sets_have_a_menu_colour
+    with_menu = Catalogue.bundled.sets.select { |token_set| token_set["menu"] }.map(&:id)
+
+    assert_equal Catalogue.own_ids.sort, with_menu.sort
+  end
+
+  def test_the_own_file_cannot_replace_a_generated_set
+    generated = Catalogue.from_document(document(set("a", "Generated")))
+    own = Catalogue.from_document(document(set("a", "Impostor"), set("b", "Own")))
+    merged = generated.with(own)
+
+    assert_equal "Generated", merged.find("a").name
+    assert_equal %w[a b], merged.sets.map(&:id).sort
+    assert_equal 1, merged.skipped
+    assert_equal %w[a], generated.with(Catalogue.failed("missing")).sets.map(&:id)
+  end
+
   def test_only_logos_marked_redistributable_are_used
-    raw = JSON.parse(File.read(Catalogue::FILE))["sets"].to_h { |set| [set["id"], set["logo"]] }
+    raw = [Catalogue::FILE, Catalogue::OWN_FILE].flat_map { |file| JSON.parse(File.read(file))["sets"] }
+                                                .to_h { |set| [set["id"], set["logo"]] }
 
     Catalogue.bundled.sets.each do |token_set|
       if raw[token_set.id]["redistributable"] == true

@@ -10,7 +10,8 @@
 #     bin/rails runner /app/custom-plugins/openproject-thematiq/test/integration/admin_page_check.rb
 #
 # It creates one temporary non-admin user, restores the plugin's settings at the end
-# and exits 1 when a check fails. Do not run it against an instance people use.
+# and exits 1 when a check fails. Do not run it against an instance people use: it deletes
+# the uploaded files of the custom design systems, and those are not restored.
 
 HOST = ENV.fetch("THEMATIQ_CHECK_HOST")
 ADMIN_PASSWORD = ENV.fetch("THEMATIQ_CHECK_PASSWORD")
@@ -54,6 +55,10 @@ def head_style(session)
 end
 
 saved_settings = Setting.plugin_openproject_thematiq
+# The checks below expect a fresh install: the default design system and no custom ones.
+# The settings that were there come back at the end.
+Setting.plugin_openproject_thematiq = {}
+fresh_settings = Setting.plugin_openproject_thematiq
 member = User.find_by(login: MEMBER_LOGIN) || User.new(login: MEMBER_LOGIN)
 member.assign_attributes(firstname: "Thematiq", lastname: "Check", mail: "thematiq-check@example.org", admin: false,
                          status: :active, password: MEMBER_PASSWORD, password_confirmation: MEMBER_PASSWORD,
@@ -126,7 +131,7 @@ begin
 
   as_member.post "/admin/thematiq", params: { set_id: last.id }
   check("a non-admin cannot apply a design system") { [403, 422].include?(as_member.response.status) }
-  check("the non-admin post changed nothing") { Setting.plugin_openproject_thematiq == saved_settings }
+  check("the non-admin post changed nothing") { Setting.plugin_openproject_thematiq == fresh_settings }
 
   throwaway = session_for("admin", ADMIN_PASSWORD)
   throwaway.post "/admin/thematiq", params: { set_id: last.id }
@@ -210,7 +215,7 @@ begin
   check("an editor post without a CSRF token is refused") { throwaway.response.status == 422 }
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
-  admin.post "/admin/thematiq/custom", params: { delete: "1", authenticity_token: token }
+  admin.post "/admin/thematiq/custom", params: { id: "custom", delete: "1", authenticity_token: token }
   check("delete removes the custom design system") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
 
   # 5. Export and import
@@ -232,7 +237,7 @@ begin
     admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
       admin.response.media_type == "application/json"
   end
-  check("the export is the set shape") { JSON.parse(exported).keys == %w[id name tokens logo] }
+  check("the export is the set shape") { (%w[id name tokens logo] - JSON.parse(exported).keys).empty? && (JSON.parse(exported).keys - %w[id name tokens logo dark]).empty? }
   admin.get "/admin/thematiq/export", params: { id: "no-such-set" }
   check("export of an unknown design system gives 404") { admin.response.status == 404 }
   admin.get "/admin/thematiq/export", params: { id: "custom" }
@@ -250,7 +255,7 @@ begin
   body = import.call(JSON.generate(good))
   store = OpenProject::Thematiq::Store.new
   check("import stores the file as the custom design system") { store.custom_draft&.name == "Moved style" && store.custom_set["primary"] == "#aa0055" }
-  check("import does not apply it") { !store.custom_active? && body.include?("is imported as your custom design system") }
+  check("import does not apply it") { !store.custom_active? && body.include?("is added as a custom design system") }
 
   { "a hostile token value" => JSON.generate(good.merge("tokens" => good["tokens"].merge("action" => "red; } body { display:none"))),
     "an unknown key" => JSON.generate(good.merge("script" => "<script>alert(1)</script>")),
@@ -261,6 +266,23 @@ begin
     check("import refuses #{label} and says why") { ["Nothing was imported", "is not a design system file", "Choose a file first", "The file is too large"].any? { |text| body.include?(text) } }
     check("after #{label} the stored custom design system is unchanged") { OpenProject::Thematiq::Store.new.custom_set["primary"] == "#aa0055" }
     check("after #{label} nothing hostile is on the page") { !body.include?("<script>alert(1)</script>") && !head_style(admin).include?("display:none") }
+  end
+
+  body = import.call(JSON.generate(good.merge("name" => "Second moved style")))
+  store = OpenProject::Thematiq::Store.new
+  check("a second import is added and does not replace the first") do
+    store.custom_drafts.map(&:name).sort == ["Moved style", "Second moved style"] && body.include?('id="thematiq-set-custom-2"')
+  end
+  admin.get "/admin/thematiq/custom", params: { id: "custom-2" }
+  check("the editor opens the second custom design system") { admin.response.body.include?('value="Second moved style"') && admin.response.body.include?('name="id" value="custom-2"') }
+  admin.post "/admin/thematiq/custom", params: { id: "custom-2", delete: "1", authenticity_token: form_token(admin, "/admin/thematiq/custom?id=custom-2", "thematiq-editor-form") }
+  check("deleting the second leaves the first") { OpenProject::Thematiq::Store.new.custom_drafts.map(&:name) == ["Moved style"] }
+
+  zuiddrecht_file = OpenProject::Thematiq::Transfer.export(catalogue.find("zuiddrecht"))
+  import.call(zuiddrecht_file)
+  check("an imported set keeps the bundled logo of the set it came from") do
+    moved = OpenProject::Thematiq::Store.new.custom_drafts.find { |draft| draft.name == catalogue.find("zuiddrecht").name }
+    moved && OpenProject::Thematiq::Assets.bundled.logo_url(moved.token_set) == "/thematiq/logos/zuiddrecht-dark.svg"
   end
 
   throwaway = session_for("admin", ADMIN_PASSWORD)
@@ -288,7 +310,265 @@ begin
   end
   shell_post.call("")
   check("an empty address clears it") { OpenProject::Thematiq::Shell.nextcloud_url.nil? }
+
+  # 7. The public endpoint for uploaded files. The rows are stored through the model here,
+  #    so this part checks the table, the model and the endpoint without the admin form.
+  require_relative "../uploads/samples"
+  uploads = OpenProject::Thematiq::Uploads
+  check_set = "custom-9999"
+  check("the table of the plugin exists") { Thematiq::Upload.ready? && Thematiq::Upload.column_names.include?("data") }
+  Thematiq::Upload.remove_set(check_set)
+
+  stored = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("logo", UploadSamples.svg("hostile-script")), label: "x.svg")
+  logo = stored.to_record
+  check("a stored file gets an id of 64 hex characters") { logo && uploads::TOKEN.match?(logo.token) }
+
+  fresh = session_for
+  fresh.get logo.url
+  served = fresh.response
+  check("a file is served without a sign in") { served.status == 200 && served.body.bytesize == logo.byte_size }
+  check("the endpoint sets no cookie") { served.headers["Set-Cookie"].blank? }
+  check("the served SVG is the rebuilt one, without script") { served.body.include?("<rect") && !served.body.include?("script") }
+  check("the content type is the one decided at upload") { served.headers["Content-Type"] == "image/svg+xml" }
+  check("the answer says nosniff") { served.headers["X-Content-Type-Options"] == "nosniff" }
+  check("the answer has its own content security policy, with no script") do
+    served.headers["Content-Security-Policy"] == uploads::Response::POLICY
+  end
+  check("the answer may be cached and carries an ETag") do
+    served.headers["Cache-Control"].to_s.include?("max-age=31536000") && served.headers["ETag"] == %("#{logo.sha256}")
+  end
+  check("the download name is fixed") { served.headers["Content-Disposition"] == %(inline; filename="logo.svg") }
+  fresh.get logo.url, headers: { "If-None-Match" => served.headers["ETag"] }
+  check("a browser that holds the file gets 304 and no body") { fresh.response.status == 304 && fresh.response.body.empty? }
+  fresh.head logo.url
+  check("a HEAD request gets the headers and no body") { fresh.response.status == 200 && fresh.response.body.empty? }
+
+  png = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("favicon", UploadSamples.png(32, 32))).to_record
+  fresh.get png.url
+  check("a PNG comes back byte for byte") do
+    fresh.response.headers["Content-Type"] == "image/png" && fresh.response.body.b == UploadSamples.png(32, 32)
+  end
+
+  replaced = Thematiq::Upload.store!(set_id: check_set, result: uploads::Inspector.inspect_upload("logo", UploadSamples.png(200, 50))).to_record
+  check("a replaced file gets a new address") { replaced.token != logo.token && Thematiq::Upload.records_for(check_set).count { |r| r.kind == "logo" } == 1 }
+  fresh.get logo.url
+  check("the old address stops answering") { fresh.response.status == 404 }
+
+  ["/thematiq/files/#{'0' * 64}", "/thematiq/files/#{replaced.token.upcase}", "/thematiq/files/#{replaced.token}/",
+   "/thematiq/files/#{replaced.token}.svg", "/thematiq/files/#{replaced.token[0, 63]}", "/thematiq/files/#{replaced.token}0",
+   "/thematiq/files/..%2F..%2F..%2Fconfig%2Fdatabase.yml", "/thematiq/files/../../config/database.yml",
+   "/thematiq/files/%2e%2e%2f%2e%2e%2fetc%2fpasswd", "/thematiq/files/#{Thematiq::Upload.find_by(token: replaced.token).id}", "/thematiq/files/",
+   "/thematiq/files/#{replaced.token}%00", "/thematiq/files/#{replaced.token}/../../../config/database.yml",
+   "/thematiq/files/' OR '1'='1"].each do |path|
+    begin
+      fresh.get path
+      status = fresh.response.status
+      body = fresh.response.body
+    rescue StandardError => e
+      status = e.class.name
+      body = ""
+    end
+    check("#{path[0, 60]} serves nothing (#{status})") do
+      status != 200 && !body.include?("adapter:") && !body.include?("root:") && !body.start_with?("\x89PNG".b)
+    end
+  end
+  fresh.post replaced.url
+  check("the endpoint takes no POST") { fresh.response.status != 200 }
+
+  Thematiq::Upload.where(set_id: check_set, kind: "logo").update_all(kind: "export_logo")
+  fresh.get replaced.url
+  check("a row that is not one of the kinds is not served") { fresh.response.status == 404 }
+  Thematiq::Upload.remove_set(check_set)
+  fresh.get png.url
+  check("a removed file is gone") { fresh.response.status == 404 }
+
+  # 8. Uploads through the admin page, for a custom design system that is saved and active.
+  admin = session_for("admin", ADMIN_PASSWORD)
+  OpenProject::Thematiq::Store.new.custom_drafts.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.get "/admin/thematiq/custom"
+  check("a design system that is not saved yet offers no upload") do
+    admin.response.body.include?("Save this design system first") && !admin.response.body.include?('id="thematiq-file-logo-form"')
+  end
+  admin.post "/admin/thematiq/custom", params: { name: "Upload check", based_on: default.id, save: "1",
+                                                 tokens: { "font-family" => "'Check Sans', sans-serif" }, authenticity_token: token }
+  set_id = OpenProject::Thematiq::Store.new.active_custom_id
+  editor = "/admin/thematiq/custom?id=#{set_id}"
+  check("the custom design system for the upload checks is saved and active") { set_id.present? }
+
+  binary = lambda do |content, name|
+    file = Tempfile.new(["thematiq-upload", File.extname(name)])
+    file.binmode
+    file.write(content)
+    file.close
+    # The content type is a lie on purpose: the plugin must not look at it.
+    Rack::Test::UploadedFile.new(file.path, "text/plain", true, original_filename: name)
+  end
+  send_file = lambda do |kind, content, name, extra = {}|
+    form = "thematiq-file-#{kind.tr('_', '-')}-form"
+    admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind:, upload: "1", file: binary.call(content, name),
+                                                         authenticity_token: form_token(admin, editor, form) }.merge(extra)
+    admin.follow_redirect!
+    admin.response.body
+  end
+  records = -> { Thematiq::Upload.records_for(set_id) }
+  of_kind = ->(kind) { records.call.reverse.find { |record| record.kind == kind } }
+
+  admin.get editor
+  body = admin.response.body
+  check("the editor of a saved design system has an upload form per kind") do
+    %w[logo logo-inverse logo-mobile favicon touch-icon font].all? { |kind| body.include?(%(id="thematiq-file-#{kind}-form")) }
+  end
+  check("each field states its limits") { body.include?("At most 512 KB") && body.include?("2000 by 1000 px") && body.include?("12 files per design system") }
+  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 6 }
+
+  body = send_file.call("logo", UploadSamples.svg("clean-logo"), "logo.txt")
+  logo = of_kind.call("logo")
+  check("an SVG logo is uploaded, whatever its name and declared type") { logo&.format == "svg" && body.include?("The logo is uploaded and in use.") }
+  check("the editor shows a preview of it") { body.include?(%(<img src="#{logo.url}")) }
+  check("the editor offers replace and remove for it") do
+    body.include?("Replace") && body.match?(/<button[^>]*name="remove"[^>]*value="#{logo.token}"|<button[^>]*value="#{logo.token}"[^>]*name="remove"/)
+  end
+  check("the top bar's logo rule points at the upload, on the one selector") do
+    admin.response.body.include?(%(.op-app-header .op-logo .op-logo--link { background-image: url("#{logo.url}"); }))
+  end
+  anonymous = session_for
+  anonymous.get "/login"
+  check("the sign in page carries the uploaded logo") { anonymous.response.body.include?(logo.url) }
+  anonymous.get logo.url
+  check("the uploaded logo is served without a sign in") { anonymous.response.status == 200 && anonymous.response.body.include?("<svg") }
+
+  body = send_file.call("logo", UploadSamples.svg("hostile-script"), "logo.svg")
+  replaced = of_kind.call("logo")
+  check("an upload replaces the file of that kind and says parts were left out") do
+    replaced.token != logo.token && records.call.count { |record| record.kind == "logo" } == 1 && body.include?("left out")
+  end
+  anonymous.get replaced.url
+  check("the stored hostile SVG has no script") { anonymous.response.status == 200 && !anonymous.response.body.include?("script") }
+  anonymous.get logo.url
+  check("the replaced file's address is gone") { anonymous.response.status == 404 }
+
+  send_file.call("logo_inverse", UploadSamples.png(300, 80), "inverse.png")
+  check("the logo for the coloured bar wins in the top bar") do
+    admin.get "/admin/thematiq"
+    admin.response.body.include?(%(.op-logo--link { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
+  end
+  send_file.call("logo_mobile", UploadSamples.webp(64, 64), "mobile.webp")
+  check("the mobile logo gets its rule on the element narrow screens show") do
+    admin.get "/admin/thematiq"
+    admin.response.body.include?(%(.op-app-header .op-logo--icon.op-logo--link { background-image: url("#{of_kind.call('logo_mobile').url}"); }))
+  end
+
+  send_file.call("favicon", UploadSamples.ico(32), "favicon.ico")
+  send_file.call("touch_icon", UploadSamples.png(180, 180), "touch.png")
+  favicon = of_kind.call("favicon")
+  touch = of_kind.call("touch_icon")
+  anonymous.get "/login"
+  page = anonymous.response.body
+  check("the page head links the uploaded favicon, after OpenProject's own") do
+    links = page.scan(/<link[^>]*rel="icon"[^>]*>/)
+    favicon && links.size >= 2 && links.last.include?(%(href="#{favicon.url}")) && links.last.include?('type="image/x-icon"') &&
+      links.last.include?('sizes="32x32"')
+  end
+  check("the page head links the uploaded touch icon") { touch && page.include?(%(href="#{touch.url}")) && page.include?('rel="apple-touch-icon"') }
+  admin.get "/this-page-does-not-exist-#{SecureRandom.hex(4)}"
+  check("an error page links the uploaded icons and logo as well") do
+    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo_inverse").url)
+  end
+
+  body = send_file.call("font", UploadSamples.woff2, "check.woff2", { font_family: "Check Sans", font_weight: "400", font_style: "normal" })
+  face = of_kind.call("font")
+  check("a font is uploaded with its family, weight and style") { face&.face&.family == "Check Sans" && body.include?("The font is uploaded and in use.") }
+  anonymous.get "/login"
+  check("the page loads the uploaded font with font-display swap") do
+    anonymous.response.body.include?("@font-face { font-family: 'Check Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url(#{face.url}) format('woff2'); }")
+  end
+  send_file.call("font", UploadSamples.ttf, "check-bold.ttf", { font_family: "Check Sans", font_weight: "700", font_style: "normal" })
+  send_file.call("font", UploadSamples.woff, "check.woff", { font_family: "Check Sans", font_weight: "400", font_style: "normal" })
+  check("a font with the same family, weight and style replaces, another weight is added") do
+    records.call.select { |record| record.kind == "font" }.map { |record| [record.format, record.font_weight] }.sort == [%w[ttf 700], %w[woff 400]]
+  end
+  admin.get "/admin/thematiq"
+  check("the picker says the font is an uploaded file") { admin.response.body.include?("The font Check Sans is an uploaded file of this design system.") }
+
+  before = records.call.map(&:token).sort
+  { "a script with a picture's name" => ["logo", "<script>alert(1)</script>", "logo.png", "does not know this kind of file"],
+    "a file that starts like a PNG and is not one" => ["logo", "\x89PNG\r\n\x1A\n<script>alert(1)</script>".b, "logo.png", "damaged"],
+    "a PNG with something after its end" => ["logo", UploadSamples.png + "<script>alert(1)</script>", "logo.png", "damaged"],
+    "a picture that declares 60,000 pixels a side" => ["logo", UploadSamples.png(60_000, 60_000), "logo.png", "too large"],
+    "a file over the size cap" => ["favicon", UploadSamples.png(32, 32) + ("x" * 200_000), "favicon.png", "too large"],
+    "a font in the logo field" => ["logo", UploadSamples.woff2, "logo.svg", "does not fit here"],
+    "an SVG in the touch icon field" => ["touch_icon", UploadSamples.svg("clean-logo"), "touch.png", "does not fit here"],
+    "an SVG that declares entities" => ["logo", UploadSamples.svg("hostile-entity-bomb"), "logo.svg", "declares entities"],
+    "an SVG that reads a local file" => ["logo", UploadSamples.svg("hostile-external-entity"), "logo.svg", "declares entities"],
+    "an SVG that draws itself a million times" => ["logo", UploadSamples.svg("hostile-use-bomb"), "logo.svg", "too complex"],
+    "an HTML page" => ["logo", UploadSamples.svg("not-svg-html"), "logo.svg", "does not know this kind of file"],
+    "an empty file" => ["logo", "", "logo.svg", "Choose a file first"] }.each do |label, (kind, content, name, message)|
+    body = send_file.call(kind, content, name)
+    check("#{label} is refused in plain words") { body.include?(message) }
+    check("after #{label} the stored files are unchanged") { records.call.map(&:token).sort == before }
+    check("after #{label} nothing hostile is on the page") { !body.include?("<script>alert(1)</script>") }
+  end
+  body = send_file.call("font", UploadSamples.woff2, "x.woff2", { font_family: "x'; } body { display:none", font_weight: "400", font_style: "normal" })
+  check("a hostile font name is refused") { body.include?("Give the font a family name") && records.call.map(&:token).sort == before }
+  body = send_file.call("logo", UploadSamples.png, "../../../config/database.yml")
+  check("a file name with a path in it is only ever a label") do
+    of_kind.call("logo").format == "png" && !body.include?("adapter:") && of_kind.call("logo").file_name == "logo.png"
+  end
+  admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "export_logo", upload: "1", file: binary.call(UploadSamples.png, "x.png"),
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
+  admin.follow_redirect!
+  check("a kind the plugin does not have is refused") { admin.response.body.include?("does not know that kind of file") }
+  admin.post "/admin/thematiq/custom/files", params: { id: "custom-9998", kind: "logo", upload: "1", file: binary.call(UploadSamples.png, "x.png"),
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
+  check("an upload for a design system that does not exist gives 404") { admin.response.status == 404 && Thematiq::Upload.records_for("custom-9998").empty? }
+  admin.post "/admin/thematiq/custom/files", params: { id: "../../etc", kind: "logo", upload: "1", file: binary.call(UploadSamples.png, "x.png"),
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
+  check("an upload for an id that is a path gives 404") { admin.response.status == 404 }
+
+  count = Thematiq::Upload.count
+  as_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  as_member.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "logo", upload: "1", file: binary.call(UploadSamples.png, "x.png") }
+  check("a non-admin cannot upload") { [403, 422].include?(as_member.response.status) && Thematiq::Upload.count == count }
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "logo", upload: "1", file: binary.call(UploadSamples.png, "x.png") }
+  check("an upload without a CSRF token is refused") { throwaway.response.status == 422 && Thematiq::Upload.count == count }
+  session_for.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "logo", upload: "1", file: binary.call(UploadSamples.png, "x.png") }
+  check("an anonymous upload stores nothing") { Thematiq::Upload.count == count }
+
+  admin = session_for("admin", ADMIN_PASSWORD)
+  admin.get "/admin/thematiq/export", params: { id: set_id }
+  exported_with_files = admin.response.body
+  check("the export names the kinds of file it leaves behind and holds none") do
+    note = JSON.parse(exported_with_files)["uploads"]
+    note["included"] == false && note["kinds"].sort == %w[favicon font logo logo_inverse logo_mobile touch_icon] &&
+      !exported_with_files.include?(of_kind.call("logo").token) && exported_with_files.bytesize < 8_000
+  end
+  body = import.call(exported_with_files)
+  check("an import of that file says which files to upload again") { body.include?("Its uploaded files did not come along") }
+  imported_id = (OpenProject::Thematiq::Store.new.custom_drafts.map(&:id) - [set_id]).first
+  check("the imported design system has no files") { imported_id && Thematiq::Upload.records_for(imported_id).empty? }
+
+  gone = of_kind.call("favicon")
+  admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "favicon", remove: gone.token,
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-favicon-form") }
+  admin.follow_redirect!
+  check("remove takes the file away and says so") { of_kind.call("favicon").nil? && admin.response.body.include?("The file is removed.") }
+  anonymous.get gone.url
+  check("the removed file's address answers 404") { anonymous.response.status == 404 }
+  anonymous.get "/login"
+  check("the page head no longer links the favicon of the plugin") { !anonymous.response.body.include?(gone.url) }
+  admin.post "/admin/thematiq/custom/files", params: { id: imported_id, kind: "logo", remove: of_kind.call("logo").token,
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
+  check("a file cannot be removed through another design system") { !of_kind.call("logo").nil? }
+
+  kept = records.call.map(&:token)
+  admin.post "/admin/thematiq/custom", params: { id: set_id, delete: "1", authenticity_token: form_token(admin, editor, "thematiq-editor-form") }
+  check("deleting the design system removes its files") { kept.size >= 5 && Thematiq::Upload.where(token: kept).none? }
+  anonymous.get "/thematiq/files/#{kept.first}"
+  check("and their addresses answer 404") { anonymous.response.status == 404 }
 ensure
+  [set_id, imported_id, "custom-9998", "custom-9999"].compact.each { |id| Thematiq::Upload.remove_set(id) } if defined?(Thematiq::Upload)
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy
 end

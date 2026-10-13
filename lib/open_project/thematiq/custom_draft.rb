@@ -8,13 +8,19 @@ module OpenProject
     # It sorts the typed values into valid overrides and errors, and builds the token set they give.
     # Nothing is stored here. The preview and the save both go through this class.
     class CustomDraft
+      # The id of the first custom design system. Later ones are custom-2, custom-3 and so on.
       ID = "custom"
+      ID_PATTERN = /\Acustom(?:-[1-9]\d{0,3})?\z/
       MAX_INPUT = 400
 
-      attr_reader :base, :errors
+      attr_reader :base, :errors, :id
 
-      def initialize(base:, name:, overrides:)
+      # logo: the logo reference an imported file brought along, { "file" => ..., "inverse_file" => ... }.
+      # It only counts when it names a file the plugin has. Without it the draft keeps the logo of its base.
+      def initialize(base:, name:, overrides:, id: ID, logo: nil)
         @base = base
+        @id = id.is_a?(String) && ID_PATTERN.match?(id) ? id : ID
+        @logo = logo.is_a?(Hash) ? logo : {}
         @raw_name = name
         @raw = overrides.is_a?(Hash) ? overrides : {}
         @errors = []
@@ -55,19 +61,32 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id: ID, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens,
-                             logo_file: base.logo_file, logo_inverse_file: base.logo_inverse_file, logo_licence: base.logo_licence)
+        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens,
+                             logo_file: logo_file || base.logo_file,
+                             logo_inverse_file: logo_file ? logo_inverse_file : base.logo_inverse_file,
+                             logo_licence: base.logo_licence)
       end
 
       # The shape the store keeps.
       def definition
-        { "name" => name, "based_on" => base.id, "overrides" => overrides.dup }
+        definition = { "name" => name, "based_on" => base.id, "overrides" => overrides.dup }
+        definition["logo"] = { "file" => logo_file, "inverse_file" => logo_inverse_file } if logo_file
+        definition
+      end
+
+      # The file names of the logo this draft brought along, checked like any other file reference.
+      def logo_file
+        Tokens::Validator.file_name(@logo["file"])
+      end
+
+      def logo_inverse_file
+        Tokens::Validator.file_name(@logo["inverse_file"])
       end
 
       private
 
       def clean
-        Tokens::TokenSet::KINDS.each_with_object({}) do |(key, kind), result|
+        Tokens::TokenSet::ALL_KINDS.each_with_object({}) do |(key, kind), result|
           given = @raw[key]
           next if given.nil? || (given.is_a?(String) && given.strip.empty?)
 

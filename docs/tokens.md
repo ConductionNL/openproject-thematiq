@@ -12,6 +12,18 @@ This page explains what a design system is to the plugin and how its tokens reac
 
 The plugin makes no network requests. Every design system comes from a file in the plugin or from OpenProject's own settings. [catalogue.md](catalogue.md) describes the file.
 
+## One optional role: the menu background
+
+A design system may have a nineteenth value, `menu`: the background colour of the main menu. Without it the menu is white, as before.
+
+With it, the plugin works out the text colours itself, so a dark menu stays readable:
+
+- The text on the menu is the set's `ink` when that reaches 4.5 to 1 on the menu, and white or near black otherwise.
+- The text on the selected item is the set's `primary-deep` when that reads on `primary-light`, and white or near black otherwise.
+- Inside the menu, the plugin's colour aliases take the menu's values. Rules written for a white menu keep working on a coloured one.
+
+The same rule decides the text on the top bar and on the main button: white wherever white reads. That is so for all 64 sets from thematiq, so nothing changes for them. A set with a light top bar gets dark text.
+
 ## How a value is checked
 
 A token value ends up inside a `<style>` tag. So the plugin accepts a value only when its whole text matches a known syntax:
@@ -22,7 +34,7 @@ A token value ends up inside a `<style>` tag. So the plugin accepts a value only
 
 A value that fails falls back to the last resort value for that token, in `lib/open_project/thematiq/tokens/defaults.rb`. A file that ships with the plugin gets the same check as any other input.
 
-The last resort values have no `accent`, `text` and `chip`. The variables for those three are then left out, so OpenProject's own values apply.
+The last resort values are Cunningham's, the default design system. A test keeps them the same as Cunningham in the catalogue.
 
 ## How the tokens reach the page
 
@@ -34,17 +46,26 @@ The last resort values have no `accent`, `text` and `chip`. The variables for th
 
 ## The dark theme
 
-A design system may bring a `dark` block next to `tokens`: the fifteen colour roles, each optional.
+A design system may bring a `dark` block next to `tokens`, with the colour roles for the dark theme. The catalogue has one for 63 of its 64 sets. thematiq derives them; the plugin derives nothing.
 
 ```json
-{ "id": "example", "name": "Example", "tokens": { "primary": "#1a67a3" }, "dark": { "primary": "#0b1f33", "ink": "#f0f6fc" } }
+{ "id": "example", "name": "Example", "tokens": { "primary": "#1a67a3" }, "dark": { "tokens": { "primary": "#558fe3", "ink": "#e2e3e4" } } }
 ```
 
-When a set has one, the generator writes a fourth block for `body[data-color-mode="dark"][data-dark-theme="dark"]`. It holds only the roles the block names. Everything else stays OpenProject's own dark colour. White surfaces of the light theme are never copied into the dark theme.
+For such a set the generator writes one more block, for `body[data-color-mode="dark"][data-dark-theme="dark"]`. It holds only the roles the dark block names. Everything else stays OpenProject's own dark colour. White surfaces of the light theme are never copied into the dark theme. Radius and font in a dark block are ignored: they do not change with the theme.
 
-None of the 64 bundled design systems has a `dark` block today, and the plugin does not derive one. So the dark theme keeps OpenProject's own colours, and only radius and font follow the tokens there. The two high contrast themes always keep OpenProject's colours.
+Two rules guard the dark theme:
 
-"Sync with OS" was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
+- **A dark block is only used when its main text reads on its page background**, 4.5 to 1. No bundled set fails that since the catalogue of 13 October 2026. Before it, seven did. The rule stays for a design system you import: when it fails, the dark theme keeps OpenProject's own colours.
+- **The text on the selected menu item follows a contrast rule.** The plugin takes the dark block's own `primary-deep` when it reads on its `primary-light`, and otherwise whichever of its `ink` and white reads best. No bundled set needs the second step since the corrected catalogue.
+
+With these two rules, every dark block that is used reaches 4.5 to 1 on all six pairs. A test holds that.
+
+A set without a dark block, and the three OpenProject themes, keep OpenProject's own dark colours.
+
+**High contrast.** The two high contrast themes always keep OpenProject's own colours. A person who asks for more contrast should get the colours that were made for that.
+
+**Sync with OS** was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
 
 ## Run the tests
 

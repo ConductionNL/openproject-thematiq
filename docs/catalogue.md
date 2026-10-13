@@ -32,13 +32,21 @@ The design systems ship inside the plugin, in one JSON file. This page explains 
 }
 ```
 
-The file in the plugin is generated from thematiq. `generated_from` names the thematiq commit. It holds 64 design systems, each with all eighteen tokens. [tokens.md](tokens.md) lists the tokens.
+The file in the plugin is generated from thematiq. `generated_from` says where it came from and ends in a digest of its sets. It holds 64 design systems, each with all eighteen tokens, and 63 of them with a `dark` block. `basis` on a logo or a font says why its `redistributable` answer is what it is; the plugin reads past it. `licence_files` on a font names the notices that must travel with its files. [tokens.md](tokens.md) lists the tokens.
 
 `redistributable` is `true`, `false` or `null`. `null` means the generator found nothing that says the file may be passed on. The plugin treats `null` like `false`. Of the 64 sets, 14 have a logo the plugin may ship.
 
 A logo's `file` is the path it has in thematiq. The plugin uses the file name only and looks it up in its own folder.
 
 `fonts` is read by `OpenProject::Thematiq::Assets`. [logos-and-fonts.md](logos-and-fonts.md) explains how.
+
+## The plugin's own sets
+
+`data/catalogue/openproject-themes.json` has the same shape and is written by hand. It holds OpenProject's own three colour themes as design systems: "OpenProject (default)", "OpenProject Gray" and "OpenProject Navy Blue". The five colours of each come from `lib/open_project/custom_styles/color_themes.rb` in OpenProject 17.9.1. The other values are OpenProject's defaults.
+
+The loader reads the generated file first and adds these. A set in this file cannot replace a generated one.
+
+These three are the only sets with the optional role `menu`, the background of the main menu. [tokens.md](tokens.md) explains it.
 
 ## What the loader does
 

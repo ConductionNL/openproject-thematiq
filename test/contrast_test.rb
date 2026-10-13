@@ -63,8 +63,72 @@ class ContrastTest < Minitest::Test
       { "id" => "pale", "name" => "Pale", "tokens" => { "primary" => "#ffee00", "action" => "#1f883d", "muted" => "#bbbbbb", "ground" => "#ffffff" } }
     )
 
-    assert_includes Contrast.failures(token_set), "on-primary"
+    assert_equal "#1b1c1d", Contrast.on(token_set, "primary"), "white does not read on yellow, so the text goes dark"
+    refute_includes Contrast.failures(token_set), "on-primary"
     assert_includes Contrast.failures(token_set), "muted-on-ground"
     refute_includes Contrast.failures(token_set), "on-action"
+  end
+
+  # --- the rule for text on a background ---
+
+  def test_best_on_keeps_the_first_candidate_when_it_reads
+    assert_equal "#ffffff", Contrast.best_on("#1a67a3", ["#ffffff", "#000000"])
+    assert_equal "#000000", Contrast.best_on("#fafafa", ["#ffffff", "#000000"])
+    assert_equal "#ffffff", Contrast.best_on("#0e2045", ["#1f2328", "#ffffff"])
+    assert_equal "#ffffff", Contrast.best_on("not a colour", ["#ffffff", "#000000"]), "unknown background: the first candidate"
+  end
+
+  def test_every_set_generated_from_thematiq_keeps_white_text_on_primary_and_action
+    (Catalogue.bundled.sets.map(&:id) - Catalogue.own_ids).each do |id|
+      token_set = Catalogue.bundled.find(id)
+
+      assert_equal "#ffffff", Contrast.on(token_set, "primary"), id
+      assert_equal "#ffffff", Contrast.on(token_set, "action"), id
+      assert_equal token_set["primary-deep"], Contrast.on_selected(token_set), id
+    end
+  end
+
+  def test_the_text_on_a_menu_colour_reads_for_every_set_that_has_one
+    Catalogue.own_ids.each do |id|
+      report = Contrast.report(Catalogue.bundled.find(id))
+
+      assert_operator report["text-on-menu"], :>=, Contrast::MINIMUM, id
+      assert_operator report["on-primary"], :>=, Contrast::MINIMUM, id
+      assert_operator report["primary-deep-on-primary-light"], :>=, Contrast::MINIMUM, id
+    end
+  end
+
+  # --- the dark theme ---
+
+  # The bundled sets whose dark block is not used, because its main text does not read on its page
+  # background. For these the dark theme keeps OpenProject's own colours. Measured on the vendored catalogue.
+  # Seven until the catalogue of 13 October 2026, which corrected the dark blocks. Now none.
+  DARK_NOT_USED = %w[].freeze
+
+  def test_the_dark_blocks_that_are_not_used_are_exactly_the_known_ones
+    not_used = Catalogue.bundled.sets.select(&:dark?).reject { |token_set| Contrast.dark_usable?(token_set) }.map(&:id)
+
+    assert_equal DARK_NOT_USED, not_used.sort
+  end
+
+  def test_every_dark_block_that_is_used_reaches_the_minimum_on_every_pair
+    Catalogue.bundled.sets.select { |token_set| Contrast.dark_usable?(token_set) }.each do |token_set|
+      assert_empty Contrast.dark_failures(token_set), "#{token_set.id}: #{Contrast.dark_report(token_set)}"
+    end
+  end
+
+  # 59 sets failed here until the catalogue corrected its dark blocks. The rule stays for an imported file.
+  def test_the_catalogues_own_selected_item_colours_read_in_the_dark_theme_since_the_corrected_blocks
+    raw_failures = Catalogue.bundled.sets.select(&:dark?).count do |token_set|
+      dark = token_set.dark_tokens
+      (Contrast.ratio(dark["primary-deep"], dark["primary-light"]) || 99) < Contrast::MINIMUM
+    end
+
+    assert_equal 0, raw_failures
+  end
+
+  def test_a_set_without_a_dark_block_has_no_dark_report
+    assert_nil Contrast.dark_report(Catalogue.bundled.find("nextcloud"))
+    refute Contrast.dark_usable?(Catalogue.bundled.find("nextcloud"))
   end
 end

@@ -12,7 +12,7 @@ module OpenProject
       # The set shape, shared by the bundled catalogue, the export file and the import file:
       #   { "id": "...", "name": "...", "tokens": { eighteen roles },
       #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
-      #     "dark": { colour roles for the dark theme, optional } }
+      #     "dark": { "tokens": { colour roles for the dark theme } } }   optional
       class TokenSet
         class InvalidSet < StandardError; end
 
@@ -26,12 +26,33 @@ module OpenProject
           "font-family" => :font_family
         }.freeze
 
-        SET_KEYS = %w[id name tokens logo dark].freeze
+        # Roles a set may have on top of the eighteen. They have no last resort value:
+        # a set without one keeps what the plugin did before the role existed.
+        #   menu  the background of the main menu. Without it the menu is white.
+        OPTIONAL_KINDS = { "menu" => :color }.freeze
+        ALL_KINDS = KINDS.merge(OPTIONAL_KINDS).freeze
+
+        # "uploads" is a note an export file carries when the design system had uploaded files. They do not
+        # travel in the file. Transfer writes and reads the note. A token set does not keep it.
+        SET_KEYS = %w[id name tokens logo dark uploads].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
-        DARK_KEYS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
+        DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+
+        # The dark block as the catalogue writes it is { "tokens" => { roles } }. The roles on their own are
+        # read as well. Either way only the colour roles count: radius and font do not change with the theme.
+        def self.dark_roles(dark)
+          dark.is_a?(Hash) && dark["tokens"].is_a?(Hash) ? dark["tokens"] : dark
+        end
+
+        # For an imported file: what is in its dark block that is not a role.
+        def self.unknown_dark_keys(dark)
+          return [] unless dark.is_a?(Hash)
+
+          (dark.key?("tokens") ? dark.keys - ["tokens"] : []) + ((dark_roles(dark) || {}).keys - ALL_KINDS.keys)
+        end
 
         # The last resort: the values in Defaults. Used when the catalogue cannot be read.
         def self.fallback
@@ -56,10 +77,11 @@ module OpenProject
           raise InvalidSet, "tokens_missing" unless tokens.is_a?(Hash)
           raise InvalidSet, "logo_invalid" unless logo.is_a?(Hash)
           raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
+          raise InvalidSet, "uploads_invalid" unless set["uploads"].nil? || set["uploads"].is_a?(Hash)
 
           if strict
-            unknown = (set.keys - SET_KEYS) + (tokens.keys - KINDS.keys) + (logo.keys - LOGO_KEYS) +
-                      ((set["dark"] || {}).keys - DARK_KEYS)
+            unknown = (set.keys - SET_KEYS) + (tokens.keys - ALL_KINDS.keys) + (logo.keys - LOGO_KEYS) +
+                      unknown_dark_keys(set["dark"])
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
           end
@@ -99,7 +121,7 @@ module OpenProject
           set = { "id" => id, "name" => name, "tokens" => tokens.dup,
                   "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
                               "redistributable" => !logo_file.nil? } }
-          set["dark"] = dark_tokens.dup if dark?
+          set["dark"] = { "tokens" => dark_tokens.dup } if dark?
           set
         end
 
@@ -108,6 +130,7 @@ module OpenProject
         # The optional dark block: colour roles only, no fallback. A role it does not name, or names with
         # a value that fails, stays OpenProject's own dark colour.
         def clean_dark(raw)
+          raw = self.class.dark_roles(raw)
           return {} unless raw.is_a?(Hash)
 
           DARK_KEYS.each_with_object({}) do |key, result|
@@ -119,7 +142,7 @@ module OpenProject
         end
 
         def clean(raw, base)
-          KINDS.each_with_object({}) do |(key, kind), result|
+          ALL_KINDS.each_with_object({}) do |(key, kind), result|
             given = raw[key]
             value = Validator.public_send(kind, given)
             @rejected << key if !given.nil? && value.nil?

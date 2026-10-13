@@ -87,8 +87,8 @@ class AssetsTest < Minitest::Test
   def test_how_many_bundled_sets_get_their_named_font_from_the_plugin
     loaded, not_loaded = Catalogue.bundled.sets.partition { |token_set| bundled.bundled_family?(bundled.named_family(token_set)) }
 
-    assert_equal 64, loaded.size + not_loaded.size
-    assert_equal NOT_BUNDLED, not_loaded.map(&:id).sort
+    assert_equal 67, loaded.size + not_loaded.size
+    assert_equal (NOT_BUNDLED + OpenProject::Thematiq::Catalogue.own_ids).sort, not_loaded.map(&:id).sort
   end
 
   def test_a_hostile_fonts_list_gives_no_rule
@@ -124,7 +124,7 @@ class AssetsTest < Minitest::Test
   def test_a_set_whose_logo_is_not_redistributable_keeps_openprojects_logo
     assert_nil bundled.logo_url(set("amsterdam"))
     assert_nil bundled.logo_url(set("cunningham"))
-    assert_equal 14, Catalogue.bundled.sets.count { |token_set| bundled.logo_url(token_set) }
+    assert_equal 15, Catalogue.bundled.sets.count { |token_set| bundled.logo_url(token_set) }
   end
 
   def test_a_custom_set_keeps_the_logo_of_its_base
