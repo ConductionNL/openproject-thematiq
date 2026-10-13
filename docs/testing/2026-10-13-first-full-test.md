@@ -20,6 +20,34 @@ The first test of the whole plugin as one product, on a fresh install. This page
 
 Each line: severity, where, how to reproduce, expected and actual, screenshot.
 
+### Status
+
+Fixed in pull requests to `development`, opened on 13 October 2026 by the lane that fixed the findings. "Open" means the pull request is not merged yet. The checks of the combined fixes are under [The end-to-end suite](#the-end-to-end-suite).
+
+| # | Status | Pull request |
+|---|---|---|
+| 1 | Fixed, merged | #38 |
+| 2 | Fixed: the search gives way to 240 px, the account label gives way on a module page between 1360 and 1439 px, a long name ends in an ellipsis | #41 |
+| 3 | Fixed: `docker compose exec ... bash -lc` gets the secret from a login script the compose start writes; every command names the compose service and the `docker run` container | #52 |
+| 4 | Fixed, merged | #39 |
+| 5 | Fixed: the plain logo on OpenProject's light high contrast bar | #47 |
+| 6 | Fixed: the thead height, `--generic-table--header-height`, is 44 | #41 |
+| 7 | Fixed in thematiq: Cunningham's muted text is `#62656a`, 5.85 to 1 on white. The catalogue is vendored again | thematiq #1277, then #40 |
+| 8 | Fixed: the step at core's return arrow is dropped while the plugin's menu is in place; the close button sits below the bar. The two TypeErrors are core's own (steps without a target) and stay | #50 |
+| 9 | Fixed: 67 design systems, the dark theme, 17 core files, a font for 52 sets, removal tested, migrations on every start | #52 |
+| 10 | Fixed: the search covers custom design systems, the count counts them | #43 (after #42) |
+| 11 | Fixed: delete and remove ask first, on a page with a form | #44 |
+| 12 | Fixed: the plain logo on Zuiddrecht's light blue dark bar | #47 |
+| 13 | Fixed: plain `data-test-selector` attributes | #42 |
+| 14 | Fixed: Apply comes before the list. The radio buttons were already one tab stop; the three links per card were the 200 | #49 |
+| 15 | Fixed: a processing instruction counts as left out | #45 |
+| 16 | Fixed: the layer over the bar stops where white keeps 4.5 to 1. Measured with Zuiddrecht active, not Cunningham | #48 |
+| 17 | Fixed, as 16 | #48 |
+| 18 | Documented in `docs/tokens.md` and the README | #52 |
+| 19 | Fixed: `ready?` asks the database, not the schema cache; `docs/uploads.md` says what the pages do without the table | #46 |
+| 20 | Ours (the shell's chevron next to core's triangle). Fixed | #51 |
+| 21 | Ours (with the plugin's style tags disabled the row fits). Fixed: the toolbar wraps below 680 px | #51 |
+
 ### Blocker
 
 1. **Blocker, data loss. A new custom design system at the limit overwrites the first one.** With 50 custom design systems, select **Customise** on any design system, give it a name and select **Save and apply**. Expected: the plugin refuses, as import and Figma upload do ("There are 50 custom design systems ... Delete one first"). Actual: it answers "is now the active design system" and the custom design system with id `custom` is replaced by the new one, without a word; its uploaded files now hang on the new one. Cause: `new_draft` and `custom_id_from_params` in `admin_controller.rb` fall back to the id `custom` when no id is free. Screenshot `c-too-many.png`. Fixed in the pull request named at the end.
@@ -68,7 +96,7 @@ Measured with computed styles on `/projects/demo-project/work_packages` at 1440 
 | Level two item | 36 | 36 |
 | Primary button | 40 | 40 (Create); the round "+" in the top bar is 44 |
 | Table row | 48 | 48 |
-| Table header | 44 | 45 |
+| Table header | 44 | 45 (44 since #41) |
 
 The top bar is 68 and the rows 48 on all eleven design systems tried.
 
@@ -131,6 +159,23 @@ The docs are right about what stays and that OpenProject works with it. Wrong: t
 
 Local: 30 of 30 passed in two consecutive runs on this commit, with one worker (the second after the machine restarted and the instance came back on its volumes). Flaky along the way and fixed: a flash text matched both the banner and OpenProject's live region; the member's login collided with the member of the run before, which OpenProject deletes in a background job. CI: the workflow run on `1d01fbe` passed both jobs, unit tests and syntax in 51 s, end-to-end in 8 minutes 30 seconds.
 
+### With the fixes of findings 2 to 21
+
+All fix branches merged together locally, in pull request order (#40 to #52, #43 on top of #42), on `development` at `97e88ed`, and the instance rebuilt from that (OpenProject 17.9.1, port 8237, the volumes of this test).
+
+| Check | Result |
+|---|---|
+| End-to-end suite, run 1 | 38 of 38 passed, one worker, 10.1 minutes |
+| End-to-end suite, run 2, right after | 38 of 38 passed, 9.5 minutes |
+| `bin/test` | 337 runs, 0 failures |
+| `bin/check-syntax` | ok |
+| `script/check-core.rb` | ok, 17 core files match OpenProject 17.9.1 |
+| Request check | 232 checks, 0 failures, run with the README's `docker compose ... exec openproject bash -lc` command |
+| `rake db:migrate:down VERSION=20261012090000` as the README writes it, on the running instance | Table dropped. The editor of a custom design system answers 200 and says the table is missing (finding 19); a file address answers 404. `rake db:migrate` brings the table back |
+| Logo on Zuiddrecht, in the browser | Light: the variant for dark backgrounds on `#3669a5`. Dark theme attributes: the plain logo on `#84aad7`. Light high contrast (OpenProject's class on the logo): the plain logo on `#eff2f5` |
+
+On the way, three things were red and fixed in their own pull requests: the tour's close button rule lost to the top EnjoyHint writes on the element (#50), the request check still looked for the logo rule's old selector (#47), and `docs/uploads.md` said the file route answers 503 without the table where it answers 404 (#46). A first attempt at the two runs is not counted: the branch of the checkout changed while it ran.
+
 ## Not done
 
 - A real screen reader. Only axe and the keyboard.
@@ -139,4 +184,4 @@ Local: 30 of 30 passed in two consecutive runs on this commit, with one worker (
 - Opening a downloaded Figma file in Figma or Tokens Studio.
 - A Tokens Studio folder of several files on upload: only single files were uploaded.
 - Twelve fonts, and the limit of 12.
-- Whether finding 21 (the cut-off toolbar at 390 wide) also happens without the plugin.
+- Whether finding 21 (the cut-off toolbar at 390 wide) also happens without the plugin. Answered later by disabling the plugin's style tags in the page: it does not, it is ours.
