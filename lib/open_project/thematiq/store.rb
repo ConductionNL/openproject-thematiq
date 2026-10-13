@@ -4,6 +4,7 @@ require "open_project/thematiq/tokens"
 require "open_project/thematiq/catalogue"
 require "open_project/thematiq/custom_draft"
 require "open_project/thematiq/shell/nextcloud_apps"
+require "open_project/thematiq/shell/app_row"
 
 module OpenProject
   module Thematiq
@@ -140,6 +141,49 @@ module OpenProject
 
         write(NEXTCLOUD_URL_KEY => normalized)
         true
+      end
+
+      # --- the row of tiles in the top bar ---
+      #
+      # The key and the reading are the shell's: Shell::TOP_BAR_APPS_SETTING, read by Shell.top_bar_apps through
+      # Shell::AppRow.wanted. Empty is the row of the design, "none" is no row, otherwise keys separated by commas.
+
+      TOP_BAR_APPS_KEY = "top_bar_apps"
+
+      # [mode, keys]: "default" with the design's row, "none" with no keys, or "custom" with the stored keys.
+      def top_bar_apps
+        text = data[TOP_BAR_APPS_KEY].to_s.strip
+        keys = Shell::AppRow.wanted(text)
+        return ["none", []] if keys.empty?
+        return ["default", Shell::AppRow::DEFAULT] if text.empty? || keys.equal?(Shell::AppRow::DEFAULT)
+
+        ["custom", keys]
+      end
+
+      # Stores the choice. A custom row takes the picked keys in order, without empties and repeats, and needs at
+      # least one. Only keys the field offers count, plus keys the setting already held. Returns false and
+      # stores nothing when the choice cannot be used.
+      def save_top_bar_apps(mode, keys)
+        value = case mode
+                when "default" then nil
+                when "none" then Shell::AppRow::OFF
+                when "custom" then custom_top_bar_value(keys)
+                else return false
+                end
+        return false if value == false
+
+        write(TOP_BAR_APPS_KEY => value)
+        true
+      end
+
+      # The stored text of a custom row, or false when the picked keys cannot be used.
+      def custom_top_bar_value(keys)
+        allowed = Shell::AppRow::KNOWN | top_bar_apps.last
+        picked = Array(keys).map { |key| key.to_s.strip }.reject(&:empty?).uniq
+        return false if picked.empty? || picked.size > Shell::AppRow::MAX
+        return false unless picked.all? { |key| Shell::AppRow::KEY.match?(key) && allowed.include?(key) }
+
+        picked.join(", ")
       end
 
       # --- settings left by the version that fetched from thematiq ---

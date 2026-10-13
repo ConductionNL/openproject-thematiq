@@ -75,6 +75,16 @@ An uploaded file wins over the file of the design system yours is based on. Dele
 
 [uploads.md](uploads.md) lists the limits, the checks and where the files are kept.
 
+## Tiles in the top bar
+
+**Tiles in the top bar**, at the bottom of the page, picks which apps and modules show as tiles after the logo, and in which order.
+
+1. Choose **The row of the design**, **My own row** or **No tiles**.
+2. For your own row, pick a tile for each place, from left to right. Empty places are skipped. At most twelve.
+3. Select **Save tiles**. Everyone sees the new row on their next page.
+
+A tile a user cannot open is left out, and the row is filled up from OpenProject's own order. Nextcloud tiles need the Nextcloud address. The page a user is on always gets a tile. [shell-structure.md](shell-structure.md#the-row-of-apps) has the rules.
+
 ## Export and import a design system
 
 **Export** next to a design system saves it as a JSON file: its id, its name, its eighteen values and the name of its logo file. The file has the same shape as one entry of the plugin's catalogue. A design system with values from thematiq's full vocabulary has them in a `vocabulary` entry beside the eighteen; [the full vocabulary](design/full-vocabulary.md) lists the names. A file exported before the vocabulary existed imports as it always did.

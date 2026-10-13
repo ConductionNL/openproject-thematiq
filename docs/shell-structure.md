@@ -70,7 +70,7 @@ Core's top bar helpers take a row of items without a view override. `top_menu_le
 |---|---|---|
 | OpenProject's modules | `more_top_menu_items`, core's own list for the app switcher. It runs each item's `if:` condition, so a user only gets what core would show them | Built |
 | Nextcloud's apps | The fixed list of `Shell::NextcloudApps`, only when a Nextcloud address is set | Built |
-| Which entries, in which order | The plugin setting `top_bar_apps`, a list of keys. See below | Built. No field on the admin page yet |
+| Which entries, in which order | The plugin setting `top_bar_apps`, a list of keys. See below | Built, with a field on the admin page: **Tiles in the top bar** |
 | Icon | The outline icon of the design for the modules the design draws. Any other module keeps the icon core gives it | Built |
 | Name | Real text in the link. It shows under the icon on the current tile and on hover and focus | Built |
 | Current tile | `aria-current="page"`, a fill and a line under the tile. It follows core's `current_menu_item`, so a project's work package page marks Work packages. Wiki, Members, Project settings and the administration mark nothing | Built |
@@ -81,6 +81,8 @@ Core's top bar helpers take a row of items without a view override. `top_menu_le
 | The list: heading, a line of text per entry, current entry, "Manage apps" | Core renders the module list. A second line and a current mark need a replacement of a private core method | Not built |
 
 **The setting.** `top_bar_apps` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.top_bar_apps`. It is a list of keys separated by commas. A Nextcloud app has the key of its name (`files`, `mail`, `calendar`, `tasks`, `talk`, `contacts`). A module has the name of its item in core's top menu (`home`, `my_page`, `projects`, `work_packages`, `gantt`, `team_planners`, `boards`, `meetings`, `news`, `cost_reports_global`, `wikis`). Empty gives the default, `none` gives no row, and there are at most twelve.
+
+**The field.** **Administration**, **Thematiq design**, **Tiles in the top bar**: the row of the design, an own row, or no tiles. An own row has twelve places, each a list of the keys in `Shell::AppRow::KNOWN` (the six Nextcloud apps and the fifteen modules of core's top menu in 17.9.1), filled from left to right. Empty places and repeats are dropped; an own row without a tile is refused. A key the setting already held, from another plugin for example, stays on offer.
 
 **The default** is the row of the design: `files, mail, calendar, work_packages, boards, gantt, meetings`.
 
