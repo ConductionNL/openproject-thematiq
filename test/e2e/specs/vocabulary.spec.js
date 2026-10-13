@@ -100,4 +100,22 @@ test.describe("vocabulary", () => {
     expect(await variable(page, "--box-list-item-bg-hover-color")).toBe("#eeffee");
     expect(await variable(page, "--body-background")).toBe("#f5f6f8");
   });
+
+  test("the selected menu entry and the count take thematiq's navigation colours", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary navigation ${Date.now()}`,
+                                       vocabulary: { "component-navigation-active-background-color": "#cc0000", "component-navigation-active-color": "#a30000",
+                                                     "component-navigation-badge-background-color": "#cc0000", "component-navigation-badge-color": "#ffffff" } });
+    await applySet(page, id);
+
+    await page.goto(`/projects/${require("../support/env").config.project}/work_packages`);
+    const selected = page.locator("#main-menu .op-submenu--item-action.selected").first();
+    await expect(selected).toHaveCSS("color", "rgb(163, 0, 0)");
+    // A 16% wash of the red over the white menu: a light red, not the primary light.
+    const wash = await selected.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(wash).not.toBe("rgba(0, 0, 0, 0)");
+    expect(wash).not.toMatch(/rgb\(234, 241, 251\)/);
+    const count = page.locator(".thematiq-nav-count").first();
+    await expect(count).toHaveCSS("background-color", "rgb(204, 0, 0)");
+    await expect(count).toHaveCSS("color", "rgb(255, 255, 255)");
+  });
 });

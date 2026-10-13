@@ -96,6 +96,11 @@ Rules:
 | `component-table-row-hover-background-color` | `--box-list-item-bg-hover-color` | The work package row under the pointer |
 | `component-content-surface-background-color` | `--body-background` | The workspace behind the content |
 
+| `component-navigation-active-background-color`, `-active-color` | The plugin's own `--thematiq-v-nav-active-*`: a 16% wash of the colour with the label on top, as thematiq draws it on Nextcloud 34 | The selected entry of the project menu |
+| `component-navigation-badge-background-color`, `-badge-color` | The plugin's own `--thematiq-v-nav-badge-*` | The count in the project menu |
+
+The navigation colours stay off a set with a `menu` colour: they are chosen for a white menu, and the plugin's contrast rule decides the text on a coloured one. `color-nav-background`, `color-nav-text` and `nav-link-color` are carried for the same reason: the `menu` role owns the menu's colour. The header colours (`color-header-*`, `header-*`) are carried: the canon draws the top bar in the primary. `component-badge-*` is carried: Primer's counter takes its text from the global `--fgColor-onEmphasis`, so a badge colour pair cannot be drawn together.
+
 `component-content-card-shadow-color` is carried: Primer's card shadow is a whole shadow, not a colour, and building one would be deriving.
 
 The main button stays the action role's. thematiq's `color-button-primary-*` and `component-button-primary-action-*` are carried, so the rule that the action colour, and only that, fills the one main button holds for every set.

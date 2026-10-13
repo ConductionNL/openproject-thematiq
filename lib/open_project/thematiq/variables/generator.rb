@@ -179,8 +179,20 @@ module OpenProject
           "--thematiq-v-table-line" => %w[component-table-border-color],
           "--box-list-item-bg-hover-color" => %w[component-table-row-hover-background-color],
           # The workspace behind the content: OpenProject's page background.
-          "--body-background" => %w[component-content-surface-background-color]
+          "--body-background" => %w[component-content-surface-background-color],
+          # The selected entry and the count of the project menu, read by the geometry and shell layers with the
+          # primary light and primary deep as fallback. thematiq draws the selected entry as a 16% wash of its
+          # colour with the label on top (Nextcloud 34 and later), and so does this: the wash is how thematiq
+          # draws the token, the label colour is chosen for it.
+          "--thematiq-v-nav-active-wash" => %w[component-navigation-active-background-color],
+          "--thematiq-v-nav-active-ink" => %w[component-navigation-active-color],
+          "--thematiq-v-nav-badge-bg" => %w[component-navigation-badge-background-color],
+          "--thematiq-v-nav-badge-ink" => %w[component-navigation-badge-color]
         }.freeze
+
+        NAV_KEYS = %w[component-navigation-active-background-color component-navigation-active-color
+                      component-navigation-badge-background-color component-navigation-badge-color].freeze
+        NAV_WASH = 16
 
         # Corners. Primer defines these on :root, beside the radius the roles already write.
         # thematiq's "rounded" corner (28px) has no Primer step of its own, so it is carried.
@@ -253,6 +265,10 @@ module OpenProject
           return nil unless value
           return "rgb(#{value})" if key == "color-focus-rgb"
           return nil if key == "color-focus" && Contrast.rgba(value)&.last != 1.0
+          # A set with a menu colour has the plugin's contrast rule for the text on it. The navigation colours of
+          # thematiq are chosen for a white menu, so they stay off a coloured one.
+          return nil if NAV_KEYS.include?(key) && @token_set["menu"]
+          return "color-mix(in srgb, #{value} #{NAV_WASH}%, var(--thematiq-surface))" if key == "component-navigation-active-background-color"
 
           value
         end
