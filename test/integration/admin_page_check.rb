@@ -655,6 +655,29 @@ begin
   check("deleting the design system removes its files") { kept.size >= 5 && Thematiq::Upload.where(token: kept).none? }
   anonymous.get "/thematiq/files/#{kept.first}"
   check("and their addresses answer 404") { anonymous.response.status == 404 }
+
+  # 9. At the limit a new custom design system is refused. It once fell back to the id "custom" and overwrote that one.
+  full = OpenProject::Thematiq::Store.new
+  while (free_id = full.next_custom_id)
+    full.save_custom(OpenProject::Thematiq::CustomDraft.new(base: default, name: "Filler #{free_id}", overrides: { "primary" => "#123456" }, id: free_id))
+  end
+  first_before = OpenProject::Thematiq::Store.new.custom_draft("custom")&.definition
+  admin.get "/admin/thematiq/custom", params: { from: default.id }
+  check("at the limit the editor does not open a new one") { admin.response.status == 302 }
+  admin.follow_redirect! if admin.response.redirect?
+  check("and says why") { admin.response.body.include?("which is the most the plugin keeps") }
+  token = form_token(admin, "/admin/thematiq/custom?id=custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "One too many", based_on: default.id, save: "1", tokens: { "primary" => "#ff0000" },
+                                                 authenticity_token: token }
+  check("at the limit saving a new one is refused") { admin.response.status == 302 }
+  check("and no stored design system is overwritten") do
+    store = OpenProject::Thematiq::Store.new
+    store.custom_drafts.size == 50 && store.custom_drafts.none? { |draft| draft.name == "One too many" } &&
+      store.custom_draft("custom")&.definition == first_before
+  end
+  admin.post "/admin/thematiq/custom", params: { id: "custom", name: "Filler edited", based_on: default.id, save: "1",
+                                                 tokens: { "primary" => "#123456" }, authenticity_token: token }
+  check("at the limit a stored one can still be edited") { OpenProject::Thematiq::Store.new.custom_draft("custom")&.name == "Filler edited" }
 ensure
   [set_id, imported_id, "custom-9998", "custom-9999"].compact.each { |id| Thematiq::Upload.remove_set(id) } if defined?(Thematiq::Upload)
   Setting.plugin_openproject_thematiq = saved_settings

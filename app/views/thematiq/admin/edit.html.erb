@@ -18,7 +18,8 @@
 <div class="thematiq-editor">
   <%= form_with(url: admin_thematiq_custom_path, method: :post, data: { turbo: false }, id: "thematiq-editor-form",
                 class: "thematiq-editor__form") do %>
-    <input type="hidden" name="id" value="<%= @draft.id %>">
+    <%# Only a stored one names its id. A new one gets a free id when it is saved, so two new ones never share an id. %>
+    <% if @stored %><input type="hidden" name="id" value="<%= @draft.id %>"><% end %>
     <%# Enter in a field presses the first button of a form. This one only draws the preview again. %>
     <button type="submit" name="preview" value="1" class="thematiq-editor__default" tabindex="-1" aria-hidden="true"></button>
     <div class="thematiq-editor__field">

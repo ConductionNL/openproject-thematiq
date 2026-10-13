@@ -32,16 +32,22 @@ module Thematiq
     # id names a stored custom design system to edit. from names a design system to start a new one from.
     def edit
       start = @store.catalogue.find(params[:from].to_s)
-      @draft = (start ? nil : @store.custom_draft(params[:id].to_s)) ||
-               new_draft(start || @store.catalogue.find(@store.active_id) || @store.catalogue.default)
+      @draft = start ? nil : @store.custom_draft(params[:id].to_s)
+      # A new one needs a free id. At the limit there is none, and the editor must not open on an id that is taken.
+      return refuse_new_custom unless @draft || @store.next_custom_id
+
+      @draft ||= new_draft(start || @store.catalogue.find(@store.active_id) || @store.catalogue.default)
       @stored = !@store.custom_draft(@draft.id).nil?
     end
 
     # One form posts here with several named buttons. Rails binds a CSRF token to one form action,
     # so preview, reset and delete are buttons on the same action and not URLs of their own.
     def update_custom
+      id = custom_id_from_params
+      return refuse_new_custom unless id
+
       if params[:delete].present?
-        deleted = custom_id_from_params
+        deleted = id
         @store.delete_custom(deleted)
         # Its uploaded files go with it. The id is given out again, and the next owner must not inherit them.
         Thematiq::Upload.remove_set(deleted)
@@ -252,13 +258,19 @@ module Thematiq
 
     def new_draft(base)
       OpenProject::Thematiq::CustomDraft.new(base:, name: t("thematiq.editor.default_name", name: base.name).first(80), overrides: {},
-                                             id: @store.next_custom_id || OpenProject::Thematiq::CustomDraft::ID)
+                                             id: @store.next_custom_id)
     end
 
     # The id of a stored custom design system, or the id a new one gets. Never an id from outside as it is.
+    # nil when the form names no stored one and all ids are taken: falling back to a taken id would overwrite it.
     def custom_id_from_params
       id = params[:id].to_s
-      @store.custom_draft(id) ? id : (@store.next_custom_id || OpenProject::Thematiq::CustomDraft::ID)
+      @store.custom_draft(id) ? id : @store.next_custom_id
+    end
+
+    def refuse_new_custom
+      flash[:error] = t("thematiq.transfer.errors.too_many")
+      redirect_to action: :show
     end
 
     def draft_from_params
