@@ -15,7 +15,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 
-Two tests are marked as expected to fail, because they check a known fault: the table header is 45 px instead of 44, and the top bar is wider than the window at 1440 on a module page. When one of them is fixed, Playwright reports the test as failed with "expected to fail, but passed". Remove the `test.fail()` line then.
+A test that checks a known fault is marked with `test.fail()`. None is marked now: the two that were (the table header at 45 px, the top bar wider than the window on a module page) pass since findings 2 and 6 were fixed. When a marked test passes, Playwright reports it as failed with "expected to fail, but passed". Remove the `test.fail()` line then.
 
 The accessibility pass fails only on serious or critical findings in the plugin's own markup: the admin pages of the plugin, the top bar and the project menu. Findings in OpenProject's own markup are attached to the report and do not fail the run.
 

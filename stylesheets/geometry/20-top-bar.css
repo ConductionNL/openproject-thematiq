@@ -2,8 +2,10 @@
  * The bar prints no app name: the logo carries it, and the row of apps the shell adds shows where you are. */
 
 /* height 68 px, full width */
-/* three columns: the brand block with the row of apps as wide as they are, the search, the rest */
-.op-app-header { height: 68px; padding: 0 20px 0 0; box-sizing: border-box; font-family: var(--thematiq-font); grid-template-columns: auto minmax(320px, 460px) minmax(max-content, 1fr); column-gap: 16px; }
+/* three columns: the brand block with the row of apps as wide as they are, the search, the rest.
+ * The search is the column that gives way (canon: flex 0 1 560px). On a module page the current tile shows its
+ * name and the row is wider; with a 320 px minimum the bar was 22 px wider than a 1440 px window. */
+.op-app-header { height: 68px; padding: 0 20px 0 0; box-sizing: border-box; font-family: var(--thematiq-font); grid-template-columns: auto minmax(240px, 460px) minmax(max-content, 1fr); column-gap: 16px; }
 .op-app-header--start { width: auto; padding-left: 0; }
 .op-app-header--end { flex: 0 0 auto; width: auto; margin-left: auto; padding-right: 0; }
 .op-app-header .op-app-menu { display: flex; align-items: center; height: 68px; margin-left: 0; }
