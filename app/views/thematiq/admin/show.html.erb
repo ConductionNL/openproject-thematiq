@@ -220,3 +220,49 @@ end %>
   </fieldset>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.top_bar.save") } %>
 <% end %>
+
+<% module_rows = Thematiq::Scope.ready? ? Thematiq::Scope.rows.select { |r| r.project_id.nil? }.to_h { |r| [r.module_name, r.design_system_id] } : {} %>
+<% chosen_for_projects = @store.project_choices %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-scopes") { t("thematiq.scopes.admin.title") }
+end %>
+<%= form_with(url: admin_thematiq_scopes_path, method: :post, data: { turbo: false }, id: "thematiq-scopes-form", class: "thematiq-top-bar") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.description") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="projects_may_choose" value="1" id="thematiq-projects-may-choose" <%= "checked" if @store.projects_may_choose? %>>
+    <%= t("thematiq.scopes.admin.projects_may_choose") %>
+  </label>
+  <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.projects_may_choose_hint") %></p>
+  <details class="thematiq-editor__more" <%= "open" if chosen_for_projects.any? %>>
+    <summary class="thematiq-editor__more-title"><%= t("thematiq.scopes.admin.choices") %>
+      <span class="thematiq-editor__hint"><%= chosen_for_projects.empty? ? t("thematiq.scopes.admin.choices_all") : t("thematiq.editor.values_count", count: chosen_for_projects.size) %></span>
+    </summary>
+    <fieldset class="thematiq-top-bar__places">
+      <legend class="sr-only"><%= t("thematiq.scopes.admin.choices") %></legend>
+      <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.choices_hint") %></p>
+      <div class="thematiq-top-bar__list">
+        <% @store.all_sets.each do |token_set| %>
+          <label class="thematiq-editor__toggle">
+            <input type="checkbox" name="project_choices[]" value="<%= token_set.id %>" <%= "checked" if chosen_for_projects.include?(token_set.id) %>>
+            <%= token_set.name %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+  </details>
+  <fieldset class="thematiq-top-bar__places">
+    <legend class="thematiq-editor__label"><%= t("thematiq.scopes.admin.modules") %></legend>
+    <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.modules_hint") %></p>
+    <div class="thematiq-top-bar__list">
+      <% OpenProject::Thematiq::Scopes::MODULES.each_key do |name| %>
+        <div class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-module-<%= name %>"><%= t("thematiq.scopes.modules.#{name}") %></label>
+          <select name="modules[<%= name %>]" id="thematiq-module-<%= name %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.scopes.admin.module_inherit"), ""]] + @store.all_sets.map { |s| [s.name, s.id] }, module_rows[name].to_s) %>
+          </select>
+        </div>
+      <% end %>
+    </div>
+  </fieldset>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.scopes.admin.save") } %>
+<% end %>

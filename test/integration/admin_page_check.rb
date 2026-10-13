@@ -731,7 +731,111 @@ begin
   admin.post "/admin/thematiq/custom", params: { id: "custom", name: "Filler edited", based_on: default.id, save: "1",
                                                  tokens: { "primary" => "#123456" }, authenticity_token: token }
   check("at the limit a stored one can still be edited") { OpenProject::Thematiq::Store.new.custom_draft("custom")&.name == "Filler edited" }
+
+  # 10. Design systems per project and module (docs/design/scopes.md)
+  scopes_before = Thematiq::Scope.ready? ? Thematiq::Scope.all.map { |row| row.attributes.slice("project_id", "module_name", "design_system_id") } : []
+  Thematiq::Scope.delete_all if Thematiq::Scope.ready?
+  check("the table of the scopes exists") { Thematiq::Scope.ready? }
+  check("the permission exists") { OpenProject::AccessControl.permission(:choose_design_system).present? }
+  parent_project = Project.find_by(identifier: "demo-project")
+  sub_project = Project.create!(name: "Thematiq check sub", identifier: "thematiq-check-sub", parent: parent_project, public: false,
+                                workspace_type: parent_project.workspace_type)
+  designer_role = ProjectRole.create!(name: "Thematiq check designer #{SecureRandom.hex(3)}", permissions: %i[view_project choose_design_system])
+  Member.create!(project: parent_project, principal: member, roles: [designer_role])
+  instance_primary = OpenProject::Thematiq::Store.new.active_token_set["primary"]
+  page_style = lambda do |session, path|
+    session.get path
+    session.response.body[%r{<style id="openproject-thematiq"[^>]*>.*?</style>}m].to_s
+  end
+
+  scopes_post = lambda do |params|
+    token = form_token(admin, "/admin/thematiq", "thematiq-scopes-form")
+    admin.post "/admin/thematiq/scopes", params: params.merge(authenticity_token: token)
+    admin.follow_redirect!
+    admin.response.body
+  end
+  scopes_post.call(modules: { "meetings" => "zuiddrecht" })
+  check("an instance admin chooses a design system for a module") do
+    Thematiq::Scope.find_by(project_id: nil, module_name: "meetings")&.design_system_id == "zuiddrecht"
+  end
+  check("projects may not choose by default") { !OpenProject::Thematiq::Store.new.projects_may_choose? }
+  scopes_post.call(modules: { "meetings" => "made-up" })
+  check("an unknown design system is refused for a module") do
+    Thematiq::Scope.find_by(project_id: nil, module_name: "meetings")&.design_system_id == "zuiddrecht"
+  end
+
+  admin.get "/projects/demo-project/meetings"
+  check("a module's page gets its design system on the content only") do
+    body = admin.response.body
+    content = body[%r{<style id="openproject-thematiq-content"[^>]*>.*?</style>}m].to_s
+    content.include?("#content-wrapper") && content.include?("--thematiq-primary: #3669a5;") &&
+      body[%r{<style id="openproject-thematiq"[^>]*>.*?</style>}m].to_s.include?("--thematiq-primary: #{instance_primary};")
+  end
+  check("the style tags are tracked, so Turbo loads a page of another design system whole") do
+    admin.response.body.include?('id="openproject-thematiq" data-plugin-version') && admin.response.body.include?('data-turbo-track="reload"')
+  end
+
+  design_post = lambda do |session, project, params|
+    session.get "/projects/#{project}/settings/design"
+    token = CGI.unescapeHTML(session.response.body[/<form[^>]*id="thematiq-project-design-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+    session.post "/projects/#{project}/settings/design", params: params.merge(authenticity_token: token)
+    session.follow_redirect! if session.response.redirect?
+    session.response
+  end
+  design_post.call(admin, "demo-project", design_system: "amsterdam")
+  check("an instance admin chooses the design system of a project") do
+    Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "")&.design_system_id == "amsterdam"
+  end
+  amsterdam_primary = OpenProject::Thematiq::Catalogue.bundled.find("amsterdam")["primary"]
+  check("the whole page of the project follows it") { page_style.call(admin, "/projects/demo-project/work_packages").include?("--thematiq-primary: #{amsterdam_primary};") }
+  check("a subproject inherits it from the start") { page_style.call(admin, "/projects/thematiq-check-sub").include?("--thematiq-primary: #{amsterdam_primary};") }
+  admin.get "/projects/thematiq-check-sub/settings/design"
+  check("the subproject's page says where its design system comes from") do
+    admin.response.body.include?("It comes from the parent project #{parent_project.name}.")
+  end
+  check("a page outside the project keeps the instance's") { page_style.call(admin, "/projects").include?("--thematiq-primary: #{instance_primary};") }
+  admin.get "/projects/demo-project/meetings"
+  check("the project wins over the module, so a meetings page in it has no separate content") do
+    !admin.response.body.include?('id="openproject-thematiq-content"')
+  end
+
+  # A fresh session for the member, now that the member has the role.
+  designer = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  designer.get "/projects/demo-project/settings/design"
+  check("with the switch off, a member with the permission gets 403") { designer.response.status == 403 }
+  scopes_post.call(projects_may_choose: "1", project_choices: %w[zuiddrecht cunningham], modules: { "meetings" => "zuiddrecht" })
+  check("the switch and the list are saved") do
+    store = OpenProject::Thematiq::Store.new
+    store.projects_may_choose? && store.project_choices == %w[zuiddrecht cunningham]
+  end
+  designer.get "/projects/demo-project/settings/design"
+  check("with the switch on, a member with the permission gets the page") { designer.response.status == 200 }
+  design_post.call(designer, "demo-project", design_system: "rijkshuisstijl")
+  check("a member cannot pick a design system that is not on the list") do
+    Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "")&.design_system_id == "amsterdam"
+  end
+  design_post.call(designer, "demo-project", design_system: "zuiddrecht", modules: { "boards" => "cunningham" })
+  check("a member picks from the list, for the project and a module in it") do
+    Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "")&.design_system_id == "zuiddrecht" &&
+      Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "boards")&.design_system_id == "cunningham"
+  end
+  designer.get "/projects/thematiq-check-sub/settings/design"
+  check("a member without the permission in a project gets 403 there") { [403, 404].include?(designer.response.status) }
+  designer.post "/admin/thematiq/scopes", params: { projects_may_choose: "0" }
+  check("a member cannot change the instance's rules") { [403, 422].include?(designer.response.status) && OpenProject::Thematiq::Store.new.projects_may_choose? }
+  design_post.call(admin, "demo-project", design_system: "")
+  check("inherit clears the project's own choice") { Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "").nil? }
+  Thematiq::Scope.choose(project: sub_project, module_name: "", design_system_id: "cunningham")
+  sub_id = sub_project.id
+  sub_project.destroy
+  check("a deleted project takes its rows with it") { Thematiq::Scope.where(project_id: sub_id).none? }
 ensure
+  if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
+    Thematiq::Scope.delete_all
+    Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }
+  end
+  Project.find_by(identifier: "thematiq-check-sub")&.destroy
+  designer_role&.then { |role| Member.where(project: parent_project, user_id: member.id).destroy_all; role.destroy }
   [set_id, imported_id, "custom-9998", "custom-9999"].compact.each { |id| Thematiq::Upload.remove_set(id) } if defined?(Thematiq::Upload)
   Setting.plugin_openproject_thematiq = saved_settings
   member.destroy

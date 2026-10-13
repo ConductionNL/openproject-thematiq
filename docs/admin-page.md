@@ -85,6 +85,16 @@ An uploaded file wins over the file of the design system yours is based on. Dele
 
 A tile a user cannot open is left out, and the row is filled up from OpenProject's own order. Nextcloud tiles need the Nextcloud address. The page a user is on always gets a tile. [shell-structure.md](shell-structure.md#the-row-of-apps) has the rules.
 
+## Projects and modules
+
+**Projects and modules**, at the bottom of the page, lets parts of OpenProject have their own design system.
+
+- **A project.** Open the project, **Project settings**, **Design**, and pick one. Every page of the project follows it, the top bar and the logo included. Its subprojects inherit it. The page says where the current design system comes from.
+- **A module.** Pick one per module here. The content of that module's pages follows it, in every project that has not chosen otherwise. The top bar and the menu stay the page's.
+- **Let projects choose.** Off by default. On, members with the permission **Choose design system** may pick for their project, from the design systems you tick. Give the permission to a role under **Administration**, **Users and permissions**, **Roles and permissions**. No role has it until you do.
+
+The most specific choice wins: a module in a project, the project, the module, a parent project, then the design system picked at the top of this page. [design/scopes.md](design/scopes.md) has the rules.
+
 ## Export and import a design system
 
 **Export** next to a design system saves it as a JSON file: its id, its name, its eighteen values and the name of its logo file. The file has the same shape as one entry of the plugin's catalogue. A design system with values from thematiq's full vocabulary has them in a `vocabulary` entry beside the eighteen; [the full vocabulary](design/full-vocabulary.md) lists the names. A file exported before the vocabulary existed imports as it always did.

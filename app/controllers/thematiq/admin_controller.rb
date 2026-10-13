@@ -55,6 +55,8 @@ module Thematiq
         @store.delete_custom(deleted)
         # Its uploaded files go with it. The id is given out again, and the next owner must not inherit them.
         Thematiq::Upload.remove_set(deleted)
+        # So do the choices that named it: those projects and modules inherit again.
+        Thematiq::Scope.where(design_system_id: deleted).delete_all if Thematiq::Scope.ready?
         flash[:notice] = t("thematiq.editor.notice_deleted")
         return redirect_to action: :show
       end
@@ -96,6 +98,20 @@ module Thematiq
         flash[:error] = t("thematiq.shell.top_bar.error_invalid", max: OpenProject::Thematiq::Shell::AppRow::MAX)
       end
       redirect_to action: :show, anchor: "thematiq-top-bar"
+    end
+
+    # Design systems per project and module: whether projects may choose, from which, and one per module.
+    def update_scopes
+      return refuse_scopes("not_ready") unless Thematiq::Scope.ready?
+
+      modules = OpenProject::Thematiq::Scopes::MODULES.keys.to_h { |name| [name, params.dig(:modules, name).to_s] }
+      valid = modules.values.all? { |id| id.empty? || @store.find_set(id) }
+      return refuse_scopes("invalid") unless valid && @store.save_project_rules(allow: params[:projects_may_choose] == "1",
+                                                                                   choices: Array(params[:project_choices]))
+
+      modules.each { |name, id| Thematiq::Scope.choose(project: nil, module_name: name, design_system_id: id.presence) }
+      flash[:notice] = t("thematiq.scopes.admin.notice_saved")
+      redirect_to action: :show, anchor: "thematiq-scopes"
     end
 
     # The uploaded files of a stored custom design system. One action with two named buttons per form:
@@ -322,6 +338,11 @@ module Thematiq
       t("thematiq.uploads.confirm_remove.font", family: record.face.family,
                                                 weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"),
                                                 style: t("thematiq.uploads.styles.#{record.face.style}"))
+    end
+
+    def refuse_scopes(code)
+      flash[:error] = t("thematiq.scopes.admin.error_#{code}")
+      redirect_to action: :show, anchor: "thematiq-scopes"
     end
 
     def refuse_new_custom

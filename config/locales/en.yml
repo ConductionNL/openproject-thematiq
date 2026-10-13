@@ -1,4 +1,5 @@
 en:
+  permission_choose_design_system: "Choose design system"
   plugin_openproject_thematiq:
     name: "Thematiq"
     description: "Gives OpenProject the same shell as a Nextcloud themed with thematiq."
@@ -387,6 +388,51 @@ en:
       radius-lg: { label: "Radius, large", hint: "inputs and panels" }
       font-family: { label: "Font", hint: "all text" }
       menu: { label: "Menu", hint: "background of the main menu, white when empty" }
+    scopes:
+      modules:
+        work_packages: "Work packages"
+        gantt: "Gantt charts"
+        boards: "Boards"
+        calendars: "Calendars"
+        team_planners: "Team planners"
+        meetings: "Meetings"
+        news: "News"
+        documents: "Documents"
+        wiki: "Wiki"
+        time_and_costs: "Time and costs"
+        backlogs: "Backlogs"
+      source:
+        project: "It is chosen for this project."
+        parent: "It comes from the parent project %{name}."
+        instance: "It is the design system of this OpenProject."
+      admin:
+        title: "Projects and modules"
+        description: "A project can have its own design system: then every page of the project follows it, the top bar and the logo included, and its subprojects inherit it. A module can have its own: then the content of its pages follows it. The most specific choice wins: a module in a project, the project, the module, a parent project, then this page."
+        projects_may_choose: "Let projects choose their own design system"
+        projects_may_choose_hint: "Off: only administrators choose, under Project settings, Design. On: project members with the permission \"Choose design system\" choose too. No role has that permission until you give it."
+        choices: "Design systems projects may choose"
+        choices_all: "All"
+        choices_hint: "Tick the ones project members may pick. Leave all unticked to allow every design system."
+        modules: "Modules"
+        modules_hint: "The content of a module's pages follows its design system, in every project that has not chosen otherwise. The top bar and the menu stay the page's."
+        module_inherit: "The page's own design system"
+        save: "Save"
+        notice_saved: "Saved. Pages follow the new choices on their next visit."
+        error_invalid: "One of the choices names a design system that is not there. Nothing was saved."
+        error_not_ready: "The table for these choices is missing. Run the database migration of the plugin first."
+      project:
+        menu: "Design"
+        title: "Design"
+        description: "The design system of this project and of its modules. Subprojects inherit what you choose here."
+        now: "This project uses %{name}."
+        whole_page: "Design system of this project"
+        whole_page_hint: "Every page of the project follows it, the top bar and the logo included. Inherit uses the parent project's, or else this OpenProject's."
+        inherit: "Inherit"
+        modules: "Modules in this project"
+        modules_hint: "The content of a module's pages in this project follows its design system. The top bar and the menu stay the project's."
+        save: "Save"
+        notice_saved: "Saved. The project's pages follow it on their next visit."
+        error_invalid: "One of the choices is not on the list you may choose from. Nothing was saved."
     # The labels of thematiq's full vocabulary, by key. See Tokens::Vocabulary.
     vocabulary:
       animation-quick: "Animation quick"

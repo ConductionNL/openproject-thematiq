@@ -18,6 +18,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 | `vocabulary.spec.js` | A design system with values of thematiq's full vocabulary, imported as a file, reaches Primer's variables and OpenProject's own elements; a key it leaves out keeps OpenProject's value |
+| `scopes.spec.js` | A project's design system styles its whole page, and leaving the project and coming back swaps the style tags (Turbo); a module's design system reaches the content only; projects may not choose by default |
 | `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 
 A test that checks a known fault is marked with `test.fail()`. None is marked now: the two that were (the table header at 45 px, the top bar wider than the window on a module page) pass since findings 2 and 6 were fixed. When a marked test passes, Playwright reports it as failed with "expected to fail, but passed". Remove the `test.fail()` line then.
