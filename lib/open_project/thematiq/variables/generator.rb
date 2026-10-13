@@ -184,6 +184,9 @@ module OpenProject
           selected = Contrast.on_selected(@token_set)
           ["  --thematiq-surface: #{@token_set['menu']};", "  --thematiq-ink: #{text};", "  --thematiq-text: #{text};",
            "  --thematiq-muted: #{text};", "  --thematiq-soft: #{MENU_OVERLAY};", "  --thematiq-line: #{MENU_OVERLAY};",
+           # A link inside a coloured menu, such as "Show all", takes the menu's text colour. The link colour
+           # is chosen for a white page and read 2.7 to 1 on the navy menu.
+           "  --thematiq-link: #{text};",
            "  --thematiq-primary-deep: #{selected};", "  --main-menu-selected-font-color: #{selected};"]
         end
 
