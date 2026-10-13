@@ -66,4 +66,21 @@ test.describe("picker", () => {
     await expect(signIn.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
     await visitor.close();
   });
+
+  // First full test, finding 14: Apply came after the list, about 200 tab stops in. The radio buttons are one
+  // tab stop; the three links of each card are not. Apply now comes right after the search, before the list.
+  test("Apply is a few tab stops from the search and stays in view", async ({ page }) => {
+    await page.goto(PICKER);
+    await page.getByLabel("Search design systems").focus();
+    const apply = page.getByRole("button", { name: "Apply", exact: true });
+    let stops = 0;
+    while (stops < 5 && !(await apply.evaluate((el) => el === document.activeElement))) {
+      await page.keyboard.press("Tab");
+      stops += 1;
+    }
+    await expect(apply).toBeFocused();
+
+    await page.locator(".thematiq-picker__option").last().scrollIntoViewIfNeeded();
+    await expect(apply).toBeInViewport();
+  });
 });

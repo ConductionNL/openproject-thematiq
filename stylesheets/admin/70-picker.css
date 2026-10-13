@@ -22,7 +22,8 @@
 .thematiq-picker__text { display: block; min-width: 0; }
 .thematiq-picker__name { font-size: 16px; font-weight: 700; color: var(--thematiq-ink); }
 .thematiq-picker__meta { display: block; margin-top: 4px; font-size: 13px; color: var(--thematiq-muted); }
-.thematiq-picker__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; bottom: 0; padding: 12px 0; background: var(--thematiq-ground); }
+/* Apply sits above the list and stays in view at the top while the list scrolls. */
+.thematiq-picker__actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: sticky; top: 0; z-index: 1; padding: 12px 0; background: var(--thematiq-ground); }
 
 /* the small picture: 200 x 86, a top bar over a sidebar and a content area */
 .thematiq-thumb { flex: 0 0 200px; width: 200px; height: 86px; overflow: hidden; box-sizing: border-box; }
