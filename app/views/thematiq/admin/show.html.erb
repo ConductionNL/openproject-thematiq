@@ -14,13 +14,13 @@
 %>
 
 <% if @store.catalogue.error %>
-  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, test_selector: "thematiq-catalogue-error")) do %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, data: { test_selector: "thematiq-catalogue-error" })) do %>
     <%= t("thematiq.admin.catalogue_unusable") %>
   <% end %>
 <% end %>
 
 <% if active.rejected.any? %>
-  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, test_selector: "thematiq-rejected-banner")) do %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, data: { test_selector: "thematiq-rejected-banner" })) do %>
     <%= t("thematiq.admin.rejected_tokens", tokens: active.rejected.join(", ")) %>
   <% end %>
 <% end %>
@@ -67,7 +67,7 @@
 </p>
 
 <% if @sets.empty? %>
-  <%= render(Primer::Alpha::Banner.new(scheme: :default, mb: 3, test_selector: "thematiq-no-results")) do %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :default, mb: 3, data: { test_selector: "thematiq-no-results" })) do %>
     <%= t("thematiq.admin.no_results") %>
   <% end %>
 <% else %>

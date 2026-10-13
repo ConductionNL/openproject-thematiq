@@ -124,6 +124,7 @@ begin
 
   admin.get "/admin/thematiq", params: { q: "no design system is called this" }
   check("a search without a match says so") { admin.response.status == 200 && admin.response.body.include?("No design system has that name") }
+  check("the banner without a match has its test hook in production") { admin.response.body.include?('data-test-selector="thematiq-no-results"') }
   admin.get "/admin/thematiq", params: { q: %(<script>alert(1)</script>") }
   check("a hostile search is escaped") { !admin.response.body.include?("<script>alert(1)</script>") }
   admin.get "/admin/thematiq", params: { q: last.name }
