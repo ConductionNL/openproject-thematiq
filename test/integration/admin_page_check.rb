@@ -168,7 +168,7 @@ begin
   check("the preview is drawn with custom properties") { body.include?("--tqp-primary: #{default['primary']}") }
   check("a colour has its contrast line") { body.include?('data-thematiq-check="ink-on-ground"') && body.include?("to 1. That is") }
   check("the script of the editor carries the nonce of the page") do
-    tag = body[/<script[^>]*>\s*window\.thematiqEditorData/]
+    tag = body[%r{<script[^>]*>\s*(?://<!\[CDATA\[\s*)?window\.thematiqEditorData}]
     nonce = body[/<meta name="csp-nonce" content="([^"]+)"/, 1]
     tag && nonce && tag.include?(%(nonce="#{nonce}"))
   end
