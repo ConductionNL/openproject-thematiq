@@ -181,3 +181,42 @@ end %>
       )) %>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.settings.save") } %>
 <% end %>
+
+<% row = OpenProject::Thematiq::Shell::AppRow %>
+<% top_mode, top_keys = @store.top_bar_apps %>
+<% offered = row::KNOWN | top_keys %>
+<% slots = top_mode == "custom" ? top_keys : (top_mode == "default" ? row::DEFAULT : []) %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-top-bar") { t("thematiq.shell.top_bar.title") }
+end %>
+<%= form_with(url: admin_thematiq_top_bar_path, method: :post, data: { turbo: false }, id: "thematiq-top-bar-form",
+              class: "thematiq-top-bar") do %>
+  <p class="thematiq-editor__hint" id="thematiq-top-bar-rules"><%= t("thematiq.shell.top_bar.rules", max: row::MAX) %></p>
+  <fieldset class="thematiq-top-bar__modes" aria-describedby="thematiq-top-bar-rules">
+    <legend class="thematiq-editor__label"><%= t("thematiq.shell.top_bar.mode") %></legend>
+    <% %w[default custom none].each do |mode| %>
+      <label class="thematiq-editor__toggle">
+        <input type="radio" name="top_bar_mode" value="<%= mode %>" <%= "checked" if top_mode == mode %>>
+        <%= t("thematiq.shell.top_bar.modes.#{mode}") %>
+      </label>
+    <% end %>
+  </fieldset>
+  <fieldset class="thematiq-top-bar__places">
+    <legend class="thematiq-editor__label"><%= t("thematiq.shell.top_bar.places") %></legend>
+    <p class="thematiq-editor__hint"><%= t("thematiq.shell.top_bar.places_hint") %></p>
+    <ol class="thematiq-top-bar__list">
+      <% row::MAX.times do |index| %>
+        <li class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-tile-<%= index + 1 %>"><%= t("thematiq.shell.top_bar.place", number: index + 1) %></label>
+          <select name="tiles[]" id="thematiq-tile-<%= index + 1 %>" class="FormControl-select FormControl-medium">
+            <option value=""><%= t("thematiq.shell.top_bar.empty") %></option>
+            <% offered.each do |key| %>
+              <option value="<%= key %>" <%= "selected" if slots[index] == key %>><%= t("thematiq.shell.top_bar.tiles.#{key}", default: key) %><%= t("thematiq.shell.top_bar.from_nextcloud") if row::NEXTCLOUD_KEYS.include?(key) %></option>
+            <% end %>
+          </select>
+        </li>
+      <% end %>
+    </ol>
+  </fieldset>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.top_bar.save") } %>
+<% end %>

@@ -14,6 +14,15 @@ module OpenProject
         MAX = 12
         OFF = "none"
 
+        # The keys an administrator can pick on the admin page, in the order the field offers them:
+        # Nextcloud's apps, then OpenProject's modules by the name of their item in core's top menu (17.9.1).
+        # A key not listed here still works when the setting holds it. Core decides at render time who sees what.
+        NEXTCLOUD_KEYS = %w[files mail calendar tasks talk contacts].freeze
+        MODULE_KEYS = %w[home my_page my_time_tracking projects portfolios activity work_packages gantt team_planners boards
+                         calendar_view meetings news cost_reports_global wikis].freeze
+        KNOWN = (NEXTCLOUD_KEYS + MODULE_KEYS).freeze
+        KEY = /\A[a-z0-9_-]{1,40}\z/
+
         # A project menu item whose global module has another name.
         ALIASES = { "team_planner_view" => "team_planners", "costs" => "cost_reports_global" }.freeze
 

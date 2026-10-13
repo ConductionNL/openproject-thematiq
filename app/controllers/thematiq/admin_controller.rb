@@ -87,6 +87,17 @@ module Thematiq
       redirect_to action: :show
     end
 
+    # The row of tiles in the top bar: the design's row, an own row in the order of the places, or none.
+    def update_top_bar
+      keys = Array(params[:tiles]).first(OpenProject::Thematiq::Shell::AppRow::MAX + 1)
+      if @store.save_top_bar_apps(params[:top_bar_mode].to_s, keys)
+        flash[:notice] = t("thematiq.shell.top_bar.notice_saved")
+      else
+        flash[:error] = t("thematiq.shell.top_bar.error_invalid", max: OpenProject::Thematiq::Shell::AppRow::MAX)
+      end
+      redirect_to action: :show, anchor: "thematiq-top-bar"
+    end
+
     # The uploaded files of a stored custom design system. One action with two named buttons per form:
     # "upload" stores the chosen file, and for a kind with one file that replaces it. "remove" carries the id
     # of the file to remove. Every upload is hostile input: the Inspector decides what it is by its content.

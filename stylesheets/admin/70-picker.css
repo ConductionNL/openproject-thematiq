@@ -44,3 +44,7 @@
   .thematiq-picker__label { flex: 1 1 100%; flex-wrap: wrap; gap: 12px; }
   .thematiq-picker__text { flex: 1 1 100%; }
 }
+/* The tiles of the top bar: the row choice, then twelve places from left to right. */
+.thematiq-top-bar__modes, .thematiq-top-bar__places { border: 0; margin: 12px 0 0; padding: 0; min-width: 0; }
+.thematiq-top-bar__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; margin: 8px 0 0; padding: 0; list-style: none; }
+.thematiq-top-bar__place .FormControl-select { width: 100%; }

@@ -12,6 +12,7 @@ Rails.application.routes.draw do
   get "admin/thematiq/figma/download", to: "thematiq/admin#figma_download", as: :admin_thematiq_figma_download
   post "admin/thematiq/figma", to: "thematiq/admin#figma_upload"
   post "admin/thematiq/shell", to: "thematiq/admin#update_shell", as: :admin_thematiq_shell
+  post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
 
   # The uploaded files of the design systems. Public, and only for an id of 64 hex characters.
   get "thematiq/files/:token", to: "thematiq/files#show", constraints: { token: /[0-9a-f]{64}/ }, format: false,

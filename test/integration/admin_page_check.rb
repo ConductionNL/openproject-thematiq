@@ -410,6 +410,25 @@ begin
   shell_post.call("")
   check("an empty address clears it") { OpenProject::Thematiq::Shell.nextcloud_url.nil? }
 
+  # 6b. The tiles of the top bar
+  top_bar_post = lambda do |mode, tiles|
+    token = form_token(admin, "/admin/thematiq", "thematiq-top-bar-form")
+    admin.post "/admin/thematiq/top-bar", params: { top_bar_mode: mode, tiles:, authenticity_token: token }
+    admin.follow_redirect!
+    admin.response.body
+  end
+  body = top_bar_post.call("custom", ["gantt", "", "files", "gantt"])
+  check("an own row is saved in its order and the shell reads it") { OpenProject::Thematiq::Shell.top_bar_apps == %w[gantt files] }
+  check("the places show the saved row") { body.include?('<option value="gantt" selected>') }
+  top_bar_post.call("custom", ["files; } x {"])
+  check("an unknown tile is refused and the row stays") { OpenProject::Thematiq::Shell.top_bar_apps == %w[gantt files] }
+  as_member.post "/admin/thematiq/top-bar", params: { top_bar_mode: "none" }
+  check("a non-admin cannot change the tiles") do
+    [403, 422].include?(as_member.response.status) && OpenProject::Thematiq::Shell.top_bar_apps == %w[gantt files]
+  end
+  top_bar_post.call("default", [])
+  check("the row of the design comes back") { OpenProject::Thematiq::Shell.top_bar_apps == OpenProject::Thematiq::Shell::AppRow::DEFAULT }
+
   # 7. The public endpoint for uploaded files. The rows are stored through the model here,
   #    so this part checks the table, the model and the endpoint without the admin form.
   require_relative "../uploads/samples"
