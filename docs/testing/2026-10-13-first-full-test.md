@@ -129,6 +129,8 @@ The docs are right about what stays and that OpenProject works with it. Wrong: t
 
 `test/e2e/`, described in [e2e.md](e2e.md): 8 spec files, 30 tests. Two of them are marked as expected to fail, for findings 2 and 6. The accessibility pass runs on Cunningham and treats findings 7, 16 and 17 as known; anything else in the plugin's markup fails it.
 
+Local: 30 of 30 passed in two consecutive runs on this commit, with one worker (the second after the machine restarted and the instance came back on its volumes). Flaky along the way and fixed: a flash text matched both the banner and OpenProject's live region; the member's login collided with the member of the run before, which OpenProject deletes in a background job. CI: the workflow run on `1d01fbe` passed both jobs, unit tests and syntax in 51 s, end-to-end in 8 minutes 30 seconds.
+
 ## Not done
 
 - A real screen reader. Only axe and the keyboard.
