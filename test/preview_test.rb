@@ -16,7 +16,7 @@ class PreviewTest < Minitest::Test
 
   def all_styles(token_set)
     preview = Preview.new(token_set)
-    preview.thumbnail.values + preview.shell.values + Preview::NEUTRAL.keys.map { |key| preview.swatch(key) }
+    preview.thumbnail.values + [preview.shell_variables] + Preview::NEUTRAL.keys.map { |key| preview.swatch(key) }
   end
 
   def assert_safe(styles, label)
@@ -35,11 +35,26 @@ class PreviewTest < Minitest::Test
   end
 
   def test_the_shell_uses_the_tokens
-    shell = Preview.new(set("primary" => "#aa0055", "font-family" => "'Fira Sans', sans-serif", "ink" => "#111111")).shell
+    shell = Preview.new(set("primary" => "#aa0055", "font-family" => "'Fira Sans', sans-serif", "ink" => "#111111")).shell_variables
 
-    assert_includes shell[:top_bar], "background: #aa0055"
-    assert_includes shell[:frame], "font-family: 'Fira Sans', sans-serif"
-    assert_includes shell[:frame], "color: #111111"
+    assert_includes shell, "--tqp-primary: #aa0055"
+    assert_includes shell, "--tqp-font-family: 'Fira Sans', sans-serif"
+    assert_includes shell, "--tqp-ink: #111111"
+    assert_includes shell, "--tqp-on-primary: #ffffff"
+  end
+
+  def test_the_shell_has_a_property_for_every_token_and_every_worked_out_colour
+    shell = Preview.new(TokenSet.fallback).shell_variables
+
+    TokenSet::ALL_KINDS.each_key { |key| assert_includes shell, "--tqp-#{key}: " }
+    %w[on-primary on-action on-menu on-selected].each { |name| assert_includes shell, "--tqp-#{name}: " }
+  end
+
+  def test_the_text_on_a_dark_menu_is_readable
+    preview = Preview.new(set("menu" => "#101010", "ink" => "#111111"))
+
+    assert_equal "#ffffff", preview.derived["on-menu"]
+    assert_equal "#111111", Preview.new(set("ink" => "#111111")).derived["on-menu"]
   end
 
   def test_a_set_without_a_token_gets_a_neutral_value

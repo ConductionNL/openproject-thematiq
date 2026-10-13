@@ -157,11 +157,20 @@ Everyone sees the chosen design system on their next page.
 ### Edit a design system
 
 1. On **Thematiq design**, select **Customise** next to the design system you want to start from.
-2. Give it a name and change the values you want: colours, corners, font. Leave a field empty to keep the original value.
-3. Select **Preview** to see the shell with your values. Nothing is saved yet.
-4. Select **Save and apply**.
+2. Give it a name and change the values you want. They are in four groups: branding, content area, buttons and links, typography. Leave a field empty to keep the original value.
+3. Watch the preview beside the form. It follows what you type, and nothing is saved yet. Each colour shows the contrast of the text that goes with it.
+4. A changed value has the badge **Changed**. **Reset** puts one value back, **Reset group** a whole group.
+5. Select **Save and apply**.
 
 You can keep up to 50 custom design systems.
+
+### Download for Figma and upload from Figma
+
+1. On **Thematiq design**, select **Figma** next to a design system and choose a format: W3C design tokens, Tokens Studio, or Tokens Studio in its legacy spelling. Your browser saves a token file.
+2. To bring a token set in, select **Upload from Figma** on the same page and choose the file. For a Tokens Studio folder, choose all its files at once.
+3. The plugin adds a new custom design system and shows what it imported, what it skipped and why. Pick it in the list and select **Apply** to use it.
+
+The W3C file has the layout thematiq writes, so it moves between the two. [docs/figma.md](docs/figma.md) has the formats, the names and what a round trip loses.
 
 ### Upload a logo, icons and fonts
 

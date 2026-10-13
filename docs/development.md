@@ -63,6 +63,8 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/preview.rb` | The inline styles of the small pictures and the shell preview |
 | `lib/open_project/thematiq/custom_draft.rb` | The custom design system: a base plus overrides |
 | `lib/open_project/thematiq/transfer.rb` | Export and import of one design system |
+| `lib/open_project/thematiq/figma.rb`, `lib/open_project/thematiq/figma/reader.rb` | Download for Figma and upload from Figma: the W3C format and Tokens Studio |
+| `lib/open_project/thematiq/editor.rb`, `lib/open_project/thematiq/editor/assets/editor.js` | The groups and contrast checks of the style editor, and the script of its live preview |
 | `lib/open_project/thematiq/uploads/`, `app/models/thematiq/upload.rb`, `db/migrate/` | Uploaded logos, icons and fonts: the content checks, the SVG rebuild and the table |
 | `app/controllers/thematiq/files_controller.rb` | The public endpoint that serves uploaded files |
 | `bin/check-syntax` | Compiles every Ruby file and template without a database |

@@ -40,7 +40,40 @@ en:
       based_on_hint: "Values you leave empty come from this design system."
       tokens: "Values"
       tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
-      base_value: "Now: %{value}."
+      base_value: "In %{name}: %{value}."
+      changed: "Changed"
+      changed_total:
+        zero: "No value differs from the design system it is based on."
+        one: "1 value differs from the design system it is based on."
+        other: "%{count} values differ from the design system it is based on."
+      changed_count:
+        zero: "0 changed"
+        one: "1 changed"
+        other: "%{count} changed"
+      search: "Search values"
+      only_changed: "Show changed values only"
+      no_match: "No value matches."
+      pick_colour: "Pick a colour for %{token}"
+      groups:
+        branding:
+          label: "Branding"
+          hint: "The brand colours: the top bar and what is selected."
+        content:
+          label: "Content area"
+          hint: "Backgrounds, lines, the main menu and the corners."
+        buttons:
+          label: "Buttons and links"
+          hint: "The main button and links."
+        typography:
+          label: "Typography"
+          hint: "Text colours and the font."
+      reset_group: "Reset group"
+      reset_group_label: "Reset every value in %{group}"
+      contrast:
+        of: "Contrast of %{pair}:"
+        pass: "%{ratio} to 1. That is enough."
+        fail: "%{ratio} to 1. That is too low, 4.5 to 1 is needed."
+        unknown: "not measured. Use a hex value or rgb() to have it checked."
       kind_hint:
         color: "A colour, for example #1a67a3 or rgb(26, 103, 163)."
         length: "A length, for example 8px or 0.5rem."
@@ -54,7 +87,7 @@ en:
       delete: "Delete this custom design system"
       delete_hint: "OpenProject goes back to the design system chosen before."
       preview_title: "Preview of the shell"
-      preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
+      preview_hint: "The preview follows the form while you type. Nothing is saved until you select \"Save and apply\". Without scripts in your browser, select \"Preview\" to draw it again."
       notice_not_saved: "The preview is up to date. Nothing is saved yet."
       notice_deleted: "The custom design system is deleted."
       error_invalid: "Some values cannot be used. Correct the marked fields and save again."
@@ -76,6 +109,7 @@ en:
         row_one: "Organise the conference"
         row_two: "Send the invitations"
         footnote: "Sample content"
+        notice: "A notice with the accent colour"
     contrast:
       low: "Low contrast, under 4.5 to 1: %{pairs}."
       pairs:
@@ -109,6 +143,80 @@ en:
         token_invalid: "The file holds a value that cannot be used as a colour, a length or a font. Nothing was imported."
         name_invalid: "The file has no usable name. Nothing was imported."
         too_many: "There are 50 custom design systems, which is the most the plugin keeps. Delete one first."
+    figma:
+      title: "Figma token sets"
+      description: "Download a design system as a token set for Figma, or upload a token set from Figma as a new custom design system."
+      download: "Figma"
+      download_label: "Download %{name} for Figma"
+      download_title: "Download \"%{name}\" for Figma"
+      download_as: "Download %{name} as %{kind}"
+      download_note: "Logos, icons and fonts are not in these files."
+      formats:
+        dtcg:
+          label: "W3C design tokens"
+          hint: "A .tokens.json file in the W3C format, version 2025.10. thematiq reads and writes the same file."
+        tokens-studio:
+          label: "Tokens Studio"
+          hint: "One file for the Tokens Studio plugin, with a light and a dark token set and their themes."
+        tokens-studio-legacy:
+          label: "Tokens Studio, legacy spelling"
+          hint: "The same, with \"value\" and \"type\" in place of \"$value\" and \"$type\". Choose it when Tokens Studio is set to its legacy format."
+      from_figma: "Do you have a token set from Figma or Tokens Studio?"
+      upload_title: "Upload from Figma"
+      files: "Token file or files"
+      upload: "Upload from Figma"
+      upload_hint: "Choose one file in the W3C format or from Tokens Studio. For a Tokens Studio folder, choose all its files at once. It is added as a new custom design system. It is not applied until you pick it. At most 512 KB."
+      default_name: "Imported from Figma"
+      errors:
+        empty: "Choose a file first."
+        too_large: "The files are too large. Together they can be at most 512 KB."
+        too_many_files: "These are too many files. Choose at most 40."
+        invalid_json: "A file could not be read as JSON. Nothing was imported."
+        not_an_object: "The file is not a token file. Nothing was imported."
+        too_deep: "The file has groups inside groups more than 12 deep. Nothing was imported."
+        too_many_tokens: "The file has more than 5000 tokens. Nothing was imported."
+        nothing_usable: "The file has no token this plugin can use. Nothing was imported."
+        too_many: "There are 50 custom design systems, which is the most the plugin keeps. Delete one first."
+      report:
+        title: "Upload from Figma"
+        description: "\"%{name}\" is added as a custom design system. It is not applied yet."
+        shape:
+          dtcg: "The file was read as W3C design tokens."
+          tokens-studio: "The file was read as a Tokens Studio file."
+        imported:
+          one: "Imported: 1 value"
+          other: "Imported: %{count} values"
+        skipped:
+          zero: "Skipped: nothing"
+          one: "Skipped: 1 token"
+          other: "Skipped: %{count} tokens"
+        nothing_skipped: "Every token in the file was used."
+        capped: "Only the first %{shown} are listed."
+        role: "Value"
+        value: "Imported as"
+        theme: "Theme"
+        themes:
+          light: "Light"
+          dark: "Dark"
+        path: "Token in the file"
+        next: "Values the file does not name come from the default design system. Open the design system to check it, then pick it in the list and select \"Apply\"."
+        open: "Open it in the editor"
+      reasons:
+        not_mapped: "No value of this plugin has this name"
+        no_role: "A token of thematiq that OpenProject does not draw yet"
+        duplicate: "A second token for the same name. The first one counts"
+        missing_type: "The token has no type"
+        wrong_type: "The type does not fit the value it would set"
+        value_refused: "Not a colour, a length or a font stack the plugin accepts"
+        colour_space_not_supported: "A colour space the plugin cannot convert, and no hex value beside it"
+        reference_missing: "A reference to a token that is not in the file"
+        reference_cycle: "A reference that leads back to itself"
+        reference_too_long: "A chain of more than 16 references"
+        expression_not_supported: "A calculation or several references in one value"
+        ref_not_supported: "A JSON pointer reference. Only references in curly braces are read"
+        extends_not_supported: "A group that extends another group. Its own tokens were read, the inherited ones were not"
+        name_not_allowed: "A name with a dot or a curly brace, or a very long name"
+        other: "Another reason"
     uploads:
       title: "Logo, icons and fonts"
       description: "Upload your own files for this design system. An uploaded file is used at once and replaces the file of the design system it is based on."

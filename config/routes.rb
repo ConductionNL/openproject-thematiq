@@ -8,6 +8,9 @@ Rails.application.routes.draw do
   post "admin/thematiq/custom/files", to: "thematiq/admin#update_files", as: :admin_thematiq_custom_files
   get "admin/thematiq/export", to: "thematiq/admin#export", as: :admin_thematiq_export
   post "admin/thematiq/import", to: "thematiq/admin#import", as: :admin_thematiq_import
+  get "admin/thematiq/figma", to: "thematiq/admin#figma", as: :admin_thematiq_figma
+  get "admin/thematiq/figma/download", to: "thematiq/admin#figma_download", as: :admin_thematiq_figma_download
+  post "admin/thematiq/figma", to: "thematiq/admin#figma_upload"
   post "admin/thematiq/shell", to: "thematiq/admin#update_shell", as: :admin_thematiq_shell
 
   # The uploaded files of the design systems. Public, and only for an id of 64 hex characters.

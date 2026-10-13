@@ -30,51 +30,64 @@ module ThematiqHelper
   end
 
   # A larger picture of the shared shell, built from a token set. Decoration with sample text, hidden from assistive technology.
+  # Its colours are custom properties on the frame. The script of the editor writes the same properties while you type.
   def thematiq_shell_preview(token_set)
-    styles = OpenProject::Thematiq::Preview.new(token_set).shell
     sample = ->(key) { t("thematiq.editor.sample.#{key}") }
+    part = ->(name, text = nil, &block) { tag.span(text, class: "thematiq-shell__#{name}", &block) }
+    box = ->(name, &block) { tag.div(class: "thematiq-shell__#{name}", &block) }
 
-    tag.div(class: "thematiq-shell", style: styles[:frame], aria: { hidden: true }, data: { test_selector: "thematiq-shell-preview" }) do
+    tag.div(class: "thematiq-shell", style: OpenProject::Thematiq::Preview.new(token_set).shell_variables, aria: { hidden: true },
+            data: { test_selector: "thematiq-shell-preview", thematiq_preview: true }) do
       safe_join([
-        tag.div(class: "thematiq-shell__bar", style: styles[:top_bar]) do
-          safe_join([tag.span(sample.call(:app), class: "thematiq-shell__app"),
-                     tag.span(sample.call(:search), class: "thematiq-shell__search", style: styles[:search])])
-        end,
-        tag.div(class: "thematiq-shell__body") do
+        box.call("bar") { safe_join([part.call("app", sample.call(:app)), part.call("search", sample.call(:search))]) },
+        box.call("body") do
           safe_join([
-            tag.div(class: "thematiq-shell__side", style: styles[:sidebar]) do
-              safe_join([tag.span(sample.call(:create), class: "thematiq-shell__button", style: styles[:action_button]),
-                         tag.span(sample.call(:overview), class: "thematiq-shell__nav", style: styles[:nav_item]),
-                         tag.span(sample.call(:work_packages), class: "thematiq-shell__nav", style: styles[:nav_item_active]),
-                         tag.span(sample.call(:meetings), class: "thematiq-shell__nav", style: styles[:nav_item])])
+            box.call("side") do
+              safe_join([part.call("button thematiq-shell__button--action", sample.call(:create)),
+                         part.call("nav", sample.call(:overview)),
+                         part.call("nav thematiq-shell__nav--active", sample.call(:work_packages)),
+                         part.call("nav", sample.call(:meetings))])
             end,
-            tag.div(class: "thematiq-shell__main") do
+            box.call("main") do
               safe_join([
-                tag.div(class: "thematiq-shell__head") do
-                  safe_join([tag.span(sample.call(:work_packages), class: "thematiq-shell__title"),
-                             tag.span(sample.call(:export), class: "thematiq-shell__button", style: styles[:secondary_button]),
-                             tag.span(sample.call(:create), class: "thematiq-shell__button", style: styles[:action_button])])
+                box.call("head") do
+                  safe_join([part.call("title", sample.call(:work_packages)),
+                             part.call("button", sample.call(:export)),
+                             part.call("button thematiq-shell__button--action", sample.call(:create))])
                 end,
-                tag.span(sample.call(:filter), class: "thematiq-shell__input", style: styles[:input]),
-                tag.div(class: "thematiq-shell__table", style: styles[:table]) do
+                part.call("input", sample.call(:filter)),
+                box.call("table") do
                   safe_join([
-                    tag.div(class: "thematiq-shell__row", style: styles[:table_head]) do
-                      safe_join([tag.span(sample.call(:id)), tag.span(sample.call(:subject))])
-                    end,
+                    box.call("row thematiq-shell__row--head") { safe_join([tag.span(sample.call(:id)), tag.span(sample.call(:subject))]) },
                     *%i[row_one row_two].each_with_index.map do |key, index|
-                      tag.div(class: "thematiq-shell__row", style: styles[:table_row]) do
-                        safe_join([tag.span("##{index + 1}", style: styles[:link]), tag.span(sample.call(key))])
-                      end
+                      box.call("row") { safe_join([part.call("link", "##{index + 1}"), tag.span(sample.call(key))]) }
                     end
                   ])
                 end,
-                tag.span(sample.call(:footnote), class: "thematiq-shell__note", style: styles[:muted])
+                box.call("notice") { safe_join([part.call("accent"), tag.span(sample.call(:notice))]) },
+                part.call("note", sample.call(:footnote))
               ])
             end
           ])
         end
       ])
     end
+  end
+
+  # One contrast check next to a colour field: what is measured, the ratio and the verdict in words.
+  # The script of the editor rewrites the ratio and the verdict while you type.
+  def thematiq_contrast_line(check, token_set)
+    ratio = OpenProject::Thematiq::Editor.ratio(check, token_set)
+    verdict = OpenProject::Thematiq::Editor.verdict(ratio)
+
+    tag.li(class: "thematiq-editor__check thematiq-editor__check--#{verdict}", data: { thematiq_check: check.id }) do
+      safe_join([tag.span(t("thematiq.editor.contrast.of", pair: t("thematiq.contrast.pairs.#{check.id}"))), " ",
+                 tag.span(thematiq_contrast_verdict(verdict, ratio), data: { thematiq_verdict: true })])
+    end
+  end
+
+  def thematiq_contrast_verdict(verdict, ratio)
+    t("thematiq.editor.contrast.#{verdict}", ratio: ratio ? format("%.2f", ratio) : "")
   end
 
   def thematiq_swatch(token_set, key)

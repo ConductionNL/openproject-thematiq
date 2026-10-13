@@ -51,7 +51,7 @@ module Thematiq
 
       @draft = draft_from_params
       @stored = !@store.custom_draft(@draft.id).nil?
-      if params[:preview].present? || params[:reset].present? || params[:reset_all].present?
+      if params[:preview].present? || params[:reset].present? || params[:reset_group].present? || params[:reset_all].present?
         flash.now[:notice] = t("thematiq.editor.notice_not_saved")
         render :edit
       elsif save_draft(@draft, new: !@stored)
@@ -143,7 +143,63 @@ module Thematiq
       redirect_to action: :show
     end
 
+    # The page with the Figma formats: the downloads of one design system, and the upload.
+    def figma
+      @token_set = @store.custom_set(params[:id].to_s) || @store.catalogue.find(params[:id].to_s)
+    end
+
+    # Sends one design system as a Figma token set, in the chosen format.
+    def figma_download
+      token_set = @store.custom_set(params[:id].to_s) || @store.catalogue.find(params[:id].to_s)
+      format = OpenProject::Thematiq::Figma.format(params[:file_format])
+      return render_404 unless token_set && format
+
+      send_data OpenProject::Thematiq::Figma.export(token_set, format:),
+                filename: OpenProject::Thematiq::Figma.file_name(token_set, format),
+                type: "application/json", disposition: "attachment"
+    end
+
+    # Reads an uploaded Figma token set as a new custom design system and shows what was read.
+    # The files are hostile input: Figma::Reader checks all of it. It never replaces a design system.
+    def figma_upload
+      result = OpenProject::Thematiq::Figma::Reader.read(figma_files)
+      new_id = @store.next_custom_id
+      raise figma_refused("too_many") unless new_id
+
+      name = result.name || t("thematiq.figma.default_name")
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name:, overrides: result.tokens, id: new_id, dark: result.dark)
+      raise figma_refused("nothing_usable") unless save_draft(@draft, new: true)
+
+      @result = result
+      render :figma_report
+    rescue OpenProject::Thematiq::Figma::Reader::Refused => e
+      flash[:error] = t("thematiq.figma.errors.#{figma_error_key(e.code)}")
+      redirect_to action: :figma
+    end
+
     private
+
+    FIGMA_ERRORS = %w[empty too_large too_many_files invalid_json not_an_object too_deep too_many_tokens nothing_usable too_many].freeze
+
+    def figma_refused(code)
+      OpenProject::Thematiq::Figma::Reader::Refused.new(code)
+    end
+
+    def figma_error_key(code)
+      FIGMA_ERRORS.include?(code) ? code : "invalid_json"
+    end
+
+    # The chosen files as [name, text]. Reading stops one byte over the cap for all files together, so a huge
+    # upload is refused without being loaded. The name the browser sent only names a token set of a folder upload.
+    def figma_files
+      reader = OpenProject::Thematiq::Figma::Reader
+      left = reader::MAX_BYTES + 1
+      Array(params[:files]).select { |file| file.respond_to?(:read) }.first(reader::MAX_FILES + 1).map do |file|
+        text = left.positive? ? file.read(left).to_s : ""
+        left -= text.bytesize
+        [file.respond_to?(:original_filename) ? File.basename(file.original_filename.to_s) : "", text]
+      end
+    end
 
     # At most one byte over the cap is read, so a huge upload is refused without being loaded.
     def uploaded_text
@@ -210,13 +266,16 @@ module Thematiq
       typed = params[:tokens].respond_to?(:permit) ? params[:tokens].permit(*token_keys).to_h : {}
       typed = {} if params[:reset_all].present?
       typed = typed.except(params[:reset].to_s) if params[:reset].present?
+      typed = typed.except(*OpenProject::Thematiq::Editor.keys_of(params[:reset_group])) if params[:reset_group].present?
       id = custom_id_from_params
       OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed, id:,
-                                             logo: @store.custom_draft(id)&.definition&.dig("logo"))
+                                             logo: @store.custom_draft(id)&.definition&.dig("logo"),
+                                             dark: @store.custom_draft(id)&.dark)
     end
 
     def token_keys
-      OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys
+      # Every role, the optional ones as well: the form has a field for each.
+      OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.keys
     end
 
     def load_state

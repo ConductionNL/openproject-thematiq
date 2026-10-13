@@ -1,0 +1,61 @@
+<% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.figma.report.title") %>
+<% reasons = @result.skipped.group_by { |entry| entry["reason"] } %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.figma.report.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       t("thematiq.figma.report.title")]
+    )
+    header.with_description { t("thematiq.figma.report.description", name: @draft.name) }
+  end
+%>
+
+<div class="thematiq-figma__report" data-test-selector="thematiq-figma-report">
+  <p><%= t("thematiq.figma.report.shape.#{@result.shape}") %></p>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.figma.report.imported", count: @result.imported.size) %></h3>
+  <table class="thematiq-figma__table">
+    <thead>
+      <tr>
+        <th scope="col"><%= t("thematiq.figma.report.role") %></th>
+        <th scope="col"><%= t("thematiq.figma.report.value") %></th>
+        <th scope="col"><%= t("thematiq.figma.report.theme") %></th>
+        <th scope="col"><%= t("thematiq.figma.report.path") %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @result.imported.each do |entry| %>
+        <tr>
+          <th scope="row"><%= t("thematiq.tokens.#{entry['role']}.label") %></th>
+          <td><code><%= entry["value"] %></code></td>
+          <td><%= t("thematiq.figma.report.themes.#{entry['theme']}") %></td>
+          <td><code><%= entry["path"] %></code></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.figma.report.skipped", count: @result.skipped_count) %></h3>
+  <% if @result.skipped_count.zero? %>
+    <p class="thematiq-editor__hint"><%= t("thematiq.figma.report.nothing_skipped") %></p>
+  <% else %>
+    <% if @result.skipped_count > @result.skipped.size %>
+      <p class="thematiq-editor__hint"><%= t("thematiq.figma.report.capped", shown: @result.skipped.size) %></p>
+    <% end %>
+    <% reasons.each do |reason, entries| %>
+      <h4 class="thematiq-figma__reason"><%= t("thematiq.figma.reasons.#{OpenProject::Thematiq::Figma::Reader::REASONS.include?(reason) ? reason : 'other'}") %> (<%= entries.size %>)</h4>
+      <ul class="thematiq-figma__paths">
+        <% entries.each do |entry| %><li><code><%= entry["path"] %></code></li><% end %>
+      </ul>
+    <% end %>
+  <% end %>
+
+  <p><%= t("thematiq.figma.report.next") %></p>
+  <p class="thematiq-editor__actions">
+    <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(id: @draft.id), scheme: :primary)) { t("thematiq.figma.report.open") } %>
+    <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path)) { t("thematiq.editor.back") } %>
+  </p>
+</div>
