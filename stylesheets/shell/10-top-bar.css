@@ -398,8 +398,9 @@
 .op-app-header .op-app-menu dialog .op-app-menu--items .ActionListItem { margin: 0 0 4px; }
 
 /* OpenProject's introduction tour puts its close button 10 px from the top right corner, where the account
- * name of this taller bar is. Below the bar it covers nothing (first full test, finding 8). */
-.enjoyhint .enjoyhint_close_btn { top: calc(var(--header-height, 68px) + 10px); }
+ * name of this taller bar is. Below the bar it covers nothing (first full test, finding 8).
+ * !important because EnjoyHint writes top: 10px on the element itself. */
+.enjoyhint .enjoyhint_close_btn { top: calc(var(--header-height, 68px) + 10px) !important; }
 
 /* Windows high contrast replaces background colours, so the masked icons need a system colour. */
 @media (forced-colors: active) {
