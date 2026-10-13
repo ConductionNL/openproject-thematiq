@@ -309,6 +309,10 @@ begin
     moved = OpenProject::Thematiq::Store.new.custom_drafts.find { |draft| draft.name == catalogue.find("zuiddrecht").name }
     moved && OpenProject::Thematiq::Assets.bundled.logo_url(moved.token_set) == "/thematiq/logos/zuiddrecht-dark.svg"
   end
+  check("an imported set keeps the dark values of the file") do
+    moved = OpenProject::Thematiq::Store.new.custom_drafts.find { |draft| draft.name == catalogue.find("zuiddrecht").name }
+    moved && catalogue.find("zuiddrecht").dark? && moved.token_set.dark_tokens == catalogue.find("zuiddrecht").dark_tokens
+  end
 
   throwaway = session_for("admin", ADMIN_PASSWORD)
   throwaway.post "/admin/thematiq/import", params: { file: upload.call(JSON.generate(good)) }
