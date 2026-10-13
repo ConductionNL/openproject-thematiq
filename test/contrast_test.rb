@@ -11,7 +11,6 @@ class ContrastTest < Minitest::Test
   # The plugin does not change their colours. It marks them in the picker.
   # When the catalogue changes this list changes with it: update it here and in docs/accessibility.md.
   KNOWN_FAILURES = {
-    "cunningham" => { "muted-on-ground" => 4.49 },
     "haarlemmermeer" => { "primary-deep-on-primary-light" => 4.23 },
     "noordoostpolder" => { "primary-deep-on-primary-light" => 4.3 },
     "vught" => { "primary-deep-on-primary-light" => 4.35 }
