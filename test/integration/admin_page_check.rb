@@ -528,8 +528,9 @@ begin
   check("the editor offers replace and remove for it") do
     body.include?("Replace") && body.match?(/<button[^>]*name="remove"[^>]*value="#{logo.token}"|<button[^>]*value="#{logo.token}"[^>]*name="remove"/)
   end
-  check("the top bar's logo rule points at the upload, on the one selector") do
-    admin.response.body.include?(%(.op-app-header .op-logo .op-logo--link { background-image: url("#{logo.url}"); }))
+  check("the top bar's logo rule points at the upload, on the bar and on the light high contrast bar") do
+    admin.response.body.include?(%(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{logo.url}"); })) &&
+      admin.response.body.include?(%(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("#{logo.url}"); }))
   end
   anonymous = session_for
   anonymous.get "/login"
@@ -550,7 +551,7 @@ begin
   send_file.call("logo_inverse", UploadSamples.png(300, 80), "inverse.png")
   check("the logo for the coloured bar wins in the top bar") do
     admin.get "/admin/thematiq"
-    admin.response.body.include?(%(.op-logo--link { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
+    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
   end
   send_file.call("logo_mobile", UploadSamples.webp(64, 64), "mobile.webp")
   check("the mobile logo gets its rule on the element narrow screens show") do
