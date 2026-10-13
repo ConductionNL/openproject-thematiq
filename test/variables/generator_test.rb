@@ -21,6 +21,57 @@ class GeneratorTest < Minitest::Test
     css.scan(/^([^\n{}\/]+) \{\n(.*?)\n\}/m).to_h { |selector, body| [selector, body] }
   end
 
+  # First full test, findings 16 and 17: white on the search field (white at 12% over Zuiddrecht's #3669a5,
+  # #4e7bb0) was 4.38 to 1, and the name under the current tile (16%, #5681b3) 4.04 to 1.
+  def test_the_bar_tints_keep_the_text_readable
+    light = blocks(Generator.new(set(FULL)).css)['body[data-color-mode="light"][data-light-theme="light"]']
+    field = light[/--thematiq-bar-field: (#\h{6});/, 1]
+    current = light[/--thematiq-bar-current: (#\h{6});/, 1]
+
+    assert_operator OpenProject::Thematiq::Contrast.ratio("#ffffff", field), :>, 4.5
+    assert_operator OpenProject::Thematiq::Contrast.ratio("#ffffff", current), :>, 4.5
+    refute_equal "#3669a5", field, "still a layer, only a lighter one"
+  end
+
+  def test_other_modes_keep_the_canons_layer_on_the_bar
+    css = Generator.new(set(FULL)).css
+
+    assert_includes blocks(css)["[data-color-mode]"], "--thematiq-bar-field: rgba(255, 255, 255, .12);"
+    assert_includes blocks(css)["[data-color-mode]"], "--thematiq-bar-current: color-mix(in srgb, var(--thematiq-on-primary) 16%, transparent);"
+  end
+
+  def test_every_bundled_set_keeps_its_bar_text_readable_in_light_and_dark
+    OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
+      blocks(Generator.new(token_set).css).each do |selector, body|
+        next unless selector.include?("-theme=")
+
+        bar = body[/--header-bg-color: (#\h{6});/, 1]
+        text = body[/--header-item-font-color: (#\h{6});/, 1]
+        next unless bar && text
+
+        %w[field current].each do |part|
+          tint = body[/--thematiq-bar-#{part}: (#\h{6});/, 1]
+          ratio = OpenProject::Thematiq::Contrast.ratio(text, tint)
+          # A bar that is itself under the minimum gets no layer at all, and is known to the contrast report.
+          next if tint == bar
+
+          assert_operator ratio, :>, 4.5, "#{token_set.id}, #{selector}: #{part} #{tint}"
+        end
+      end
+    end
+  end
+
+  def test_tint_takes_the_strongest_layer_that_reads
+    assert_equal "#3669a5", OpenProject::Thematiq::Contrast.tint("#3669a5", "#ffffff", 0)
+    # A dark bar can take the whole layer: 10% of white over #151515.
+    assert_equal "#2c2c2c", OpenProject::Thematiq::Contrast.tint("#151515", "#ffffff", 0.1)
+    # Zuiddrecht: the canon's 12% gives #4e7bb0, 4.38 to 1. The layer stops where white still reads.
+    field = OpenProject::Thematiq::Contrast.tint("#3669a5", "#ffffff", 0.12)
+    assert_operator OpenProject::Thematiq::Contrast.ratio("#ffffff", field), :>, 4.5
+    refute_equal "#4e7bb0", field
+    assert_nil OpenProject::Thematiq::Contrast.tint("red", "#ffffff", 0.12)
+  end
+
   def test_writes_three_blocks
     css = Generator.new(set(FULL)).css
 

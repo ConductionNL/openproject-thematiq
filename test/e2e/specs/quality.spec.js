@@ -31,10 +31,25 @@ test.describe("quality", () => {
 
   // Known findings in the plugin's markup, open in docs/testing/2026-10-13-first-full-test.md. They are attached
   // to the report and do not fail the run. Anything else in the plugin's markup does. Remove a line once it is fixed.
-  const KNOWN = [
-    /^color-contrast \(serious\): \.global-search--input( \[.*\])?$/,               // finding 16: search field in the top bar, 4.38 to 1
-    /^color-contrast \(serious\): \.thematiq-app-row--item.*\.thematiq-app-row--name( \[.*\])?$/, // finding 17: label of the current tile, 4.04 to 1
-  ];
+  // Findings 16 and 17 (the search field and the current tile of the top bar) are fixed and no longer listed.
+  const KNOWN = [];
+
+  // First full test, findings 16 and 17: on Zuiddrecht the white text on the search field was 4.38 to 1 and the
+  // name under the current tile 4.04 to 1. The layers over the bar now stop where the text still reads.
+  test("the top bar reads on Zuiddrecht", async ({ page }) => {
+    const saved = await snapshot(page);
+    try {
+      await applySet(page, "zuiddrecht");
+      await page.goto(`${P}/work_packages`);
+      await page.waitForLoadState("networkidle").catch(() => {});
+      await page.locator(".global-search--input").first().evaluate((el) => { el.value = "zuid"; });
+      const results = await new AxeBuilder({ page }).include(".op-app-header").withRules(["color-contrast"]).analyze();
+      const lines = results.violations.flatMap((violation) => violation.nodes.map((node) => `${node.target.join(" ")}: ${node.any.map((check) => check.message).join(" ")}`));
+      expect(lines).toEqual([]);
+    } finally {
+      await restore(page, saved);
+    }
+  });
 
   // The pass runs on the default design system, so a run on a fresh install and a run on a used one agree.
   test.describe("on the default design system", () => {

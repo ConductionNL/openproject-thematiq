@@ -102,6 +102,15 @@ module OpenProject
           "--thematiq-on-menu" => [:ink, "var(--main-menu-font-color)"]
         }.freeze
 
+        # The search field and the current tile of the top bar: a layer of the bar's text colour over the bar
+        # (canon: 12% for the field, 16% for the tile). In the light and dark theme the layer is as strong as the
+        # canon allows while the text on it keeps 4.5 to 1 (first full test, findings 16 and 17). Elsewhere, in
+        # the high contrast themes, the canon's own layer.
+        BAR_TINTS = {
+          "--thematiq-bar-field" => [0.12, "rgba(255, 255, 255, .12)"],
+          "--thematiq-bar-current" => [0.16, "color-mix(in srgb, var(--thematiq-on-primary) 16%, transparent)"]
+        }.freeze
+
         ROOT_SHAPE = {
           "--thematiq-radius" => :radius,
           "--thematiq-radius-lg" => :"radius-lg",
@@ -148,11 +157,21 @@ module OpenProject
         end
 
         def fallback_aliases
-          COLOR_ALIASES.map { |variable, (_token, fallback)| "  #{variable}: #{fallback};" }
+          COLOR_ALIASES.merge(BAR_TINTS).map { |variable, (_token, fallback)| "  #{variable}: #{fallback};" }
         end
 
         def light_aliases
-          declarations(COLOR_ALIASES.transform_values(&:first))
+          declarations(COLOR_ALIASES.transform_values(&:first)) +
+            bar_tint_declarations(@token_set["primary"] && [@token_set["primary"], Contrast.on(@token_set, "primary")])
+        end
+
+        def bar_tint_declarations(bar)
+          return [] unless bar
+
+          BAR_TINTS.filter_map do |variable, (share, _fallback)|
+            value = Contrast.tint(*bar, share)
+            "  #{variable}: #{value};" if value
+          end
         end
 
         # :on_primary and :on_action are not tokens. They are the text colour for that background,
@@ -203,7 +222,8 @@ module OpenProject
                     end
             "  #{variable}: #{value};" if value
           end
-          colours + dark_selected_declarations(dark)
+          colours + bar_tint_declarations(dark["primary"] && [dark["primary"], Contrast.on(dark, "primary")]) +
+            dark_selected_declarations(dark)
         end
 
         # The selected menu item in the dark theme: its text from the contrast rule, written last so it decides.
