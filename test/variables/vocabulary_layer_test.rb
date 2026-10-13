@@ -148,6 +148,17 @@ class VocabularyLayerTest < Minitest::Test
     refute_includes light(nav, { "menu" => "#102030" }), "--thematiq-v-nav-"
   end
 
+  def test_heading_sizes_and_the_body_font
+    mode = blocks(Generator.new(set({ "component-heading-1-font-size" => "1.75rem", "component-heading-6-font-size" => "0.875rem",
+                                      "body-font-family" => "Inter, sans-serif" }, { "font-family" => "'Fira Sans', sans-serif" })).css)
+           .fetch("[data-color-mode]")
+
+    assert_includes mode, "--h1-size: 1.75rem;"
+    assert_includes mode, "--h6-size: 0.875rem;"
+    refute_includes mode, "--h2-size:"
+    assert_includes mode, "--body-font-family: Inter, sans-serif;"
+  end
+
   # The geometry layer reads every vocabulary variable with the canon's value as fallback, so a set without
   # vocabulary looks exactly as before.
   def test_the_geometry_layer_falls_back_to_the_canon

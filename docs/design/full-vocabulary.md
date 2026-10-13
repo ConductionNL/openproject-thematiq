@@ -101,6 +101,11 @@ Rules:
 
 The navigation colours stay off a set with a `menu` colour: they are chosen for a white menu, and the plugin's contrast rule decides the text on a coloured one. `color-nav-background`, `color-nav-text` and `nav-link-color` are carried for the same reason: the `menu` role owns the menu's colour. The header colours (`color-header-*`, `header-*`) are carried: the canon draws the top bar in the primary. `component-badge-*` is carried: Primer's counter takes its text from the global `--fgColor-onEmphasis`, so a badge colour pair cannot be drawn together.
 
+| `component-heading-1-font-size` to `-6-font-size` | Primer's `--h1-size` to `--h6-size` | Headings, and Primer's `.h1` to `.h6` and `.f1` to `.f6` classes from 768 px up. OpenProject never sets these, so an unfilled size keeps Primer's fallback |
+| `body-font-family` | `--body-font-family` | Body text, where thematiq gives it a font apart from the set's font |
+
+Heading colours and the heading font are carried: OpenProject has no variable for them, and a rule on the headings would replace OpenProject's own colour even for a set that leaves them empty.
+
 `component-content-card-shadow-color` is carried: Primer's card shadow is a whole shadow, not a colour, and building one would be deriving.
 
 The main button stays the action role's. thematiq's `color-button-primary-*` and `component-button-primary-action-*` are carried, so the rule that the action colour, and only that, fills the one main button holds for every set.
