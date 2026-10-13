@@ -75,8 +75,11 @@ module OpenProject
       end
 
       # Every stored custom design system as a draft, by name. Each is checked again on the way out.
-      def custom_drafts
-        custom_definitions.keys.filter_map { |id| custom_draft(id) }.sort_by { |draft| [draft.name.downcase, draft.id] }
+      # With a query, only those whose name or id matches it, the way the catalogue is searched.
+      def custom_drafts(query = nil)
+        custom_definitions.keys.filter_map { |id| custom_draft(id) }
+                          .select { |draft| Catalogue.match?(query, draft.name, draft.id) }
+                          .sort_by { |draft| [draft.name.downcase, draft.id] }
       end
 
       # One stored custom design system as a draft. nil when there is none with that id.
