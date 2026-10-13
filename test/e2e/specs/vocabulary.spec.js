@@ -1,0 +1,48 @@
+// thematiq's full vocabulary on the page: a design system with vocabulary values reaches OpenProject's own elements,
+// and a design system without them leaves OpenProject's own values in place.
+const { test, expect } = require("@playwright/test");
+const { PICKER, customIds, applySet, snapshot, restore } = require("../support/thematiq");
+
+// Adds a design system from a file in the set shape, through the import form, and returns its id.
+async function importSet(page, set) {
+  const before = await customIds(page);
+  await page.goto(PICKER);
+  await page.setInputFiles("#thematiq-import-file", { name: `${set.id}.json`, mimeType: "application/json", buffer: Buffer.from(JSON.stringify(set)) });
+  await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.locator("#thematiq-import-form").getByRole("button", { name: "Import" }).click()]);
+  const added = (await customIds(page)).filter((id) => !before.includes(id));
+  expect(added, "one design system imported").toHaveLength(1);
+  return added[0];
+}
+
+const variable = (page, name) => page.evaluate((n) => getComputedStyle(document.body).getPropertyValue(n).trim(), name);
+
+const BASE = { id: "e2e-vocabulary", name: `E2E vocabulary ${Date.now()}`, tokens: { primary: "#3669a5" } };
+
+test.describe("vocabulary", () => {
+  let saved;
+  test.beforeEach(async ({ page }) => { saved = await snapshot(page); });
+  test.afterEach(async ({ page }) => { await restore(page, saved); });
+
+  test("status colours reach Primer's scales and OpenProject's own messages", async ({ page }) => {
+    const before = { danger: await (async () => { await page.goto(PICKER); return variable(page, "--fgColor-danger"); })() };
+    const id = await importSet(page, { ...BASE, vocabulary: { "color-error": "#cc0000", "component-status-badge-error-color": "#a30000",
+                                                              "component-status-badge-error-background-color": "#fcedec", "color-success": "#1e6b2a" } });
+    await applySet(page, id);
+
+    await page.goto(PICKER);
+    expect(await variable(page, "--fgColor-danger")).toBe("#a30000");
+    expect(await variable(page, "--bgColor-danger-emphasis")).toBe("#cc0000");
+    expect(await variable(page, "--bgColor-danger-muted")).toBe("#fcedec");
+    expect(await variable(page, "--bgColor-success-emphasis")).toBe("#1e6b2a");
+    expect(await variable(page, "--fgColor-attention"), "a key the set leaves out keeps OpenProject's own value").not.toBe("");
+    expect(before.danger).not.toBe("#a30000");
+
+    // OpenProject's own error message: an import of a broken file.
+    await page.setInputFiles("#thematiq-import-file", { name: "broken.json", mimeType: "application/json", buffer: Buffer.from("{") });
+    await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.locator("#thematiq-import-form").getByRole("button", { name: "Import" }).click()]);
+    const message = page.locator(".op-toast.-error, .Banner--error, .flash.error").filter({ visible: true }).first();
+    await expect(message).toBeVisible();
+    // The icon of the banner is drawn in Primer's danger text colour, which the badge's text colour sets.
+    await expect(message.locator(".Banner-visual svg")).toHaveCSS("color", "rgb(163, 0, 0)");
+  });
+});

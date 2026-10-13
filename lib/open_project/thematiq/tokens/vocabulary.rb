@@ -110,7 +110,11 @@ module OpenProject
 
         # The keys the plugin draws on the page. Every other key is carried, not drawn.
         # It grows with each group the variable layer learns, see Variables::Generator::VOCABULARY.
-        DRAWN = [].freeze
+        DRAWN = %w[
+          color-error color-success color-warning component-status-badge-error-background-color component-status-badge-error-color
+          component-status-badge-info-background-color component-status-badge-success-background-color
+          component-status-badge-success-color component-status-badge-warning-background-color component-status-badge-warning-color
+        ].freeze
 
         module_function
 
