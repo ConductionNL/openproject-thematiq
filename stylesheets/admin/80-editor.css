@@ -1,10 +1,33 @@
 /* The editor on the "Thematiq design" admin page. Layout only.
- * The colours of the preview are inline styles built from validated tokens. */
+ * The colours of the preview are custom properties in one style attribute, built from validated tokens.
+ * The script of the editor writes the same properties while an administrator types. */
 
 .thematiq-editor { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
 .thematiq-editor__form { flex: 1 1 360px; max-width: 480px; background: var(--thematiq-surface); border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius-lg); padding: 20px; }
 .thematiq-editor__preview { flex: 2 1 480px; min-width: 0; position: sticky; top: 16px; }
-.thematiq-editor__tokens { border: 0; margin: 0; padding: 0; min-width: 0; }
+.thematiq-editor__tokens { margin: 0; padding: 0; min-width: 0; }
+.thematiq-editor [hidden] { display: none !important; }
+.thematiq-editor__default { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); border: 0; }
+.thematiq-editor__summary { margin: 8px 0 0; font-size: 13px; font-weight: 600; }
+.thematiq-editor__tools { display: flex; flex-direction: column; gap: 6px; margin: 16px 0 0; padding: 12px; border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius); }
+.thematiq-editor__tools .thematiq-editor__label { margin-bottom: 0; }
+.thematiq-editor__toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.thematiq-editor__group { border: 0; border-top: 1px solid var(--thematiq-line); margin: 20px 0 0; padding: 16px 0 0; min-width: 0; }
+.thematiq-editor__group-title { float: left; width: 100%; font-size: 15px; font-weight: 700; margin: 0 0 4px; padding: 0; }
+.thematiq-editor__group-head { clear: both; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.thematiq-editor__group-head .thematiq-editor__hint { flex: 1 1 200px; margin: 0; }
+.thematiq-editor__count { font-size: 13px; font-weight: 600; white-space: nowrap; }
+.thematiq-editor__badge { display: inline-block; margin-left: 6px; padding: 0 8px; font-size: 12px; font-weight: 600; line-height: 18px; border: 1px solid currentColor; border-radius: 999px; }
+.thematiq-editor__field.is-changed { border-left: 3px solid var(--thematiq-primary); padding-left: 10px; }
+.thematiq-editor__field.is-invalid .FormControl-input { border-color: var(--borderColor-danger-emphasis, currentColor); }
+.thematiq-editor__checks { list-style: none; margin: 6px 0 0; padding: 0; font-size: 13px; }
+.thematiq-editor__check { padding-left: 10px; border-left: 3px solid var(--thematiq-line); margin-top: 2px; }
+.thematiq-editor__check--pass { border-left-color: var(--borderColor-success-emphasis, currentColor); }
+.thematiq-editor__check--fail { border-left-color: var(--borderColor-danger-emphasis, currentColor); font-weight: 600; color: var(--fgColor-danger, currentColor); }
+.thematiq-editor__check--unknown { border-left-style: dashed; color: var(--thematiq-muted); }
+.thematiq-editor__swatch { position: relative; overflow: hidden; }
+.thematiq-editor__picker { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.thematiq-editor__swatch:focus-within { outline: 2px solid var(--focus-outlineColor, currentColor); outline-offset: 2px; }
 .thematiq-editor__legend { font-size: 16px; font-weight: 700; margin: 0 0 8px; padding: 0; }
 .thematiq-editor__field { margin-bottom: 16px; }
 .thematiq-editor__label { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
@@ -17,20 +40,28 @@
 .thematiq-editor__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
 .thematiq-editor__danger { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--thematiq-line); }
 
-/* the picture of the shared shell */
-.thematiq-shell { overflow: hidden; font-size: 14px; line-height: 20px; }
-.thematiq-shell__bar { height: 68px; display: flex; align-items: center; gap: 24px; padding: 0 20px; }
+/* The picture of the shared shell. Every colour is a --tqp- property on the frame. White parts are white on the page too,
+ * whatever the design system, so they are written as the keyword here. */
+.thematiq-shell { overflow: hidden; font-size: 14px; line-height: 20px; background: var(--tqp-ground); border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius-lg); font-family: var(--tqp-font-family); color: var(--tqp-ink); }
+.thematiq-shell__bar { height: 68px; display: flex; align-items: center; gap: 24px; padding: 0 20px; background: var(--tqp-primary); color: var(--tqp-on-primary); }
 .thematiq-shell__app { font-size: 18px; font-weight: 700; }
-.thematiq-shell__search { flex: 0 1 240px; height: 44px; line-height: 42px; padding: 0 14px; box-sizing: border-box; opacity: .9; }
+.thematiq-shell__search { flex: 0 1 240px; height: 44px; line-height: 42px; padding: 0 14px; box-sizing: border-box; opacity: .9; border: 1px solid var(--tqp-on-primary); border-radius: var(--tqp-radius-lg); color: var(--tqp-on-primary); }
 .thematiq-shell__body { display: flex; min-height: 320px; }
-.thematiq-shell__side { flex: 0 0 184px; display: flex; flex-direction: column; gap: 6px; padding: 20px 14px; box-sizing: border-box; }
-.thematiq-shell__button { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; font-weight: 600; box-sizing: border-box; }
-.thematiq-shell__nav { display: flex; align-items: center; min-height: 42px; padding: 0 10px; font-size: 15px; font-weight: 500; }
+.thematiq-shell__side { flex: 0 0 184px; display: flex; flex-direction: column; gap: 6px; padding: 20px 14px; box-sizing: border-box; background: var(--tqp-menu); border-right: 1px solid var(--tqp-line); color: var(--tqp-on-menu); }
+.thematiq-shell__button { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; font-weight: 600; box-sizing: border-box; background: white; border: 1px solid var(--tqp-field); border-radius: var(--tqp-radius); color: var(--tqp-ink); }
+.thematiq-shell__button--action { background: var(--tqp-action); border-color: var(--tqp-action-deep); color: var(--tqp-on-action); }
+.thematiq-shell__nav { display: flex; align-items: center; min-height: 42px; padding: 0 10px; font-size: 15px; font-weight: 500; border-radius: var(--tqp-radius); color: var(--tqp-on-menu); }
+.thematiq-shell__nav--active { background: var(--tqp-primary-light); color: var(--tqp-on-selected); }
 .thematiq-shell__main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 16px; padding: 24px 28px; }
 .thematiq-shell__head { display: flex; align-items: center; gap: 8px; }
 .thematiq-shell__title { flex: 1 1 auto; font-size: 28px; font-weight: 700; line-height: 34px; }
-.thematiq-shell__input { display: flex; align-items: center; height: 40px; padding: 0 12px; max-width: 220px; box-sizing: border-box; }
-.thematiq-shell__table { overflow: hidden; }
-.thematiq-shell__row { display: flex; gap: 24px; padding: 14px 16px; }
+.thematiq-shell__input { display: flex; align-items: center; height: 40px; padding: 0 12px; max-width: 220px; box-sizing: border-box; background: white; border: 1px solid var(--tqp-field); border-radius: var(--tqp-radius-lg); color: var(--tqp-ink); }
+.thematiq-shell__table { overflow: hidden; background: white; border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius-lg); }
+.thematiq-shell__row { display: flex; gap: 24px; padding: 14px 16px; border-top: 1px solid var(--tqp-line); }
+.thematiq-shell__row--head { color: var(--tqp-muted); border-top: 0; border-bottom: 1px solid var(--tqp-line); }
 .thematiq-shell__row span:first-child { flex: 0 0 48px; font-weight: 600; }
-.thematiq-shell__note { font-size: 13px; }
+.thematiq-shell__link { color: var(--tqp-link); }
+.thematiq-shell__notice { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--tqp-chip); border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius); color: var(--tqp-text); }
+.thematiq-shell__notice:hover { background: var(--tqp-soft); }
+.thematiq-shell__accent { flex: 0 0 10px; width: 10px; height: 10px; border-radius: 999px; background: var(--tqp-accent); }
+.thematiq-shell__note { font-size: 13px; color: var(--tqp-muted); }

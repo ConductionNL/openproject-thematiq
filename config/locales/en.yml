@@ -40,7 +40,40 @@ en:
       based_on_hint: "Values you leave empty come from this design system."
       tokens: "Values"
       tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
-      base_value: "Now: %{value}."
+      base_value: "In %{name}: %{value}."
+      changed: "Changed"
+      changed_total:
+        zero: "No value differs from the design system it is based on."
+        one: "1 value differs from the design system it is based on."
+        other: "%{count} values differ from the design system it is based on."
+      changed_count:
+        zero: "0 changed"
+        one: "1 changed"
+        other: "%{count} changed"
+      search: "Search values"
+      only_changed: "Show changed values only"
+      no_match: "No value matches."
+      pick_colour: "Pick a colour for %{token}"
+      groups:
+        branding:
+          label: "Branding"
+          hint: "The brand colours: the top bar and what is selected."
+        content:
+          label: "Content area"
+          hint: "Backgrounds, lines, the main menu and the corners."
+        buttons:
+          label: "Buttons and links"
+          hint: "The main button and links."
+        typography:
+          label: "Typography"
+          hint: "Text colours and the font."
+      reset_group: "Reset group"
+      reset_group_label: "Reset every value in %{group}"
+      contrast:
+        of: "Contrast of %{pair}:"
+        pass: "%{ratio} to 1. That is enough."
+        fail: "%{ratio} to 1. That is too low, 4.5 to 1 is needed."
+        unknown: "not measured. Use a hex value or rgb() to have it checked."
       kind_hint:
         color: "A colour, for example #1a67a3 or rgb(26, 103, 163)."
         length: "A length, for example 8px or 0.5rem."
@@ -54,7 +87,7 @@ en:
       delete: "Delete this custom design system"
       delete_hint: "OpenProject goes back to the design system chosen before."
       preview_title: "Preview of the shell"
-      preview_hint: "The preview shows the values in the form. Select \"Preview\" to draw it again after a change. Nothing is saved until you select \"Save and apply\"."
+      preview_hint: "The preview follows the form while you type. Nothing is saved until you select \"Save and apply\". Without scripts in your browser, select \"Preview\" to draw it again."
       notice_not_saved: "The preview is up to date. Nothing is saved yet."
       notice_deleted: "The custom design system is deleted."
       error_invalid: "Some values cannot be used. Correct the marked fields and save again."
@@ -76,6 +109,7 @@ en:
         row_one: "Organise the conference"
         row_two: "Send the invitations"
         footnote: "Sample content"
+        notice: "A notice with the accent colour"
     contrast:
       low: "Low contrast, under 4.5 to 1: %{pairs}."
       pairs:

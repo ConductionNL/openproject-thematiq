@@ -119,9 +119,10 @@ Everyone sees the chosen design system on their next page.
 ### Edit a design system
 
 1. On **Thematiq design**, select **Customise** next to the design system you want to start from.
-2. Give it a name and change the values you want: colours, corners, font. Leave a field empty to keep the original value.
-3. Select **Preview** to see the shell with your values. Nothing is saved yet.
-4. Select **Save and apply**.
+2. Give it a name and change the values you want. They are in four groups: branding, content area, buttons and links, typography. Leave a field empty to keep the original value.
+3. Watch the preview beside the form. It follows what you type, and nothing is saved yet. Each colour shows the contrast of the text that goes with it.
+4. A changed value has the badge **Changed**. **Reset** puts one value back, **Reset group** a whole group.
+5. Select **Save and apply**.
 
 You can keep up to 50 custom design systems.
 

@@ -26,11 +26,16 @@ A custom design system is a design system of the plugin plus the values you chan
 
 1. Select **Customise** next to a design system in the list. The editor opens a new custom design system with that one as the base. To change one you made earlier, select **Edit** next to it.
 2. Give your design system a name.
-3. Change values. Each of the eighteen values has its own field. An empty field keeps the value of the base, which the field shows in grey.
-4. Select **Preview**. The picture on the right is drawn again with your values. Nothing is saved.
-5. Select **Save and apply**. Your design system is saved and becomes the active one.
+3. Change values. They are in four groups, the same four as in thematiq's token editor: branding, content area, buttons and links, typography. An empty field keeps the value of the base, which the field shows in grey. A colour field has a swatch: select it to pick a colour.
+4. Watch the picture beside the form. It follows what you type. Nothing is saved.
+5. Read the contrast lines under a colour. Each one names a text and its background, the ratio, and whether it is enough. 4.5 to 1 is needed.
+6. Select **Save and apply**. Your design system is saved and becomes the active one.
 
-To go back to one value of the base, select **Reset** next to it. **Reset all** empties every field. Both change the form only; select **Save and apply** to keep the result.
+A value that differs from the base has the badge **Changed**. Each group counts its changed values, and the line above the groups counts them all. **Search values** finds a value by its name. **Show changed values only** hides the rest.
+
+To go back to one value of the base, select **Reset** next to it. **Reset group** empties one group and **Reset all** every field. All three change the form only; select **Save and apply** to keep the result.
+
+The live preview, the colour picker, the search and the filter need scripts in your browser. Without them the page still works: select **Preview** to draw the picture again.
 
 A value the plugin cannot use is marked, with a line that says what is expected. Nothing is saved while a field is marked.
 
@@ -38,7 +43,7 @@ Your design systems stay at the top of the list, marked "Custom". You can pick a
 
 ### What the editor does not do
 
-- The preview does not follow your typing. It is drawn again when you select **Preview**.
+- It has no dark value per colour, no opacity control and no custom CSS. [design/style-editor.md](design/style-editor.md) compares it with thematiq's editor, part by part.
 - A font you name is loaded when it is one of the 13 families in the plugin. Any other font must be on the reader's device. [logos-and-fonts.md](logos-and-fonts.md) lists the families.
 
 ## Upload a logo, icons and fonts

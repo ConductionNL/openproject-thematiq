@@ -32,31 +32,27 @@ module OpenProject
         }
       end
 
-      # The larger picture of the shared shell in the editor.
-      def shell
-        font = value("font-family")
-        {
-          frame: css("background" => value("ground"), "border" => "1px solid #{value('line')}",
-                     "border-radius" => value("radius-lg"), "font-family" => font, "color" => value("ink")),
-          top_bar: css("background" => value("primary"), "color" => on("primary")),
-          search: css("border" => "1px solid #{on('primary')}", "border-radius" => value("radius-lg"), "color" => on("primary")),
-          sidebar: css("background" => @token_set["menu"] || "#ffffff", "border-right" => "1px solid #{value('line')}",
-                       "color" => (@token_set["menu"] ? Contrast.on_menu(@token_set) : value("ink"))),
-          action_button: css("background" => value("action"), "border" => "1px solid #{value('action-deep')}",
-                             "border-radius" => value("radius"), "color" => on("action")),
-          secondary_button: css("background" => "#ffffff", "border" => "1px solid #{value('field')}",
-                                "border-radius" => value("radius"), "color" => value("ink")),
-          nav_item: css("border-radius" => value("radius"), "color" => (@token_set["menu"] ? Contrast.on_menu(@token_set) : value("ink"))),
-          nav_item_active: css("background" => value("primary-light"), "border-radius" => value("radius"),
-                               "color" => Contrast.on_selected(@token_set) || value("primary-deep")),
-          table: css("background" => "#ffffff", "border" => "1px solid #{value('line')}", "border-radius" => value("radius-lg")),
-          table_head: css("color" => value("muted"), "border-bottom" => "1px solid #{value('line')}"),
-          table_row: css("border-top" => "1px solid #{value('line')}"),
-          link: css("color" => value("link")),
-          muted: css("color" => value("muted")),
-          input: css("background" => "#ffffff", "border" => "1px solid #{value('field')}",
-                     "border-radius" => value("radius-lg"), "color" => value("ink"))
-        }
+      PREFIX = "--tqp-"
+
+      # The larger picture of the shared shell in the editor: one custom property per token, and the
+      # colours the plugin works out itself. The static CSS of the picture reads them, and the script of
+      # the editor writes the same properties while an administrator types. One style attribute, no rules.
+      def shell_variables
+        values = Tokens::TokenSet::ALL_KINDS.each_key.to_h { |key| ["#{PREFIX}#{key}", value(key)] }
+        derived.each { |name, colour| values["#{PREFIX}#{name}"] = colour }
+        css(values)
+      end
+
+      # The colours the plugin picks by contrast. The script of the editor follows the same rules.
+      #   on-primary   the text on the top bar
+      #   on-action    the text on the main button
+      #   on-menu      the text on the main menu: the ink on a white menu
+      #   on-selected  the text on the selected menu item
+      def derived
+        { "on-primary" => on("primary"),
+          "on-action" => on("action"),
+          "on-menu" => (@token_set["menu"] ? Contrast.on_menu(@token_set) : value("ink")),
+          "on-selected" => (Contrast.on_selected(@token_set) || value("primary-deep")) }
       end
 
       # A square in one colour, next to a colour field.

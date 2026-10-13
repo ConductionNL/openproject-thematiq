@@ -161,11 +161,23 @@ begin
     OpenProject::Thematiq::Tokens::TokenSet::KINDS.each_key.all? { |key| body.include?(%(id="thematiq-token-#{key}")) }
   end
   check("the editor shows the shell preview") { body.include?('data-test-selector="thematiq-shell-preview"') }
+  check("the editor has the optional menu field") { body.include?('id="thematiq-token-menu"') }
+  check("the editor has its four groups") do
+    OpenProject::Thematiq::Editor.groups.all? { |group| body.include?(%(data-thematiq-group="#{group.id}")) }
+  end
+  check("the preview is drawn with custom properties") { body.include?("--tqp-primary: #{default['primary']}") }
+  check("a colour has its contrast line") { body.include?('data-thematiq-check="ink-on-ground"') && body.include?("to 1. That is") }
+  check("the script of the editor carries the nonce of the page") do
+    tag = body[/<script[^>]*>\s*window\.thematiqEditorData/]
+    nonce = body[/<meta name="csp-nonce" content="([^"]+)"/, 1]
+    tag && nonce && tag.include?(%(nonce="#{nonce}"))
+  end
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
   admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, preview: "1",
                                                  tokens: { "primary" => "#aa0055" }, authenticity_token: token }
-  check("preview draws the typed colour") { admin.response.status == 200 && admin.response.body.include?("background: #aa0055") }
+  check("preview draws the typed colour") { admin.response.status == 200 && admin.response.body.include?("--tqp-primary: #aa0055") }
+  check("the typed colour is marked as changed") { admin.response.body.match?(/thematiq-editor__field is-changed" data-thematiq-row="primary"/) }
   check("preview stores nothing") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
 
   hostile = 'red; } body { display:none'
@@ -198,6 +210,19 @@ begin
     admin.response.status == 200 && !admin.response.body.include?('value="#aa0055"') && admin.response.body.include?('value="12px"') &&
       OpenProject::Thematiq::Store.new.custom_draft.overrides.key?("primary")
   end
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, reset_group: "branding",
+                                                 tokens: { "primary" => "#aa0055", "accent" => "#00aa55", "radius" => "12px" }, authenticity_token: token }
+  check("reset of a group clears its fields, keeps the others and saves nothing") do
+    admin.response.status == 200 && !admin.response.body.include?('value="#aa0055"') && !admin.response.body.include?('value="#00aa55"') &&
+      admin.response.body.include?('value="12px"') && OpenProject::Thematiq::Store.new.custom_draft.overrides.key?("primary")
+  end
+
+  token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
+  admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, preview: "1",
+                                                 tokens: { "menu" => "#102030" }, authenticity_token: token }
+  check("a typed menu colour reaches the preview") { admin.response.body.include?("--tqp-menu: #102030") }
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
   admin.post "/admin/thematiq/custom", params: { name: "Check style", based_on: default.id, reset_all: "1",

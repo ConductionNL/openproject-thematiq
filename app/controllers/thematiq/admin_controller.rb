@@ -51,7 +51,7 @@ module Thematiq
 
       @draft = draft_from_params
       @stored = !@store.custom_draft(@draft.id).nil?
-      if params[:preview].present? || params[:reset].present? || params[:reset_all].present?
+      if params[:preview].present? || params[:reset].present? || params[:reset_group].present? || params[:reset_all].present?
         flash.now[:notice] = t("thematiq.editor.notice_not_saved")
         render :edit
       elsif save_draft(@draft, new: !@stored)
@@ -210,13 +210,15 @@ module Thematiq
       typed = params[:tokens].respond_to?(:permit) ? params[:tokens].permit(*token_keys).to_h : {}
       typed = {} if params[:reset_all].present?
       typed = typed.except(params[:reset].to_s) if params[:reset].present?
+      typed = typed.except(*OpenProject::Thematiq::Editor.keys_of(params[:reset_group])) if params[:reset_group].present?
       id = custom_id_from_params
       OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed, id:,
                                              logo: @store.custom_draft(id)&.definition&.dig("logo"))
     end
 
     def token_keys
-      OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys
+      # Every role, the optional ones as well: the form has a field for each.
+      OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.keys
     end
 
     def load_state
