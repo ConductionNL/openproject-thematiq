@@ -368,7 +368,7 @@ begin
   check("a hostile value in a Figma file is skipped and named, escaped") do
     body = admin.response.body
     admin.response.status == 200 && body.include?("Not a colour, a length or a font stack the plugin accepts") &&
-      !body.include?("<script>alert(1)</script>") && !body.include?("display:none")
+      !body.include?("<script>alert(1)</script>") && body.include?("&lt;script&gt;alert(1)&lt;/script&gt;") && !body.include?("red; }")
   end
   figma_upload.call(["{ not json"])
   admin.follow_redirect!
