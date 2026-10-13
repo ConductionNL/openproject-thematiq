@@ -8,6 +8,11 @@
 .toolbar-container { min-height: 40px; margin-bottom: 20px; }
 .toolbar-container .toolbar { min-height: 40px; }
 .toolbar-items .toolbar-item { height: 40px; }
+/* On a phone the canon's larger buttons no longer fit on one line. The row is aligned to the right, so it
+ * ran off the left edge and cut off Create (first full test, finding 21). It wraps instead. */
+@media screen and (max-width: 679px) {
+  .toolbar-container .toolbar-items { flex-wrap: wrap; row-gap: 8px; }
+}
 
 /* page title: 28 px weight 700, line-height 1.2 */
 .toolbar-title--container, .toolbar-container .editable-toolbar-title--input,

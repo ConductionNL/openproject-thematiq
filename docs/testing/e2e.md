@@ -13,6 +13,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `uploads.spec.js` | Each kind of upload shows where it should, hostile files are cleaned or refused, the public file route serves without a session and refuses near misses |
 | `shell.spec.js` | The two-layer project menu, the row of tiles, Home and `/my/page`, the sizes of the canon |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
+| `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 | `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 
