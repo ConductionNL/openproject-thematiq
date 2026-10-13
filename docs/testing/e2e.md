@@ -14,6 +14,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `shell.spec.js` | The two-layer project menu, the row of tiles, Home and `/my/page`, the sizes of the canon |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
+| `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 
 A test that checks a known fault is marked with `test.fail()`. None is marked now: the two that were (the table header at 45 px, the top bar wider than the window on a module page) pass since findings 2 and 6 were fixed. When a marked test passes, Playwright reports it as failed with "expected to fail, but passed". Remove the `test.fail()` line then.
 
