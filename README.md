@@ -15,6 +15,44 @@ The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes
 
 The designs are on [identity.conduction.nl/screens](https://identity.conduction.nl/screens/?ds=openproject#openproject).
 
+## Try it locally with Docker
+
+This starts a throwaway OpenProject with the plugin on your own machine. You need Docker with Compose and about 4 GB of free memory. It is for trying the plugin out, not for production: it runs without HTTPS and only your own machine can reach it.
+
+1. Get the plugin and start it.
+
+   ```bash
+   git clone https://github.com/ConductionNL/openproject-thematiq.git
+   cd openproject-thematiq
+   docker compose -f docker/compose.yml up -d --build
+   ```
+
+2. Wait for the first start. OpenProject creates and fills its database, which takes a few minutes. It took about three minutes on the machine this was tried on, with the OpenProject image already on disk. A later start is faster. This command follows the log; stop following with Ctrl+C once the page opens.
+
+   ```bash
+   docker compose -f docker/compose.yml logs -f
+   ```
+
+3. Open <http://localhost:8080> and sign in. OpenProject's [Docker documentation](https://www.openproject.org/docs/installation-and-operations/installation/docker/) gives the first login for this image: user `admin`, password `admin`. Choose a new password when OpenProject asks for one.
+
+4. Select your avatar, then **Administration**, then **Thematiq design**. Pick a design system and select **Apply**. [Usage](#usage) has the rest.
+
+Stop it and keep the data:
+
+```bash
+docker compose -f docker/compose.yml down
+```
+
+Stop it and remove its volumes, so nothing is left:
+
+```bash
+docker compose -f docker/compose.yml down -v
+```
+
+Is port 8080 already in use? Then the first command fails with "port is already allocated". Put another port in front of every one of these commands, for example `THEMATIQ_PORT=8090 docker compose -f docker/compose.yml up -d --build`, and open that port instead.
+
+`docker/compose.yml` holds no secret. The first start makes a random `SECRET_KEY_BASE` and keeps it in a volume, because OpenProject needs the same value on every start.
+
 ## Installation
 
 ### What it was tested on
