@@ -1,0 +1,80 @@
+# The checks of the plugin.
+# - unit: bin/test and bin/check-syntax, on every pull request and push. They need Docker and the OpenProject image, nothing else.
+# - e2e: builds the image, starts the compose instance from the README and runs test/e2e. A fresh OpenProject
+#   takes minutes to seed its database, so this job runs by hand (Actions, "Test", "Run workflow") and on pushes
+#   to development and main, not on every pull request.
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [development, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests and syntax
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pull the OpenProject image
+        run: docker pull openproject/openproject:17
+      - name: Unit tests
+        run: bin/test
+      - name: Syntax
+        run: bin/check-syntax
+
+  e2e:
+    name: End-to-end
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      THEMATIQ_PORT: "8080"
+      THEMATIQ_E2E_URL: http://localhost:8080
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start OpenProject with the plugin
+        run: docker compose -f docker/compose.yml up -d --build
+      - name: Wait for the first start
+        run: |
+          for attempt in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/login || true)
+            if [ "$code" = "200" ]; then echo "OpenProject answers after about $((attempt * 10)) s"; exit 0; fi
+            sleep 10
+          done
+          docker compose -f docker/compose.yml logs --tail 200
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: test/e2e/package-lock.json
+      - name: Install the suite
+        working-directory: test/e2e
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Run the suite
+        working-directory: test/e2e
+        # A throwaway instance: the password only lives for this job.
+        run: THEMATIQ_E2E_PASSWORD="E2e-$(openssl rand -hex 12)-Aa1!" npm test
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: test/e2e/.results/
+          retention-days: 14
+      - name: Log of OpenProject on failure
+        if: failure()
+        run: docker compose -f docker/compose.yml logs --tail 300
+      - name: Stop
+        if: always()
+        run: docker compose -f docker/compose.yml down -v

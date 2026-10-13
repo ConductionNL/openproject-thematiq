@@ -51,6 +51,8 @@ docker compose -f docker/compose.yml down -v
 
 Is port 8080 already in use? Then the first command fails with "port is already allocated". Put another port in front of every one of these commands, for example `THEMATIQ_PORT=8090 docker compose -f docker/compose.yml up -d --build`, and open that port instead.
 
+To run the end-to-end tests against this instance, follow [docs/testing/e2e.md](docs/testing/e2e.md): `cd test/e2e && npm ci && npx playwright install chromium`, then `THEMATIQ_E2E_URL=http://localhost:8080 THEMATIQ_E2E_PASSWORD='<admin password>' npm test`.
+
 `docker/compose.yml` holds no secret. The first start makes a random `SECRET_KEY_BASE` and keeps it in a volume, because OpenProject needs the same value on every start.
 
 ## Installation
