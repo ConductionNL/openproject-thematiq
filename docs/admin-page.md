@@ -95,7 +95,18 @@ Uploaded files do not travel either. A font file is often not free to pass on, a
 
 The script `test/integration/admin_page_check.rb` signs in, opens the page and uses every action. Run it inside a development container, never against an instance people use:
 
+On the instance from [Try it locally with Docker](../README.md#try-it-locally-with-docker), from the repository root. Give the port you opened OpenProject on:
+
+```bash
+docker compose -f docker/compose.yml exec -e THEMATIQ_CHECK_PASSWORD='<admin password>' -e THEMATIQ_CHECK_HOST=localhost:8080 openproject \
+  bash -lc 'cd /app && bin/rails runner /app/custom-plugins/openproject-thematiq/test/integration/admin_page_check.rb'
+```
+
+On a container started as in [development.md](development.md), which gets `SECRET_KEY_BASE` from `docker run`:
+
 ```bash
 docker exec -e THEMATIQ_CHECK_PASSWORD='<admin password>' -e THEMATIQ_CHECK_HOST=localhost:8080 openproject-thematiq \
   bash -lc 'cd /app && bin/rails runner /app/custom-plugins/openproject-thematiq/test/integration/admin_page_check.rb'
 ```
+
+`bash -lc` matters on the compose instance: the login shell reads the secret from its volume. Without it `rails runner` stops with "INSECURE SECRET_KEY_BASE DETECTED".
