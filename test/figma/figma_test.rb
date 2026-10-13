@@ -285,6 +285,13 @@ class FigmaTest < Minitest::Test
     end
   end
 
+  def test_a_hostile_value_with_a_brace_is_named_as_a_refused_value
+    document = { "nldesign" => { "color" => { "primary" => { "$value" => "red; } body { display:none", "$type" => "color" },
+                                               "text" => { "$value" => "#111111", "$type" => "color" } } } }
+
+    assert_equal [{ "path" => "nldesign.color.primary", "reason" => "value_refused" }], read(document).skipped
+  end
+
   def test_the_text_the_plugin_kept_is_checked_like_any_value
     document = JSON.parse(Figma.export(set("primary" => "rgb(10, 20, 30)")))
     document["nldesign"]["color"]["primary"]["$extensions"]["nl.conduction.openproject-thematiq"]["css"] = "red; } body { display: none"

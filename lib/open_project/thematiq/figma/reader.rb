@@ -290,7 +290,8 @@ module OpenProject
           leaf = all[path]
           MAX_HOPS.times do
             value = leaf[:value]
-            return { value:, type: leaf[:type] } unless value.is_a?(String) && value.include?("{")
+            # Only a value with a reference in it is followed. Any other text goes to the validator as it is.
+            return { value:, type: leaf[:type] } unless value.is_a?(String) && value.match?(/\{[^{}]*\}/)
 
             match = REFERENCE.match(value.strip)
             return "expression_not_supported" unless match
