@@ -126,6 +126,14 @@ Everyone sees the chosen design system on their next page.
 
 You can keep up to 50 custom design systems.
 
+### Download for Figma and upload from Figma
+
+1. On **Thematiq design**, select **Figma** next to a design system and choose a format: W3C design tokens, Tokens Studio, or Tokens Studio in its legacy spelling. Your browser saves a token file.
+2. To bring a token set in, select **Upload from Figma** on the same page and choose the file. For a Tokens Studio folder, choose all its files at once.
+3. The plugin adds a new custom design system and shows what it imported, what it skipped and why. Pick it in the list and select **Apply** to use it.
+
+The W3C file has the layout thematiq writes, so it moves between the two. [docs/figma.md](docs/figma.md) has the formats, the names and what a round trip loses.
+
 ### Upload a logo, icons and fonts
 
 A custom design system can carry your own files.

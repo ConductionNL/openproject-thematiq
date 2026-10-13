@@ -319,6 +319,68 @@ begin
     OpenProject::Thematiq::Transfer.import(admin.response.body).tokens == OpenProject::Thematiq::Store.new.custom_set.tokens
   end
 
+  # 5b. Figma token sets
+  as_member.get "/admin/thematiq/figma", params: { id: default.id }
+  check("a non-admin cannot open the Figma page") { as_member.response.status == 403 }
+  as_member.get "/admin/thematiq/figma/download", params: { id: default.id, file_format: "dtcg" }
+  check("a non-admin cannot download for Figma") { as_member.response.status == 403 }
+
+  admin.get "/admin/thematiq/figma", params: { id: default.id }
+  check("the Figma page offers the three formats and the upload") do
+    admin.response.status == 200 && OpenProject::Thematiq::Figma::FORMATS.all? { |format| admin.response.body.include?("file_format=#{format}") } &&
+      admin.response.body.include?('id="thematiq-figma-form"')
+  end
+  figma_files = OpenProject::Thematiq::Figma::FORMATS.to_h do |format|
+    admin.get "/admin/thematiq/figma/download", params: { id: default.id, file_format: format }
+    check("download for Figma as #{format} sends a JSON attachment") do
+      admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
+        admin.response.media_type == "application/json" && JSON.parse(admin.response.body).is_a?(Hash)
+    end
+    [format, admin.response.body]
+  end
+  admin.get "/admin/thematiq/figma/download", params: { id: default.id, file_format: "zip" }
+  check("an unknown Figma format gives 404") { admin.response.status == 404 }
+  admin.get "/admin/thematiq/figma/download", params: { id: "no-such-set", file_format: "dtcg" }
+  check("download for Figma of an unknown design system gives 404") { admin.response.status == 404 }
+
+  figma_upload = lambda do |contents|
+    token = form_token(admin, "/admin/thematiq/figma", "thematiq-figma-form")
+    admin.post "/admin/thematiq/figma", params: { files: contents.map { |content| upload.call(content) }, authenticity_token: token }
+  end
+  before = OpenProject::Thematiq::Store.new.custom_drafts.size
+  figma_files.each do |format, content|
+    figma_upload.call([content])
+    drafts = OpenProject::Thematiq::Store.new.custom_drafts
+    check("an upload from Figma of the #{format} file shows the report and adds a design system") do
+      admin.response.status == 200 && admin.response.body.include?('data-test-selector="thematiq-figma-report"') &&
+        admin.response.body.include?("Every token in the file was used.")
+    end
+    check("the #{format} file comes back with the values it left with") { drafts.any? { |draft| draft.token_set.tokens == default.tokens } }
+  end
+  check("each upload from Figma added one custom design system") { OpenProject::Thematiq::Store.new.custom_drafts.size == before + 3 }
+  check("an upload from Figma applies nothing") { OpenProject::Thematiq::Store.new.active_custom_id.nil? }
+
+  hostile_file = { "nldesign" => { "color" => { "primary" => { "$value" => "red; } body { display:none", "$type" => "color" },
+                                                 "text" => { "$value" => "#111111", "$type" => "color" },
+                                                 "<script>alert(1)</script>" => { "$value" => "#fff", "$type" => "color" } } } }.to_json
+  figma_upload.call([hostile_file])
+  check("a hostile value in a Figma file is skipped and named, escaped") do
+    body = admin.response.body
+    admin.response.status == 200 && body.include?("Not a colour, a length or a font stack the plugin accepts") &&
+      !body.include?("<script>alert(1)</script>") && !body.include?("display:none")
+  end
+  figma_upload.call(["{ not json"])
+  admin.follow_redirect!
+  check("a Figma file that is not JSON is refused with a message") { admin.response.body.include?("could not be read as JSON") }
+  figma_upload.call([{ "a" => { "$value" => "#fff", "$type" => "color" } }.to_json])
+  admin.follow_redirect!
+  check("a Figma file with nothing usable is refused") { admin.response.body.include?("no token this plugin can use") }
+  throwaway = ActionDispatch::Integration::Session.new(Rails.application)
+  throwaway.host! HOST
+  throwaway.post "/admin/thematiq/figma", params: { files: [upload.call(figma_files["dtcg"])] }
+  check("an upload from Figma without a session is refused") { [302, 401, 403, 422].include?(throwaway.response.status) }
+  OpenProject::Thematiq::Store.new.custom_drafts.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+
   # 6. The Nextcloud address for the app switcher
   shell_post = lambda do |value|
     token = form_token(admin, "/admin/thematiq", "thematiq-shell-form")
