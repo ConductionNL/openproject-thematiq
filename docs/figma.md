@@ -24,7 +24,7 @@ Logos, icons and fonts are not in these files.
 
 The plugin adds a new custom design system and shows a report: every value it imported, with the token it came from, and every token it skipped, with the reason. Nothing is applied until you pick the design system in the list.
 
-Values the file does not name come from the default design system.
+Values the file does not name come from the default design system. A token under a name of the vocabulary becomes that vocabulary value, through the check of its kind. It can feed a value of the nineteen as well: thematiq's error colour is also where the accent falls back to.
 
 ## Which token becomes which value
 
@@ -52,6 +52,18 @@ The names are thematiq's. Each value is written under the CSS name thematiq read
 | Font | `--nldesign-font-family` | `nldesign.font.family` |
 | Menu | `--thematiq-shell-menu` | `thematiq.shell.menu` |
 
+A value of the full vocabulary ([full-vocabulary.md](design/full-vocabulary.md)) is written under thematiq's own name for it, `--nldesign-` and the key, at the path that name gives: `color-error` is `--nldesign-color-error` at `nldesign.color.error`. Its type follows its kind:
+
+| Kind | W3C design tokens | Tokens Studio |
+|---|---|---|
+| Colour | `color`, as for the nineteen | `color` |
+| Length, size | `dimension` for `px` and `rem`, `number` for `0`, else `cssOnly` | `dimension` |
+| Font stack | `fontFamily` | `fontFamilies` |
+| Font weight | `fontWeight` for a number, else `cssOnly` | `fontWeights` |
+| Number | `number` | `number` |
+| Duration | `duration`, `{"value": 100, "unit": "ms"}` | `other` |
+| Offset, three channels, filter, border, text transform | `cssOnly` | `other` |
+
 Every token also carries its CSS name in `$extensions["nl.conduction.thematiq"].cssVariable`. That is what thematiq looks at first, and so does the plugin.
 
 On upload the plugin finds the CSS name of a token in this order:
@@ -60,7 +72,7 @@ On upload the plugin finds the CSS name of a token in this order:
 2. A path that holds the names above, such as `nldesign.color.primary`, with anything in front of it.
 3. The end of the path, from thematiq's own table: `color.primary`, `brand.primary`, `color.primary-hover`, `color.primary-light`, `color.background`, `color.text`, `fontfamily.base`, `typography.font-family`, `border-radius.base`, `dimension.border-radius`.
 
-A value then takes the first CSS name it knows, in the order of thematiq's role mapper. That list also holds Nextcloud's names, such as `--color-primary`, and some values share a name: a file with a primary colour and no action colour gives the action the primary colour.
+A value then takes the first CSS name it knows, in the order of thematiq's role mapper. In a file the plugin wrote itself (a W3C file with the plugin's extension at the root, or a Tokens Studio file with the token set `thematiq/light`) a value only takes the name the plugin writes it under. So a content surface in the vocabulary does not become the ground on the way back. That list also holds Nextcloud's names, such as `--color-primary`, and some values share a name: a file with a primary colour and no action colour gives the action the primary colour.
 
 ## What a round trip keeps and loses
 
@@ -78,7 +90,8 @@ A design system downloaded and uploaded again gives the same nineteen values and
 | The name | Kept, as `$description` | Kept, as the `group` of the themes |
 | The id | Written as `setId`. Not used on upload: an upload always gets a new id | Lost |
 | Logo, icons, fonts | Lost | Lost |
-| Tokens of thematiq that are not one of the nineteen values | Skipped on upload and named in the report. They do not come back out | The same |
+| Tokens of thematiq's full vocabulary | Kept, under thematiq's names. A see-through colour comes back as eight digit hex when a tool drops the extension | Kept, as text |
+| Tokens of thematiq outside the vocabulary, such as a set's own palette (`--zuiddrecht-color-red`) | Skipped on upload and named in the report. They do not come back out | The same |
 
 ## What an upload must stand
 
@@ -87,7 +100,7 @@ An uploaded file is hostile input.
 - At most 512 KB for all files together, at most 40 files.
 - Groups at most 12 deep, at most 5000 tokens.
 - A reference that leads back to itself is found and named. A chain of more than 16 references is cut off.
-- Every value goes through the validator of the value it would set. Nothing but a colour, a length or a font stack the plugin accepts reaches a page.
+- Every value goes through the validator of the value it would set. Nothing but a value of a kind the plugin accepts reaches a page.
 - A token of another type, such as a shadow, never sets a value.
 - The plugin follows no address in a file. A `$ref` is skipped.
 - One bad token does not refuse the file. It is skipped and named. A file with nothing usable is refused.

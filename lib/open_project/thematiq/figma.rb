@@ -77,6 +77,9 @@ module OpenProject
 
       # The types of Tokens Studio per kind of role. "borderRadius" and "fontFamilies" are Tokens Studio's own.
       STUDIO_TYPES = { color: "color", length: "borderRadius", font_family: "fontFamilies" }.freeze
+      # The same for the kinds of the vocabulary. A kind Tokens Studio has no type for is "other", CSS text.
+      STUDIO_VOCABULARY_TYPES = { color: "color", length: "dimension", size: "dimension", font_family: "fontFamilies",
+                                  font_weight: "fontWeights", number: "number" }.freeze
       LIGHT_SET = "thematiq/light"
       DARK_SET = "thematiq/dark"
 
@@ -109,9 +112,8 @@ module OpenProject
       def dtcg(token_set)
         document = { "$description" => token_set.name }
         css_only = {}
-        token_set.tokens.each do |role, value|
-          name = WRITE_NAMES.fetch(role)
-          token = dtcg_token(Tokens::TokenSet::ALL_KINDS.fetch(role), value)
+        named_values(token_set).each do |name, kind, value|
+          token = dtcg_token(kind, value)
           next css_only[name] = value unless token
 
           token["$extensions"] = { EXTENSION => { "cssVariable" => name } }.merge(token.delete(:own) || {})
@@ -123,14 +125,29 @@ module OpenProject
         document
       end
 
-      # One role as a typed token, or nil when the format has no type for the value. Such a value goes into
+      # [CSS name, kind, value] for every value of a set: the roles, then the vocabulary under thematiq's own names.
+      def named_values(token_set)
+        token_set.tokens.map { |role, value| [WRITE_NAMES.fetch(role), Tokens::TokenSet::ALL_KINDS.fetch(role), value] } +
+          token_set.vocabulary.map { |key, value| [Tokens::Vocabulary.css_name(key), Tokens::Vocabulary.kind(key), value] }
+      end
+
+      # One value as a typed token, or nil when the format has no type for the value. Such a value goes into
       # thematiq's "cssOnly" list, which both sides read back.
       def dtcg_token(kind, value)
         case kind
         when :color then color_token(value)
-        when :length then length_token(value)
+        when :length, :size then length_token(value)
         when :font_family then font_token(value)
+        when :font_weight then value.match?(/\A\d+\z/) ? { "$type" => "fontWeight", "$value" => value.to_i } : nil
+        when :number then (number = exact_number(value)) ? { "$type" => "number", "$value" => number } : nil
+        when :duration then duration_token(value)
         end
+      end
+
+      def duration_token(value)
+        match = /\A(\d+(?:\.\d+)?)(ms|s)\z/.match(value)
+        number = match && exact_number(match[1])
+        number ? { "$type" => "duration", "$value" => { "value" => number, "unit" => match[2] } } : nil
       end
 
       # A colour object. A value that is not a six or eight digit hex is also kept as written, in the plugin's
@@ -172,6 +189,8 @@ module OpenProject
       end
 
       def exact_number(text)
+        return nil unless text.match?(/\A\d+(?:\.\d+)?\z/)
+
         number = text.include?(".") ? text.to_f : text.to_i
         number.to_s == text ? number : nil
       end
@@ -197,7 +216,7 @@ module OpenProject
       # One file: a token set per theme, "$themes" and "$metadata". Values are CSS text, so every value fits.
       # The dark set holds only the colours the design system has for the dark theme.
       def studio(token_set, legacy:)
-        document = { LIGHT_SET => studio_set(token_set.tokens, legacy:) }
+        document = { LIGHT_SET => studio_set(token_set.tokens, legacy:, vocabulary: token_set.vocabulary) }
         themes = [{ "id" => "light", "name" => "Light", "group" => token_set.name, "selectedTokenSets" => { LIGHT_SET => "enabled" } }]
         order = [LIGHT_SET]
         if token_set.dark?
@@ -211,14 +230,20 @@ module OpenProject
         document
       end
 
-      def studio_set(tokens, legacy:)
+      def studio_set(tokens, legacy:, vocabulary: {})
         value_key, type_key, description_key = legacy ? %w[value type description] : %w[$value $type $description]
-        tokens.each_with_object({}) do |(role, value), tree|
+        tree = tokens.each_with_object({}) do |(role, value), result|
           name = WRITE_NAMES.fetch(role)
-          place(tree, path_of(name), { value_key => value, type_key => STUDIO_TYPES.fetch(Tokens::TokenSet::ALL_KINDS.fetch(role)),
-                                       description_key => "thematiq role #{role}",
+          place(result, path_of(name), { value_key => value, type_key => STUDIO_TYPES.fetch(Tokens::TokenSet::ALL_KINDS.fetch(role)),
+                                         description_key => "thematiq role #{role}",
+                                         "$extensions" => { EXTENSION => { "cssVariable" => name } } })
+        end
+        vocabulary.each do |key, value|
+          name = Tokens::Vocabulary.css_name(key)
+          place(tree, path_of(name), { value_key => value, type_key => STUDIO_VOCABULARY_TYPES.fetch(Tokens::Vocabulary.kind(key), "other"),
                                        "$extensions" => { EXTENSION => { "cssVariable" => name } } })
         end
+        tree
       end
     end
   end

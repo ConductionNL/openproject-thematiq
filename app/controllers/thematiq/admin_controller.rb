@@ -180,7 +180,8 @@ module Thematiq
       raise figma_refused("too_many") unless new_id
 
       name = result.name || t("thematiq.figma.default_name")
-      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name:, overrides: result.tokens, id: new_id, dark: result.dark)
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name:, overrides: result.tokens, id: new_id, dark: result.dark,
+                                                    vocabulary: result.vocabulary)
       raise figma_refused("nothing_usable") unless save_draft(@draft, new: true)
 
       @result = result

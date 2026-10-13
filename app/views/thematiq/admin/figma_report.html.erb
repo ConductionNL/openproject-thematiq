@@ -29,7 +29,8 @@
     <tbody>
       <% @result.imported.each do |entry| %>
         <tr>
-          <th scope="row"><%= t("thematiq.tokens.#{entry['role']}.label") %></th>
+          <%# A vocabulary key is shown by thematiq's own name. A role by its label. %>
+          <th scope="row"><% if entry["vocabulary"] %><code><%= entry["role"] %></code><% else %><%= t("thematiq.tokens.#{entry['role']}.label") %><% end %></th>
           <td><code><%= entry["value"] %></code></td>
           <td><%= t("thematiq.figma.report.themes.#{entry['theme']}") %></td>
           <td><code><%= entry["path"] %></code></td>
