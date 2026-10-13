@@ -348,6 +348,7 @@ begin
     admin.post "/admin/thematiq/figma", params: { files: contents.map { |content| upload.call(content) }, authenticity_token: token }
   end
   before = OpenProject::Thematiq::Store.new.custom_drafts.size
+  ids_before = OpenProject::Thematiq::Store.new.custom_drafts.map(&:id)
   figma_files.each do |format, content|
     figma_upload.call([content])
     drafts = OpenProject::Thematiq::Store.new.custom_drafts
@@ -379,7 +380,7 @@ begin
   throwaway.host! HOST
   throwaway.post "/admin/thematiq/figma", params: { files: [upload.call(figma_files["dtcg"])] }
   check("an upload from Figma without a session is refused") { [302, 401, 403, 422].include?(throwaway.response.status) }
-  OpenProject::Thematiq::Store.new.custom_drafts.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+  (OpenProject::Thematiq::Store.new.custom_drafts.map(&:id) - ids_before).each { |id| OpenProject::Thematiq::Store.new.delete_custom(id) }
 
   # 6. The Nextcloud address for the app switcher
   shell_post = lambda do |value|
