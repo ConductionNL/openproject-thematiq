@@ -327,14 +327,13 @@ module Thematiq
       id = custom_id_from_params
       OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed, id:,
                                              logo: @store.custom_draft(id)&.definition&.dig("logo"),
-                                             dark: @store.custom_draft(id)&.dark,
-                                             # The editor has no fields for the vocabulary yet, so a save keeps what is stored.
-                                             vocabulary: @store.custom_draft(id)&.vocabulary)
+                                             dark: @store.custom_draft(id)&.dark)
     end
 
     def token_keys
-      # Every role, the optional ones as well: the form has a field for each.
-      OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.keys
+      # Every role, the optional ones as well, and every key of the vocabulary: the form has a field for each.
+      # The two sets of names never overlap, so one list of fields holds both and the draft sorts them.
+      OpenProject::Thematiq::Editor::KINDS.keys
     end
 
     def load_state

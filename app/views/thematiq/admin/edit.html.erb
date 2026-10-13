@@ -1,5 +1,5 @@
 <% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.editor.title") %>
-<% kinds = OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS %>
+<% kinds = OpenProject::Thematiq::Editor::KINDS %>
 <% preview_set = @draft.token_set %>
 <% editor = OpenProject::Thematiq::Editor %>
 
@@ -45,7 +45,7 @@
     <div class="thematiq-editor__tokens">
       <h3 class="thematiq-editor__legend"><%= t("thematiq.editor.tokens") %></h3>
       <p class="thematiq-editor__hint"><%= t("thematiq.editor.tokens_hint") %></p>
-      <p class="thematiq-editor__summary" data-thematiq-total aria-live="polite"><%= t("thematiq.editor.changed_total", count: @draft.overrides.size) %></p>
+      <p class="thematiq-editor__summary" data-thematiq-total aria-live="polite"><%= t("thematiq.editor.changed_total", count: @draft.changed_count) %></p>
 
       <%# The search and the filter need the script. They stay hidden until it runs. %>
       <div class="thematiq-editor__tools" data-thematiq-tools hidden>
@@ -59,6 +59,18 @@
 
       <% editor.groups.each do |group| %>
         <% changed = group.keys.count { |key| @draft.overridden?(key) } %>
+        <% if group.vocabulary && group == editor.groups.find(&:vocabulary) %>
+          <h3 class="thematiq-editor__legend" id="thematiq-more-values"><%= t("thematiq.editor.more_values") %></h3>
+          <p class="thematiq-editor__hint"><%= t("thematiq.editor.more_values_hint") %></p>
+        <% end %>
+        <%# A group of the vocabulary starts closed, unless it holds a changed or a refused value. %>
+        <% if group.vocabulary %>
+          <details class="thematiq-editor__more" data-thematiq-more <%= "open" if changed.positive? || group.keys.any? { |key| @draft.error?(key) } %>>
+            <summary class="thematiq-editor__more-title">
+              <%= t("thematiq.editor.groups.#{group.id}.label") %>
+              <span class="thematiq-editor__hint"><%= t("thematiq.editor.values_count", count: group.keys.size) %></span>
+            </summary>
+        <% end %>
         <fieldset class="thematiq-editor__group" data-thematiq-group="<%= group.id %>">
           <legend class="thematiq-editor__group-title"><%= t("thematiq.editor.groups.#{group.id}.label") %></legend>
           <div class="thematiq-editor__group-head">
@@ -73,28 +85,36 @@
 
           <% group.keys.each do |key| %>
             <% kind = kinds.fetch(key) %>
+            <% label = group.vocabulary ? t("thematiq.vocabulary.#{key}") : t("thematiq.tokens.#{key}.label") %>
             <% field_id = "thematiq-token-#{key}" %>
             <% checks = kind == :color ? editor.checks_for(key) : [] %>
             <% touched = @draft.overridden?(key) || @draft.error?(key) %>
             <% described = ["#{field_id}-hint", (checks.any? ? "#{field_id}-contrast" : nil), "#{field_id}-error"].compact.join(" ") %>
             <div class="thematiq-editor__field <%= "is-changed" if @draft.overridden?(key) %>" data-thematiq-row="<%= key %>">
-              <label class="thematiq-editor__label" for="<%= field_id %>">
+              <label class="thematiq-editor__label <%= "thematiq-editor__label--stacked" if group.vocabulary %>" for="<%= field_id %>">
                 <span>
-                  <%= t("thematiq.tokens.#{key}.label") %>
+                  <%= label %>
                   <span class="thematiq-editor__badge" data-thematiq-badge <%= "hidden" unless @draft.overridden?(key) %>><%= t("thematiq.editor.changed") %></span>
                 </span>
-                <span class="thematiq-editor__role"><%= t("thematiq.tokens.#{key}.hint") %></span>
+                <% if group.vocabulary %>
+                  <span class="thematiq-editor__role">
+                    <code><%= OpenProject::Thematiq::Tokens::Vocabulary.css_name(key) %></code>,
+                    <%= OpenProject::Thematiq::Tokens::Vocabulary.drawn?(key) ? t("thematiq.editor.vocabulary_drawn") : t("thematiq.editor.vocabulary_carried") %>
+                  </span>
+                <% else %>
+                  <span class="thematiq-editor__role"><%= t("thematiq.tokens.#{key}.hint") %></span>
+                <% end %>
               </label>
               <div class="thematiq-editor__control">
                 <% if kind == :color %><%= thematiq_swatch(preview_set, key) %><% end %>
                 <input type="text" name="tokens[<%= key %>]" id="<%= field_id %>" class="FormControl-input FormControl-medium"
                        maxlength="400" autocomplete="off" spellcheck="false"
                        value="<%= @draft.field_value(key) %>" placeholder="<%= @draft.base[key] %>"
-                       data-thematiq-token="<%= key %>" data-thematiq-label="<%= t("thematiq.tokens.#{key}.label") %>" data-thematiq-base="<%= @draft.base[key] %>"
+                       data-thematiq-token="<%= key %>" data-thematiq-label="<%= label %>" data-thematiq-base="<%= @draft.base[key] %>"
                        aria-describedby="<%= described %>" <%= 'aria-invalid="true"'.html_safe if @draft.error?(key) %>>
                 <button type="submit" name="reset" value="<%= key %>" class="Button Button--secondary Button--medium" formnovalidate
                         data-thematiq-reset <%= "hidden" unless touched %>
-                        aria-label="<%= t("thematiq.editor.reset_token_label", token: t("thematiq.tokens.#{key}.label")) %>">
+                        aria-label="<%= t("thematiq.editor.reset_token_label", token: label) %>">
                   <span class="Button-content"><span class="Button-label"><%= t("thematiq.editor.reset_token") %></span></span>
                 </button>
               </div>
@@ -111,6 +131,7 @@
             </div>
           <% end %>
         </fieldset>
+        <% if group.vocabulary %></details><% end %>
       <% end %>
     </div>
 
