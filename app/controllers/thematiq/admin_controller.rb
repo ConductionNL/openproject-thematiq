@@ -13,7 +13,8 @@ module Thematiq
     def show
       @query = params[:q].to_s.strip.first(100)
       @sets = @store.catalogue.search(@query)
-      @customs = @query.blank? ? @store.custom_drafts : []
+      @customs = @store.custom_drafts(@query)
+      @total = @store.catalogue.sets.size + @store.custom_drafts.size
     end
 
     # Makes the chosen design system the active one.

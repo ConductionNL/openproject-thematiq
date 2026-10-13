@@ -18,7 +18,7 @@ The page lists every design system in the plugin. Each one has a small picture: 
 
 The line "Active now" names the design system in use. The list marks it "Active", and marks Cunningham "Default".
 
-The search runs on the server. The page works without JavaScript.
+The search runs on the server and looks at the name and id of every design system, your custom ones included. The count under the field counts them too. The page works without JavaScript.
 
 ## Make a custom design system
 

@@ -211,6 +211,21 @@ class CustomDraftTest < Minitest::Test
     assert_equal "custom-3", s.next_custom_id
   end
 
+  # First full test, finding 10: the picker's search never looked at custom design systems.
+  def test_a_search_finds_custom_design_systems_by_name_and_id_like_the_catalogue
+    s = store
+    assert s.save_custom(new_draft(s, "E2E House style"))
+    assert s.save_custom(new_draft(s, "Night blue"))
+
+    assert_equal ["E2E House style", "Night blue"], s.custom_drafts.map(&:name)
+    assert_equal ["E2E House style", "Night blue"], s.custom_drafts("").map(&:name)
+    assert_equal ["E2E House style"], s.custom_drafts("e2e").map(&:name)
+    assert_equal ["E2E House style"], s.custom_drafts("style HOUSE").map(&:name), "every word, in any order, any case"
+    assert_equal ["Night blue"], s.custom_drafts("custom-2").map(&:name), "the id counts too"
+    assert_empty s.custom_drafts("zuiddrecht"), "the name of the base is not searched"
+    assert_empty s.custom_drafts("<script>")
+  end
+
   def test_saving_under_an_existing_id_changes_that_one_only
     s = store
     s.save_custom(new_draft(s, "First", { "primary" => "#aa0055" }))

@@ -105,13 +105,15 @@ module OpenProject
 
       # The sets whose name or id holds every word of the query. An empty query gives every set.
       def search(query)
-        words = query.to_s.downcase.split.first(8)
-        return sets if words.empty?
+        sets.select { |token_set| self.class.match?(query, token_set.name, token_set.id) }
+      end
 
-        sets.select do |token_set|
-          haystack = "#{token_set.name} #{token_set.id}".downcase
-          words.all? { |word| haystack.include?(word) }
-        end
+      # Whether a name and id match a search: every word, at most eight, is part of one of them.
+      # An empty query matches everything. The picker searches custom design systems the same way.
+      def self.match?(query, name, id)
+        words = query.to_s.downcase.split.first(8)
+        haystack = "#{name} #{id}".downcase
+        words.all? { |word| haystack.include?(word) }
       end
 
       # The path of a set's bundled logo, or nil when the set has none. Then OpenProject's own logo stays.

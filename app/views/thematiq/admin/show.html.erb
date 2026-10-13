@@ -1,6 +1,5 @@
 <% html_title t(:label_administration), t("thematiq.admin.title") %>
 <% active = @store.active_token_set %>
-<% total = @store.catalogue.sets.size %>
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
@@ -63,10 +62,10 @@
 <% end %>
 
 <p class="color-fg-muted" role="status" data-test-selector="thematiq-count">
-  <%= t("thematiq.admin.count", shown: @sets.size, total:) %>
+  <%= t("thematiq.admin.count", shown: @customs.size + @sets.size, total: @total) %>
 </p>
 
-<% if @sets.empty? %>
+<% if @sets.empty? && @customs.empty? %>
   <%= render(Primer::Alpha::Banner.new(scheme: :default, mb: 3, data: { test_selector: "thematiq-no-results" })) do %>
     <%= t("thematiq.admin.no_results") %>
   <% end %>
