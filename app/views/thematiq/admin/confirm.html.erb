@@ -1,0 +1,28 @@
+<% html_title t(:label_administration), t("thematiq.admin.title"), @confirm[:title] %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { @confirm[:title] }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       @confirm[:title]]
+    )
+  end
+%>
+
+<%# The question before something that cannot be undone. A plain form: it works without scripts and by keyboard. %>
+<div class="thematiq-confirm" data-test-selector="thematiq-confirm">
+  <p class="thematiq-confirm__question"><strong><%= @confirm[:question] %></strong></p>
+  <p><%= @confirm[:consequence] %></p>
+  <%= form_with(url: @confirm[:url], method: :post, data: { turbo: false }, id: "thematiq-confirm-form") do %>
+    <% @confirm[:fields].each do |name, value| %>
+      <input type="hidden" name="<%= name %>" value="<%= value %>">
+    <% end %>
+    <input type="hidden" name="confirmed" value="1">
+    <div class="thematiq-editor__actions">
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger)) { @confirm[:button] } %>
+      <%= render(Primer::Beta::Button.new(tag: :a, href: @confirm[:back])) { t("thematiq.admin.cancel") } %>
+    </div>
+  <% end %>
+</div>

@@ -242,7 +242,13 @@ begin
 
   token = form_token(admin, "/admin/thematiq/custom", "thematiq-editor-form")
   admin.post "/admin/thematiq/custom", params: { id: "custom", delete: "1", authenticity_token: token }
-  check("delete removes the custom design system") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
+  check("delete first asks, on a page with a form") do
+    admin.response.status == 200 && admin.response.body.include?('data-test-selector="thematiq-confirm"') &&
+      admin.response.body.include?('name="confirmed" value="1"') && admin.response.body.include?("Delete for good")
+  end
+  check("asking deletes nothing") { !OpenProject::Thematiq::Store.new.custom_draft.nil? }
+  admin.post "/admin/thematiq/custom", params: { id: "custom", delete: "1", confirmed: "1", authenticity_token: token }
+  check("delete removes the custom design system once confirmed") { OpenProject::Thematiq::Store.new.custom_draft.nil? }
 
   # 5. Export and import
   require "tempfile"
@@ -301,7 +307,7 @@ begin
   end
   admin.get "/admin/thematiq/custom", params: { id: "custom-2" }
   check("the editor opens the second custom design system") { admin.response.body.include?('value="Second moved style"') && admin.response.body.include?('name="id" value="custom-2"') }
-  admin.post "/admin/thematiq/custom", params: { id: "custom-2", delete: "1", authenticity_token: form_token(admin, "/admin/thematiq/custom?id=custom-2", "thematiq-editor-form") }
+  admin.post "/admin/thematiq/custom", params: { id: "custom-2", delete: "1", confirmed: "1", authenticity_token: form_token(admin, "/admin/thematiq/custom?id=custom-2", "thematiq-editor-form") }
   check("deleting the second leaves the first") { OpenProject::Thematiq::Store.new.custom_drafts.map(&:name) == ["Moved style"] }
 
   zuiddrecht_file = OpenProject::Thematiq::Transfer.export(catalogue.find("zuiddrecht"))
@@ -645,18 +651,23 @@ begin
   gone = of_kind.call("favicon")
   admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "favicon", remove: gone.token,
                                                        authenticity_token: form_token(admin, editor, "thematiq-file-favicon-form") }
+  check("remove first asks which file, and removes nothing") do
+    admin.response.status == 200 && admin.response.body.include?("Remove the favicon of") && !of_kind.call("favicon").nil?
+  end
+  admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "favicon", remove: gone.token, confirmed: "1",
+                                                       authenticity_token: form_token(admin, editor, "thematiq-file-favicon-form") }
   admin.follow_redirect!
   check("remove takes the file away and says so") { of_kind.call("favicon").nil? && admin.response.body.include?("The file is removed.") }
   anonymous.get gone.url
   check("the removed file's address answers 404") { anonymous.response.status == 404 }
   anonymous.get "/login"
   check("the page head no longer links the favicon of the plugin") { !anonymous.response.body.include?(gone.url) }
-  admin.post "/admin/thematiq/custom/files", params: { id: imported_id, kind: "logo", remove: of_kind.call("logo").token,
+  admin.post "/admin/thematiq/custom/files", params: { id: imported_id, kind: "logo", remove: of_kind.call("logo").token, confirmed: "1",
                                                        authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
   check("a file cannot be removed through another design system") { !of_kind.call("logo").nil? }
 
   kept = records.call.map(&:token)
-  admin.post "/admin/thematiq/custom", params: { id: set_id, delete: "1", authenticity_token: form_token(admin, editor, "thematiq-editor-form") }
+  admin.post "/admin/thematiq/custom", params: { id: set_id, delete: "1", confirmed: "1", authenticity_token: form_token(admin, editor, "thematiq-editor-form") }
   check("deleting the design system removes its files") { kept.size >= 5 && Thematiq::Upload.where(token: kept).none? }
   anonymous.get "/thematiq/files/#{kept.first}"
   check("and their addresses answer 404") { anonymous.response.status == 404 }
