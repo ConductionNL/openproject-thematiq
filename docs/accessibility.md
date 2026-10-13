@@ -38,6 +38,10 @@ The same pairs are computed for each set's dark block, with links on the page ba
 - No bundled dark block is left out any more. The rule stays: a dark block whose main text does not read on its page background, 4.5 to 1, is not used. Until the catalogue of 13 October 2026 it left out seven sets.
 - The selected menu item reads in every bundled dark block as the catalogue gives it. The plugin's contrast rule still picks a text colour that reads, for a design system you import.
 
+### The search field and the current tile of the top bar
+
+Both lay a little of the bar's text colour over the bar: 12% for the search field and 16% for the current tile, as in the design. On a bar that is just dark enough for white, that layer takes white under 4.5 to 1. The plugin makes the layer as strong as the design allows while the text on it keeps 4.5 to 1, in the light and the dark theme. On Zuiddrecht both become 10%, `#4a78ae`, 4.58 to 1; on Cunningham nothing changes. A test holds this for every bundled set. In the high contrast themes the bar is OpenProject's and the layer is the design's.
+
 ### What the check does not cover
 
 - It reads hex colours, `rgb()` and `rgba()`. For another syntax it answers "unknown". The test fails when a bundled set has an unknown pair, so none has one today.

@@ -29,7 +29,7 @@
   height: 44px !important; min-height: 44px; border-radius: var(--thematiq-radius-lg) !important;
 }
 .op-app-header .top-menu-search .ng-select-container {
-  border: 1px solid var(--thematiq-on-primary) !important; background: rgba(255, 255, 255, .12) !important;
+  border: 1px solid var(--thematiq-on-primary) !important; background: var(--thematiq-bar-field) !important; /* canon: white at 12%, less where the text needs it */
 }
 .op-app-header .global-search--input { font-size: 15px; }
 

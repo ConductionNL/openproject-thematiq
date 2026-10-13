@@ -117,6 +117,23 @@ module OpenProject
         report(token_set).select { |_pair, value| value.nil? }.keys
       end
 
+      # A layer of the text colour over a background, as the top bar draws its search field and its current tile:
+      # the strongest one up to max (a share, 0.12 is 12%) that keeps the text above the minimum on it, as a hex
+      # colour. Every set generated from thematiq reads on its primary; a light layer can still take it under.
+      # nil when either colour cannot be read.
+      def tint(background, text, max)
+        back = rgba(background)
+        fore = rgba(text)
+        return nil unless back && fore && back[3] == 1.0 && fore[3] == 1.0
+
+        (max * 100).round.downto(0) do |step|
+          share = step / 100.0
+          mixed = format("#%02x%02x%02x", *back.first(3).zip(fore.first(3)).map { |b, f| ((b * (1 - share)) + (f * share)).round })
+          # Above the minimum after rounding to two places, so a checker that does not round agrees.
+          return mixed if step.zero? || (ratio(text, mixed) || 0) > MINIMUM
+        end
+      end
+
       def resolve(token_set, reference)
         reference.start_with?("#") ? reference : token_set[reference]
       end
