@@ -115,11 +115,13 @@ Every answer carries the same headers:
 
 ## Install and upgrade
 
-The table comes with a migration. OpenProject runs it when it starts after you install the plugin. To run it by hand:
+The table comes with a migration. The OpenProject image runs every pending migration on each start, so it runs when OpenProject starts after you install the plugin. To run it by hand, in `/app` inside the container. On the instance from [Try it locally with Docker](../README.md#try-it-locally-with-docker):
 
 ```bash
-bundle exec rake db:migrate
+docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake db:migrate'
 ```
+
+On a container started with `docker run --name openproject-thematiq`, use `docker exec openproject-thematiq` in place of `docker compose -f docker/compose.yml exec openproject`.
 
 Until the migration ran, the plugin behaves as if nothing was uploaded. No page fails.
 
@@ -136,10 +138,10 @@ Removing the gem does not remove the data. Three things stay behind in the datab
 To take the table out, roll the migration back **before** you remove the gem:
 
 ```bash
-bundle exec rake db:migrate:down VERSION=20261012090000
+docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake db:migrate:down VERSION=20261012090000'
 ```
 
-That drops the table with every uploaded file, and removes the line in `schema_migrations`. It cannot be undone, so make a database backup first.
+That drops the table with every uploaded file, and removes the line in `schema_migrations`. It cannot be undone, so make a database backup first. Then start the plain OpenProject image: a restart on the plugin's image runs the migration again and brings the table back, empty.
 
 If the gem is already gone, drop the table by hand:
 

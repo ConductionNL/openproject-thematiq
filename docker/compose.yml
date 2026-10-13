@@ -18,6 +18,10 @@ services:
       OPENPROJECT_DEFAULT__LANGUAGE: "en"
     # OpenProject needs the same SECRET_KEY_BASE on every start. No secret is written in this file:
     # the first start makes a random one and keeps it in the "secret" volume.
+    # The variable only reaches the main process. A command run with `docker compose exec` gets the image's
+    # placeholder, and `rails runner` stops on it. So the start also writes a login script that reads the
+    # same file: `docker compose exec openproject bash -lc '...'` then has the secret too. The script
+    # holds no secret, only the path.
     entrypoint:
       - /bin/sh
       - -c
@@ -27,6 +31,10 @@ services:
         if [ ! -s "$$file" ]; then
           (umask 077 && openssl rand -hex 64 > "$$file")
         fi
+        printf '%s\n' \
+          "# Written by docker/compose.yml: the secret of this instance for login shells." \
+          "if [ -r $$file ]; then SECRET_KEY_BASE=\"\$$(cat $$file)\"; export SECRET_KEY_BASE; fi" \
+          > /etc/profile.d/thematiq-secret.sh
         SECRET_KEY_BASE="$$(cat "$$file")"
         export SECRET_KEY_BASE
         exec ./docker/prod/entrypoint.sh ./docker/prod/supervisord

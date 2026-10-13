@@ -65,6 +65,8 @@ A set without a dark block, and the three OpenProject themes, keep OpenProject's
 
 **High contrast.** The two high contrast themes always keep OpenProject's own colours. A person who asks for more contrast should get the colours that were made for that.
 
+In OpenProject 17.9.1 the switch for them is **Increase contrast** under **My account**, **Interface**: with **Light** it gives the light high contrast theme, with **Dark** the dark one. The two other checkboxes in OpenProject's code for this (`force_light_theme_contrast` and `force_dark_theme_contrast`, for **Sync with OS**) are not shown on that page in 17.9.1.
+
 **Sync with OS** was not tested. By reading the source: OpenProject then leaves the theme attributes off the page and sets them with a script. The plugin's rules apply when that script sets `data-color-mode` to `light` or `dark` with the matching theme attribute.
 
 ## Run the tests

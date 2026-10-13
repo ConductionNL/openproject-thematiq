@@ -8,7 +8,7 @@ The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes
 
 ## How it works
 
-1. The plugin ships a catalogue of 64 design systems, generated from thematiq. Each one is a set of eighteen design tokens.
+1. The plugin ships a catalogue of 64 design systems, generated from thematiq, and OpenProject's own three colour themes, so the picker lists 67. Each one is a set of eighteen design tokens.
 2. An administrator picks a design system on the "Thematiq design" page in OpenProject's administration.
 3. The plugin writes the tokens to the CSS variables OpenProject already uses, and adds a geometry layer for sizes and spacing.
 4. It renders the shared top bar and project menu through OpenProject's layout hooks.
@@ -54,6 +54,14 @@ Is port 8080 already in use? Then the first command fails with "port is already 
 To run the end-to-end tests against this instance, follow [docs/testing/e2e.md](docs/testing/e2e.md): `cd test/e2e && npm ci && npx playwright install chromium`, then `THEMATIQ_E2E_URL=http://localhost:8080 THEMATIQ_E2E_PASSWORD='<admin password>' npm test`.
 
 `docker/compose.yml` holds no secret. The first start makes a random `SECRET_KEY_BASE` and keeps it in a volume, because OpenProject needs the same value on every start.
+
+To run a command inside this instance, use `docker compose exec` with the service name `openproject` and a login shell, `bash -lc`. The login shell reads the secret from the volume; without it `bin/rails runner` stops with "INSECURE SECRET_KEY_BASE DETECTED". For example, the list of migrations:
+
+```bash
+docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake db:migrate:status'
+```
+
+Compose names the container `openproject-thematiq-try-openproject-1`. The commands here use the service name, so you do not need it.
 
 ## Installation
 
@@ -126,7 +134,7 @@ The plugin lives in your image, so a new OpenProject needs a new image.
 2. Build the image again with the command from step 3.
 3. Start OpenProject on the new image.
 
-The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar and the project menu also lean on eight files of OpenProject itself; when one of them changed, the plugin turns those parts off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) tells you what to do then.
+The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar, the project menu and the home page also lean on 17 files of OpenProject itself; when one of them changed, the plugin turns those parts off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) tells you what to do then.
 
 ### Remove the plugin
 
@@ -134,17 +142,27 @@ The plugin changes none of OpenProject's own data. It has one table of its own, 
 
 1. To take that table out, roll its migration back while the plugin is still installed. This deletes every uploaded file, so make a database backup first.
 
+   On the instance from [Try it locally with Docker](#try-it-locally-with-docker):
+
+   ```bash
+   docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake db:migrate:down VERSION=20261012090000'
+   ```
+
+   On a container you started with `docker run --name openproject-thematiq`, as in [With Docker](#with-docker):
+
    ```bash
    docker exec openproject-thematiq bash -lc 'cd /app && bundle exec rake db:migrate:down VERSION=20261012090000'
    ```
 
-2. Start OpenProject on the plain `openproject/openproject:17` image again.
+2. Start OpenProject on the plain `openproject/openproject:17` image again, with the same volumes. Do not restart on the plugin's image in between: the image runs the migrations on every start, so a restart with the plugin still installed creates the table again, empty.
 
-If you skip step 1, the table stays in the database. OpenProject works with it there. One row also stays in the `settings` table, named `plugin_openproject_thematiq`, which OpenProject ignores without the plugin. [docs/uploads.md](docs/uploads.md#remove-the-plugin) tells you how to drop the table by hand later. Removing the plugin was not tested.
+If you skip step 1, the table stays in the database. OpenProject works with it there. One row also stays in the `settings` table, named `plugin_openproject_thematiq`, which OpenProject ignores without the plugin. [docs/uploads.md](docs/uploads.md#remove-the-plugin) tells you how to drop the table by hand later.
+
+This was tested on the Docker route with OpenProject 17.9.1, on the compose instance: the rollback, then the plain image on the same volumes (OpenProject starts and works, the plugin's pages answer 404), then the plugin's image again (everything comes back, uploads included when the table was kept). See [the first full test](docs/testing/2026-10-13-first-full-test.md#the-two-experiments-that-change-the-instance).
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light theme only; the dark theme and the high contrast themes keep OpenProject's colours. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 42; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
