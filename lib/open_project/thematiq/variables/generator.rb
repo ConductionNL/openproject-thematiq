@@ -150,7 +150,27 @@ module OpenProject
           "--borderColor-muted" => %w[component-separator-border-color],
           # The focus ring. thematiq's focus colour is often see-through (rgba at 50%), which a ring must not be:
           # its opaque channels come first, and the colour itself only counts when it is opaque.
-          "--focus-outlineColor" => %w[color-focus-rgb color-focus]
+          "--focus-outlineColor" => %w[color-focus-rgb color-focus],
+          # Buttons. The default button in its states, on Primer's variables and OpenProject's own text colour
+          # of its older buttons. The danger button: its text at rest is the error colour, its fill on hover and
+          # when pressed the error hover colour, with the text the set gives for it.
+          # The main button stays the action role's: thematiq's color-button-primary-* are carried, so a set keeps
+          # the owner's rule that the action colour, and only that, fills the one main button.
+          "--button-default-fgColor-rest" => %w[component-button-color],
+          "--button--font-color" => %w[component-button-color],
+          "--button-default-borderColor-rest" => %w[component-button-border-color],
+          "--button-default-bgColor-hover" => %w[component-button-hover-background-color],
+          "--button-default-borderColor-hover" => %w[component-button-hover-border-color],
+          "--button-default-bgColor-active" => %w[component-button-active-background-color],
+          "--button-default-bgColor-disabled" => %w[component-button-disabled-background-color],
+          "--button-default-borderColor-disabled" => %w[component-button-disabled-border-color],
+          "--button-danger-fgColor-rest" => %w[color-error],
+          "--button-danger-iconColor-rest" => %w[color-error],
+          "--button-danger-bgColor-hover" => %w[color-error-hover],
+          "--button-danger-borderColor-hover" => %w[color-error-hover],
+          "--button-danger-bgColor-active" => %w[color-error-hover],
+          "--button-danger-fgColor-hover" => %w[component-button-error-color],
+          "--button-danger-fgColor-active" => %w[component-button-error-color]
         }.freeze
 
         # Corners. Primer defines these on :root, beside the radius the roles already write.

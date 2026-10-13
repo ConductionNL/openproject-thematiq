@@ -89,6 +89,11 @@ Rules:
 | `color-focus-rgb` as `rgb()`, else `color-focus` when it is opaque | `--focus-outlineColor` | The focus ring of Primer controls. thematiq's `color-focus` is often 50% see-through, which a ring must not be |
 | `border-radius-small`, `border-radius-pill` | `--borderRadius-small`, `--borderRadius-full` | Small corners, and pills such as counters and labels. `border-radius-rounded` has no Primer step and is carried |
 
+| `component-button-color`, `-border-color`, `-hover-background-color`, `-hover-border-color`, `-active-background-color`, `-disabled-background-color`, `-disabled-border-color` | `--button-default-*` in those states, and `--button--font-color` of OpenProject's older buttons | The default button |
+| `color-error`, `color-error-hover`, `component-button-error-color` | `--button-danger-fgColor-rest`, `-iconColor-rest`, `-bgColor-hover`, `-borderColor-hover`, `-bgColor-active`, `-fgColor-hover`, `-fgColor-active` | The danger button |
+
+The main button stays the action role's. thematiq's `color-button-primary-*` and `component-button-primary-action-*` are carried, so the rule that the action colour, and only that, fills the one main button holds for every set.
+
 `color-info` and the info badge's text colour are carried, not drawn: Primer's accent scale is the link and the primary colour here.
 
 ## What each group would drive in OpenProject

@@ -67,4 +67,18 @@ test.describe("vocabulary", () => {
     await expect(apply).toBeFocused();
     await expect(apply).toHaveCSS("outline-color", "rgb(204, 0, 0)");
   });
+
+  test("the default and the danger button take the set's states, the main button stays the action colour", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary buttons ${Date.now()}`, tokens: { primary: "#3669a5", action: "#1f883d" },
+                                       vocabulary: { "component-button-color": "#5b2e91", "component-button-border-color": "#00aa55",
+                                                     "color-error": "#cc0000", "color-button-primary-background": "#154273" } });
+    await applySet(page, id);
+
+    await page.goto(`/admin/thematiq/custom?id=${id}`);
+    const preview = page.getByRole("button", { name: "Preview", exact: true });
+    await expect(preview).toHaveCSS("color", "rgb(91, 46, 145)");
+    await expect(preview).toHaveCSS("border-top-color", "rgb(0, 170, 85)");
+    await expect(page.getByRole("button", { name: "Delete this custom design system" })).toHaveCSS("color", "rgb(204, 0, 0)");
+    await expect(page.getByRole("button", { name: "Save and apply" })).toHaveCSS("background-color", "rgb(31, 136, 61)");
+  });
 });
