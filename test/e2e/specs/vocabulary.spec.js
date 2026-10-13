@@ -45,4 +45,26 @@ test.describe("vocabulary", () => {
     // The icon of the banner is drawn in Primer's danger text colour, which the badge's text colour sets.
     await expect(message.locator(".Banner-visual svg")).toHaveCSS("color", "rgb(163, 0, 0)");
   });
+
+  test("text on fills, lines, the focus ring and corners", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary shape ${Date.now()}`,
+                                       vocabulary: { "color-focus-rgb": "204, 0, 0", "color-focus": "rgba(204, 0, 0, 0.5)", "border-radius-small": "1px",
+                                                     "border-radius-pill": "20px", "component-separator-border-color": "#00aa55" } });
+    await applySet(page, id);
+
+    await page.goto(PICKER);
+    expect(await variable(page, "--focus-outlineColor"), "the opaque channels, not the see-through colour").toBe("rgb(204, 0, 0)");
+    expect(await variable(page, "--borderRadius-small")).toBe("1px");
+    expect(await variable(page, "--borderRadius-full")).toBe("20px");
+    expect(await variable(page, "--borderColor-muted")).toBe("#00aa55");
+    expect(await variable(page, "--fgColor-onEmphasis"), "a key the set leaves out keeps OpenProject's own value").toBe("#ffffff");
+
+    // A Primer button focused by keyboard draws its ring in that colour.
+    const apply = page.getByRole("button", { name: "Apply", exact: true });
+    await apply.focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    await expect(apply).toBeFocused();
+    await expect(apply).toHaveCSS("outline-color", "rgb(204, 0, 0)");
+  });
 });
