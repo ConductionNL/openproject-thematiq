@@ -13,6 +13,17 @@ module OpenProject
         COLOR_FUNCTION = /\A(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(([0-9a-z.,%\/\s-]{1,60})\)\z/
         COLOR_ARGUMENT = /\A(?:-?(?:\d{1,4}(?:\.\d{1,4})?|\.\d{1,4})(?:%|deg|turn|rad|grad)?|none)\z/
         LENGTH = /\A(?:0|(?:\d{1,3}(?:\.\d{1,3})?|\.\d{1,3})(?:px|rem|em|%))\z/
+        # A length with up to four digits, for the page widths of the vocabulary such as 1328px.
+        SIZE = /\A(?:0|(?:\d{1,4}(?:\.\d{1,3})?|\.\d{1,3})(?:px|rem|em|%))\z/
+        # The kinds the vocabulary adds. Each is an allow-list of the whole text, like the three above.
+        FONT_WEIGHT = /\A(?:[1-9]\d{0,2}|1000|normal|bold)\z/
+        NUMBER = /\A(?:\d{1,4}(?:\.\d{1,4})?|\.\d{1,4})\z/
+        DURATION = /\A(?:\d{1,5}(?:\.\d{1,3})?|\.\d{1,3})(?:ms|s)\z/
+        RGB_TRIPLET = /\A(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\z/
+        FILTER_FUNCTION = /\A(?:(?:brightness|contrast|grayscale|invert|opacity|saturate|sepia)\((?:\d{1,3}(?:\.\d{1,3})?|\.\d{1,3})%?\)|hue-rotate\(-?\d{1,3}(?:\.\d{1,3})?deg\))\z/
+        MAX_FILTERS = 6
+        BORDER = /\A(\S{1,12})\s+(solid|dashed|dotted|double)\s+(.{1,80})\z/
+        TEXT_TRANSFORMS = %w[none uppercase lowercase capitalize].freeze
         QUOTED_FAMILY = /\A(["'])([A-Za-z0-9 _.-]{1,60})\1\z/
         BARE_FAMILY = /\A-?[A-Za-z_][A-Za-z0-9_-]*(?: [A-Za-z_][A-Za-z0-9_-]*)*\z/
 
@@ -79,6 +90,88 @@ module OpenProject
             end
           end
           cleaned.join(", ")
+        end
+
+        # --- the kinds of the vocabulary, see Tokens::Vocabulary ---
+
+        # A length that may be wider than a radius: up to 9999px.
+        def size(value)
+          plain(value, SIZE)
+        end
+
+        # 400, 700, normal or bold. A number from 1 to 1000.
+        def font_weight(value)
+          plain(value, FONT_WEIGHT)
+        end
+
+        # A plain number such as 1.15 or 6, for a ratio, an opacity or a line height.
+        def number(value)
+          plain(value, NUMBER)
+        end
+
+        # 100ms or 0.3s.
+        def duration(value)
+          plain(value, DURATION)
+        end
+
+        # A length, or auto, for a position.
+        def offset(value)
+          return "auto" if value.is_a?(String) && value.strip.downcase == "auto"
+
+          length(value)
+        end
+
+        def text_transform(value)
+          return nil unless value.is_a?(String)
+
+          text = value.strip.downcase
+          TEXT_TRANSFORMS.include?(text) ? text : nil
+        end
+
+        # Three channels for rgba(): "204, 0, 0". Rebuilt from the numbers.
+        def rgb_triplet(value)
+          match = value.is_a?(String) ? RGB_TRIPLET.match(value.strip) : nil
+          return nil unless match
+
+          channels = match.captures.map(&:to_i)
+          channels.all? { |channel| channel <= 255 } ? channels.join(", ") : nil
+        end
+
+        # none, or up to six filter functions from a fixed list, each with one plain number.
+        # Rebuilt from the parsed functions, so nothing outside the list survives.
+        def filter(value)
+          return nil unless value.is_a?(String) && value.length <= 200
+
+          text = value.strip.downcase
+          return "none" if text == "none"
+
+          parts = text.split(/\s+/)
+          return nil if parts.empty? || parts.size > MAX_FILTERS
+          return nil unless parts.all? { |part| FILTER_FUNCTION.match?(part) }
+
+          parts.join(" ")
+        end
+
+        # 0, none, or a width, a style and a colour: "1px solid #cfd5dd". Each part goes through its own check.
+        def border(value)
+          return nil unless value.is_a?(String)
+
+          text = value.strip.downcase
+          return text if %w[0 none].include?(text)
+
+          match = BORDER.match(text)
+          return nil unless match
+
+          width = length(match[1])
+          colour = color(match[3])
+          width && colour ? "#{width} #{match[2]} #{colour}" : nil
+        end
+
+        def plain(value, pattern)
+          return nil unless value.is_a?(String)
+
+          text = value.strip.downcase
+          pattern.match?(text) ? text : nil
         end
 
         # A reference to a bundled file: a plain svg or png name, or a path the catalogue generator wrote,

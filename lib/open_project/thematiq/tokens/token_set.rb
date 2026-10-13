@@ -2,6 +2,7 @@
 
 require "open_project/thematiq/tokens/validator"
 require "open_project/thematiq/tokens/defaults"
+require "open_project/thematiq/tokens/vocabulary"
 
 module OpenProject
   module Thematiq
@@ -12,7 +13,8 @@ module OpenProject
       # The set shape, shared by the bundled catalogue, the export file and the import file:
       #   { "id": "...", "name": "...", "tokens": { eighteen roles },
       #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
-      #     "dark": { "tokens": { colour roles for the dark theme } } }   optional
+      #     "dark": { "tokens": { colour roles for the dark theme } },     optional
+      #     "vocabulary": { thematiq names without "--nldesign-" => value } }   optional, see Vocabulary
       class TokenSet
         class InvalidSet < StandardError; end
 
@@ -34,12 +36,12 @@ module OpenProject
 
         # "uploads" is a note an export file carries when the design system had uploaded files. They do not
         # travel in the file. Transfer writes and reads the note. A token set does not keep it.
-        SET_KEYS = %w[id name tokens logo dark uploads].freeze
+        SET_KEYS = %w[id name tokens logo dark uploads vocabulary].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
         DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
-        attr_reader :id, :name, :tokens, :dark_tokens, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+        attr_reader :id, :name, :tokens, :dark_tokens, :vocabulary, :logo_file, :logo_inverse_file, :logo_licence, :rejected
 
         # The dark block as the catalogue writes it is { "tokens" => { roles } }. The roles on their own are
         # read as well. Either way only the colour roles count: radius and font do not change with the theme.
@@ -78,15 +80,17 @@ module OpenProject
           raise InvalidSet, "logo_invalid" unless logo.is_a?(Hash)
           raise InvalidSet, "dark_invalid" unless set["dark"].nil? || set["dark"].is_a?(Hash)
           raise InvalidSet, "uploads_invalid" unless set["uploads"].nil? || set["uploads"].is_a?(Hash)
+          raise InvalidSet, "vocabulary_invalid" unless set["vocabulary"].nil? || set["vocabulary"].is_a?(Hash)
 
           if strict
             unknown = (set.keys - SET_KEYS) + (tokens.keys - ALL_KINDS.keys) + (logo.keys - LOGO_KEYS) +
-                      unknown_dark_keys(set["dark"])
+                      unknown_dark_keys(set["dark"]) + ((set["vocabulary"] || {}).keys - Vocabulary.keys)
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
           end
 
           token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:, dark: set["dark"],
+                          vocabulary: set["vocabulary"],
                           logo_file: logo["redistributable"] == true ? Validator.file_name(logo["file"]) : nil,
                           logo_inverse_file: logo["redistributable"] == true ? Validator.file_name(logo["inverse_file"]) : nil,
                           logo_licence: Validator.label(logo["licence"], max: 300))
@@ -95,7 +99,8 @@ module OpenProject
           token_set
         end
 
-        def initialize(id:, name:, tokens:, base: Defaults::TOKENS, dark: nil, logo_file: nil, logo_inverse_file: nil, logo_licence: nil)
+        def initialize(id:, name:, tokens:, base: Defaults::TOKENS, dark: nil, vocabulary: nil, logo_file: nil, logo_inverse_file: nil,
+                       logo_licence: nil)
           @id = id
           @name = name
           @logo_file = logo_file
@@ -104,11 +109,13 @@ module OpenProject
           @rejected = []
           @tokens = clean(tokens, base).freeze
           @dark_tokens = clean_dark(dark).freeze
+          @vocabulary = clean_vocabulary(vocabulary).freeze
           @rejected.freeze
         end
 
+        # The value of a role, or of a vocabulary key. The two sets of names never overlap.
         def [](key)
-          tokens[key]
+          tokens[key] || vocabulary[key]
         end
 
         # True when the design system brings its own colours for the dark theme.
@@ -122,10 +129,27 @@ module OpenProject
                   "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
                               "redistributable" => !logo_file.nil? } }
           set["dark"] = { "tokens" => dark_tokens.dup } if dark?
+          # Only when there is one, so a set without a vocabulary exports exactly as before.
+          set["vocabulary"] = vocabulary.dup if vocabulary.any?
           set
         end
 
         private
+
+        # The optional vocabulary: no fallback and nothing derived. A key it does not name keeps
+        # OpenProject's own value. A value that fails is left out and listed in #rejected.
+        # Unknown keys are left out here; strict mode has refused them already.
+        def clean_vocabulary(raw)
+          return {} unless raw.is_a?(Hash)
+
+          Vocabulary::KINDS.each_with_object({}) do |(key, kind), result|
+            given = raw[key]
+            next if given.nil?
+
+            value = given.is_a?(String) && given.length <= Validator::MAX_FONT_STACK_LENGTH ? Validator.public_send(kind, given) : nil
+            value ? result[key] = value : @rejected << "vocabulary.#{key}"
+          end
+        end
 
         # The optional dark block: colour roles only, no fallback. A role it does not name, or names with
         # a value that fails, stays OpenProject's own dark colour.
