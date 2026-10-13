@@ -33,6 +33,22 @@ test.describe("picker", () => {
     await expect(page).toHaveURL(/\/admin\/thematiq$/);
   });
 
+  test("apply changes the colour of the top bar for everyone", async ({ page, browser }) => {
+    const target = saved.active === "zuiddrecht" ? "rotterdam" : "zuiddrecht";
+    const primary = (await exported(page, target)).tokens.primary;
+    await applySet(page, target);
+    await expect(page.locator('[data-test-selector="thematiq-active"]')).toContainText((await exported(page, target)).name);
+    await page.goto("/projects");
+    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
+
+    // Someone who is not signed in sees it too, on the sign-in page.
+    const visitor = await browser.newContext({ baseURL: config.baseURL, storageState: { cookies: [], origins: [] } });
+    const signIn = await visitor.newPage();
+    await signIn.goto("/login");
+    await expect(signIn.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
+    await visitor.close();
+  });
+
   // First full test, finding 14: Apply came after the list, about 200 tab stops in. The radio buttons are one
   // tab stop; the three links of each card are not. Apply now comes right after the search, before the list.
   test("Apply is a few tab stops from the search and stays in view", async ({ page }) => {
@@ -48,21 +64,5 @@ test.describe("picker", () => {
 
     await page.locator(".thematiq-picker__option").last().scrollIntoViewIfNeeded();
     await expect(apply).toBeInViewport();
-  });
-
-  test("apply changes the colour of the top bar for everyone", async ({ page, browser }) => {
-    const target = saved.active === "zuiddrecht" ? "rotterdam" : "zuiddrecht";
-    const primary = (await exported(page, target)).tokens.primary;
-    await applySet(page, target);
-    await expect(page.locator('[data-test-selector="thematiq-active"]')).toContainText((await exported(page, target)).name);
-    await page.goto("/projects");
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
-
-    // Someone who is not signed in sees it too, on the sign-in page.
-    const visitor = await browser.newContext({ baseURL: config.baseURL, storageState: { cookies: [], origins: [] } });
-    const signIn = await visitor.newPage();
-    await signIn.goto("/login");
-    await expect(signIn.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
-    await visitor.close();
   });
 });
