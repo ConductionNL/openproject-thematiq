@@ -121,6 +121,36 @@ module OpenProject
         ROOT_ALIASES = ROOT_SHAPE.reject { |variable, _| variable == "--body-font-family" }.freeze
         BODY_FONT = { "--body-font-family" => :"font-family" }.freeze
 
+        # Values of thematiq's full vocabulary the plugin draws, see Tokens::Vocabulary. A variable lists the keys
+        # it can take, the first one a set fills wins. A set that fills none of them leaves the variable alone:
+        # OpenProject keeps its own value, nothing is derived. A filled key wins over what the roles write.
+        # Light theme only. The dark and high contrast themes keep OpenProject's own values.
+        #
+        # Status colours: Primer's danger, attention and success scales. They colour banners, flash messages,
+        # form errors and labels. The text colour of a status badge is the darker one, so it is preferred for the
+        # text variable; the status colour itself fills and draws the strong border. Primer's "accent" scale is
+        # the link and the primary here, so the info colour is carried and not drawn.
+        VOCABULARY_COLORS = {
+          "--fgColor-danger" => %w[component-status-badge-error-color color-error],
+          "--bgColor-danger-emphasis" => %w[color-error],
+          "--borderColor-danger-emphasis" => %w[color-error],
+          "--bgColor-danger-muted" => %w[component-status-badge-error-background-color],
+          "--fgColor-attention" => %w[component-status-badge-warning-color color-warning],
+          "--bgColor-attention-emphasis" => %w[color-warning],
+          "--borderColor-attention-emphasis" => %w[color-warning],
+          "--bgColor-attention-muted" => %w[component-status-badge-warning-background-color],
+          "--fgColor-success" => %w[component-status-badge-success-color color-success],
+          "--bgColor-success-emphasis" => %w[color-success],
+          "--borderColor-success-emphasis" => %w[color-success],
+          "--bgColor-success-muted" => %w[component-status-badge-success-background-color],
+          "--bgColor-accent-muted" => %w[component-status-badge-info-background-color]
+        }.freeze
+
+        # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
+        def self.drawn_keys
+          VOCABULARY_COLORS.values.flatten.uniq.sort
+        end
+
         PRIMER_SHAPE = {
           "--borderRadius-medium" => :"radius-lg",
           "--fontStack-system" => :"font-family",
@@ -140,7 +170,8 @@ module OpenProject
             block(":root", declarations(@early ? ROOT_ALIASES : ROOT_SHAPE)),
             block(@early ? EARLY_MODE_SCOPE : MODE_SCOPE,
                   (@early ? declarations(BODY_FONT) : []) + declarations(PRIMER_SHAPE) + fallback_aliases),
-            block(LIGHT_SCOPE, declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS) + light_aliases + menu_color_declarations)
+            block(LIGHT_SCOPE, without_drawn(declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS), VOCABULARY_COLORS) +
+                               light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS))
           ]
           blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"]
           blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
@@ -154,6 +185,20 @@ module OpenProject
             value = resolve(source)
             "  #{variable}: #{value};" if value
           end
+        end
+
+        # One line per variable of the map that the set fills a key for, from the first key it fills.
+        def vocabulary_declarations(map)
+          map.filter_map do |variable, keys|
+            value = keys.lazy.filter_map { |key| @token_set.vocabulary[key] }.first
+            "  #{variable}: #{value};" if value
+          end
+        end
+
+        # The role lines without the variables the vocabulary fills, so each variable is written once.
+        def without_drawn(lines, map)
+          drawn = map.select { |_variable, keys| keys.any? { |key| @token_set.vocabulary.key?(key) } }.keys
+          lines.reject { |line| drawn.include?(line[/\A\s*(--[A-Za-z0-9-]+):/, 1]) }
         end
 
         def fallback_aliases

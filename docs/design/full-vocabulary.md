@@ -72,6 +72,20 @@ Rules:
 | `CustomDraft`, `Store` | A custom design system keeps the vocabulary values that differ from its base, stored as `vocabulary` beside `overrides` |
 | `Transfer` | Export writes the block only when a set has one, so a set without one exports byte for byte as before. `test/fixtures/transfer/` holds a file exported before the vocabulary existed, and a test imports it |
 
+### What is drawn
+
+`Variables::Generator` writes a vocabulary value only when the set fills it, and only in the light theme. The dark and high contrast themes keep OpenProject's own values. Where a variable can take two keys, the first one the set fills wins. A filled key wins over what the roles write for the same variable.
+
+| Keys | Variables | Where it shows |
+|---|---|---|
+| `component-status-badge-error-color`, else `color-error` | `--fgColor-danger` | Error text, the icon of an error banner, form errors |
+| `color-error` | `--bgColor-danger-emphasis`, `--borderColor-danger-emphasis` | Error fills and strong error borders |
+| `component-status-badge-error-background-color` | `--bgColor-danger-muted` | Light error backgrounds |
+| The same three for `warning` and `success` | `--fgColor-attention`, `--bgColor-attention-*`, `--borderColor-attention-emphasis`, `--fgColor-success`, `--bgColor-success-*`, `--borderColor-success-emphasis` | Warnings and success messages, labels |
+| `component-status-badge-info-background-color` | `--bgColor-accent-muted` | Light information backgrounds |
+
+`color-info` and the info badge's text colour are carried, not drawn: Primer's accent scale is the link and the primary colour here.
+
 ## What each group would drive in OpenProject
 
 | Group | Primer variables and OpenProject classes | How sure |
