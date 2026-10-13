@@ -139,6 +139,7 @@ module Thematiq
       # The file's logo reference is kept. It shows only when it names a logo that ships with the plugin.
       draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: imported.name.first(80),
                                                      overrides: imported.tokens, id: new_id, dark: imported.dark_tokens,
+                                                     vocabulary: imported.vocabulary,
                                                      logo: { "file" => imported.logo_file, "inverse_file" => imported.logo_inverse_file })
       raise OpenProject::Thematiq::Transfer::Refused, "token_invalid" unless save_draft(draft, new: true)
 
@@ -325,7 +326,9 @@ module Thematiq
       id = custom_id_from_params
       OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed, id:,
                                              logo: @store.custom_draft(id)&.definition&.dig("logo"),
-                                             dark: @store.custom_draft(id)&.dark)
+                                             dark: @store.custom_draft(id)&.dark,
+                                             # The editor has no fields for the vocabulary yet, so a save keeps what is stored.
+                                             vocabulary: @store.custom_draft(id)&.vocabulary)
     end
 
     def token_keys

@@ -77,7 +77,7 @@ An uploaded file wins over the file of the design system yours is based on. Dele
 
 ## Export and import a design system
 
-**Export** next to a design system saves it as a JSON file: its id, its name, its eighteen values and the name of its logo file. The file has the same shape as one entry of the plugin's catalogue.
+**Export** next to a design system saves it as a JSON file: its id, its name, its eighteen values and the name of its logo file. The file has the same shape as one entry of the plugin's catalogue. A design system with values from thematiq's full vocabulary has them in a `vocabulary` entry beside the eighteen; [the full vocabulary](design/full-vocabulary.md) lists the names. A file exported before the vocabulary existed imports as it always did.
 
 **Import a design system**, at the bottom of the page, reads such a file.
 
@@ -85,11 +85,11 @@ An uploaded file wins over the file of the design system yours is based on. Dele
 2. The file is added as a new custom design system. It never replaces one that is there.
 3. Pick it in the list and select **Apply**.
 
-The plugin treats the file as untrusted. It refuses a file over 64 KB, a file that is not JSON, a file with an entry it does not know and a file with one value that is not a colour, a length or a font stack. When it refuses a file, nothing changes.
+The plugin treats the file as untrusted. It refuses a file over 64 KB, a file that is not JSON, a file with an entry it does not know and a file with one value that does not pass the check of its kind: a colour, a length, a font stack, or one of the kinds of the vocabulary. When it refuses a file, nothing changes.
 
 A logo file does not travel with the file. The file holds the logo's name. When that names a logo that ships with the plugin, the imported design system shows it. Otherwise it uses OpenProject's own logo.
 
-Uploaded files do not travel either. A font file is often not free to pass on, and the export would grow from a few KB to many MB. The export file lists the kinds of file it left behind, under `uploads`. The import reads that list and tells you which files to upload again. A version of the plugin from before uploads refuses a file with that entry: remove the entry by hand, or upgrade first.
+Uploaded files do not travel either. A font file is often not free to pass on, and the export would grow from a few KB to many MB. The export file lists the kinds of file it left behind, under `uploads`. The import reads that list and tells you which files to upload again. A version of the plugin from before uploads refuses a file with that entry: remove the entry by hand, or upgrade first. The same goes for `vocabulary` on a version from before the vocabulary.
 
 ## Check the page after a change to the code
 

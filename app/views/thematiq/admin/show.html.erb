@@ -93,7 +93,7 @@
               <% if custom_active %>
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
-              <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: custom.overrides.size, name: custom.base.name) %></span>
+              <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: custom.changed_count, name: custom.base.name) %></span>
               <% low = OpenProject::Thematiq::Contrast.failures(custom_set) %>
               <% if low.any? %>
                 <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">

@@ -1,6 +1,6 @@
 # Design: the full token vocabulary
 
-**Status: a proposal to read. No code has been written for it.**
+**Status: steps 1 to 3 are built. The owner decided the open trade-offs: a value a set does not fill keeps OpenProject's own value, nothing is derived. The sections below say what is built.**
 
 The plugin knows eighteen values per design system. thematiq knows many more. This page says how the plugin grows to thematiq's full vocabulary without breaking what works today.
 
@@ -56,9 +56,21 @@ Rules:
 - **`tokens` does not change.** A file exported today imports tomorrow, and a set without `vocabulary` works as it does now.
 - **`vocabulary` is optional and flat.** Its keys are thematiq's names without the `--nldesign-` prefix. One list in the plugin says which keys exist and what kind of value each takes.
 - **An unknown key in `vocabulary` is skipped in the catalogue and refuses an import**, as with `tokens` today.
-- **Where both say something, `vocabulary` wins.** Where `vocabulary` is silent, the value is derived from the eighteen roles. So every set has an answer for every variable.
-- **New kinds of value.** Today there are three: colour, length, font stack. The vocabulary adds font weight, font size, a plain number, a shadow and a CSS filter. Each needs its own allow-list in the validator. A filter and a shadow are the risky ones and get the tightest check: a fixed list of functions with numbers only.
-- **Never an address.** `logo-url` stays out of `vocabulary`. A logo is a file in the plugin, as now.
+- **A value has one home.** The seventeen thematiq names that are roles (`color-primary`, `border-radius`, `font-family` and the rest, `Vocabulary::ROLE_NAMES`) stay in `tokens` under the role's name. A file that names one of them in `vocabulary` is refused.
+- **Nothing is derived.** Where `vocabulary` is silent, OpenProject keeps its own value. A set without `vocabulary` looks exactly as it did.
+- **New kinds of value.** Today there are three: colour, length, font stack. The vocabulary adds a wide length (`size`, up to 9999px), font weight, a plain number, a duration, a length or `auto` (`offset`), three channels for `rgba()` (`rgb_triplet`), a CSS filter, a border and a text transform. Each has its own allow-list in the validator. The filter is the risky one and gets the tightest check: at most six functions from a fixed list, each with one plain number, rebuilt from what was parsed. No thematiq token holds a shadow, so there is no shadow kind.
+- **Never an address.** `logo-url`, `brand-stripe-image`, `brand-stripe-image-inverse`, `hero-decoration-image` and `login-watermark-image` stay out of `vocabulary`. A logo is a file in the plugin, as now. `hero-image-clip-path` stays out too: it is a shape with `calc()`.
+
+## What is built
+
+`lib/open_project/thematiq/tokens/vocabulary.rb` holds the list: 185 keys, read from thematiq's `css/tokens/` (light and dark files) on 13 October 2026, each with its kind. `Vocabulary::DRAWN` names the keys the plugin draws. Every other key is carried: it is kept, exported, imported and written to Figma files, and it changes no pixel.
+
+| Where | What it does with `vocabulary` |
+|---|---|
+| `TokenSet` | Keeps the block, each value through the validator of its kind. A bad value is left out and named in `rejected`. In strict mode, for an import, an unknown key, a role name or a bad value refuses the file |
+| `Catalogue` | Reads the block of a bundled set the same way. The bundled catalogue has none yet: that is step 9 |
+| `CustomDraft`, `Store` | A custom design system keeps the vocabulary values that differ from its base, stored as `vocabulary` beside `overrides` |
+| `Transfer` | Export writes the block only when a set has one, so a set without one exports byte for byte as before. `test/fixtures/transfer/` holds a file exported before the vocabulary existed, and a test imports it |
 
 ## What each group would drive in OpenProject
 
@@ -110,7 +122,7 @@ Steps 1 to 3 change no pixel and can be merged on tests. Steps 4 to 8 each need 
 
 - **Flat keys with thematiq's names, or our own names.** This page chooses thematiq's names. It costs us names that say "nldesign" and "website" inside an OpenProject plugin. It saves a translation table that would drift, and it lets the same file serve both products.
 - **Carry what we cannot draw, or drop it.** This page chooses to carry it. A set moved from Nextcloud to OpenProject and back must not lose its website tokens on the way.
-- **Derive missing values, or leave OpenProject's.** This page chooses to derive from the eighteen roles, so a set looks whole. The cost: a derived status colour is a guess. The alternative, OpenProject's own red next to a municipality's blue, is safer and looks less finished. This is the one to decide before step 4.
+- **Derive missing values, or leave OpenProject's.** Decided by the owner: leave OpenProject's. A set that does not name a status colour shows OpenProject's own.
 - **Size of the editor.** 161 fields is not a form anyone fills in. Step 10 needs a design of its own.
 
-To decide: the third trade-off, and whether steps 4 to 8 wait for the catalogue from thematiq or start on derived values.
+Decided: steps 4 to 8 do not wait for the catalogue from thematiq. Until it comes, a set gets vocabulary values from an import, a Figma file or the editor.
