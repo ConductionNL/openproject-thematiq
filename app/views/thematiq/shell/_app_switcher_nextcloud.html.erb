@@ -1,7 +1,8 @@
 <%# Rendered inside the app switcher dialog, before OpenProject's own module list. The list is fixed: see Shell::NextcloudApps. %>
 <% apps = OpenProject::Thematiq::Shell::NextcloudApps %>
 <% base = OpenProject::Thematiq::Shell.nextcloud_url %>
-<% if base %>
+<%# With the plugin's own list (Shell::AppSwitcher) the Nextcloud column is part of it, so this renders nothing. %>
+<% if base && !OpenProject::Thematiq::Shell::AppSwitcher.installed? %>
 <section class="thematiq-apps thematiq-apps_nextcloud" aria-labelledby="thematiq-apps-nextcloud-title">
   <h2 class="thematiq-apps--title" id="thematiq-apps-nextcloud-title"><%= t("thematiq.shell.app_switcher.nextcloud") %></h2>
   <ul class="thematiq-apps--list">

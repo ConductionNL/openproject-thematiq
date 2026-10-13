@@ -1,0 +1,32 @@
+<%# The list under the nine-dot button. See Shell::AppSwitcher. The columns come from core's items and the fixed Nextcloud list. %>
+<div class="thematiq-switcher--columns" data-columns="<%= columns.size %>">
+  <% columns.each do |column| %>
+    <section class="thematiq-switcher--column <%= "thematiq-apps" if column[:id] == "nextcloud" %>" aria-labelledby="thematiq-switcher-<%= column[:id] %>">
+      <h2 class="thematiq-apps--title" id="thematiq-switcher-<%= column[:id] %>"><%= column[:title] %></h2>
+      <ul class="thematiq-apps--list">
+        <% column[:entries].each do |entry| %>
+          <li>
+            <a class="thematiq-apps--item thematiq-switcher--entry <%= "is-current" if entry[:current] %>" href="<%= entry[:href] %>"
+               data-thematiq-switcher-entry <%= 'aria-current="page"'.html_safe if entry[:current] %>
+               <%= 'data-allow-external-link="true"'.html_safe if entry[:external] %>>
+              <span class="thematiq-apps--icon" aria-hidden="true">
+                <% if entry[:path] %>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="<%= entry[:path] %>"></path></svg>
+                <% elsif entry[:octicon].present? %>
+                  <%= render(Primer::Beta::Octicon.new(icon: entry[:octicon], "aria-hidden": "true")) %>
+                <% else %>
+                  <%= entry[:label].to_s.first.to_s.upcase %>
+                <% end %>
+              </span>
+              <span class="thematiq-switcher--text">
+                <span class="thematiq-apps--name"><%= entry[:label] %></span>
+                <% if entry[:line] %><span class="thematiq-switcher--line"><%= entry[:line] %></span><% end %>
+              </span>
+              <% if entry[:upsell] %><%= render(Primer::Beta::Octicon.new(icon: "op-enterprise-addons", classes: "upsell-colored", "aria-hidden": "true")) %><% end %>
+            </a>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+</div>

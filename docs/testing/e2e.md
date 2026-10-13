@@ -13,6 +13,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `uploads.spec.js` | Each kind of upload shows where it should, hostile files are cleaned or refused, the public file route serves without a session and refuses near misses |
 | `shell.spec.js` | The two-layer project menu, the row of tiles, Home and `/my/page`, the sizes of the canon |
 | `top-bar.spec.js` | The field for the tiles of the top bar: an own row shows in its order, no row shows no tiles, an empty own row is refused |
+| `app-switcher.spec.js` | The list under the nine-dot button: heading, two columns, a second line, the current entry, Manage apps, `aria-expanded`, arrow keys and Escape; one column without a Nextcloud address |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |

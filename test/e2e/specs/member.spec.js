@@ -14,7 +14,8 @@ test.describe("member", () => {
     await page.goto("/my/account");
     const token = await page.locator('meta[name="csrf-token"]').getAttribute("content");
     for (const [path, form] of [["/admin/thematiq", { set_id: "zuiddrecht" }], ["/admin/thematiq/custom", { name: "x", save: "1" }],
-                                ["/admin/thematiq/shell", { nextcloud_url: "https://example.org" }]]) {
+                                ["/admin/thematiq/shell", { nextcloud_url: "https://example.org" }],
+                                ["/admin/thematiq/top-bar", { top_bar_mode: "none" }]]) {
       const response = await page.request.post(path, { form: { ...form, authenticity_token: token }, maxRedirects: 0 });
       expect(response.status(), `POST ${path}`).toBe(403);
     }
@@ -25,6 +26,12 @@ test.describe("member", () => {
     await expect(page.locator(".op-app-header")).toHaveCSS("height", "68px");
     await expect(page.locator(".thematiq-app-row--item").first()).toBeVisible();
     await expect(page.getByRole("link", { name: "Thematiq design" })).toHaveCount(0);
+    // The list under the nine-dot button has no "Manage apps" for a member.
+    await page.getByRole("button", { name: "All apps and modules" }).click();
+    const list = page.getByRole("dialog", { name: "All apps and modules" });
+    await expect(list.locator("[data-thematiq-switcher-entry]").first()).toBeVisible();
+    await expect(list.getByRole("link", { name: "Manage apps" })).toHaveCount(0);
+    await page.keyboard.press("Escape");
     const links = await page.locator("#main-menu a[href]").evaluateAll((anchors) => [...new Set(anchors.map((a) => a.href))]);
     expect(links.length).toBeGreaterThan(5);
     for (const link of links) {

@@ -53,7 +53,7 @@ A failing hook does not break the page. `OpenProject::Hook.call_hook` rescues th
 | App switcher as a two column popover | CSS on core's dialog. It stays a modal dialog, so focus trap and Escape keep working | Built |
 | App switcher, Nextcloud column | Hook `module_menu_dialog_content_before` renders a fixed list of six links. Only when a Nextcloud address is set | Built. The list is fixed |
 | App switcher, OpenProject column | Core's own module list, restyled. It comes from core's menu and permission helpers | Built |
-| A second line under each app name | Core's list has no description per item. It would need a replacement of a private method and a text per menu item | Not built |
+| A second line under each app name | The plugin's own list, see "The list under the nine-dot button" | Built |
 | Search | Core's own field, restyled | Built. The placeholder is core's text |
 | Bell instead of the inbox icon | CSS mask on core's link. The link keeps its name, "Notifications" | Built |
 | Unread dot | Core's own indicator, restyled as a dot. It shows when the real unread count is above zero | Built |
@@ -77,8 +77,22 @@ Core's top bar helpers take a row of items without a view override. `top_menu_le
 | A current entry outside the row takes the last place | `Shell::AppRow.pick` | Built |
 | Below 1240 px the row folds, the current tile stays | CSS | Built. The current tile sits after the button on screen and before it in the focus order |
 | Below 1012 px | No tile. Core's compact header has no room for one | Built |
-| App switcher as the nine-dot button at the end | Core's own dialog button, moved | Built. It keeps core's name "Global modules" and has no `aria-expanded`: both are set inside a core helper |
-| The list: heading, a line of text per entry, current entry, "Manage apps" | Core renders the module list. A second line and a current mark need a replacement of a private core method | Not built |
+| App switcher as the nine-dot button at the end | The dialog button of the plugin's own list, moved like core's was | Built. Named "All apps and modules", with `aria-haspopup="dialog"` and `aria-expanded` |
+| The list: heading, a line of text per entry, current entry, "Manage apps" | The plugin's own list in place of core's | Built, see below |
+
+### The list under the nine-dot button
+
+Core renders the list and names its button inside one method, `TopMenu::ModuleMenu#render_module_top_menu_node`. No hook reaches the button, and core's list has no place for a second line or a current mark. A helper prepend that calls `super` cannot change either without rewriting core's HTML afterwards. So `Shell::AppSwitcher` renders the plugin's own list in that method's place:
+
+- The same `Primer::Alpha::Dialog`, a modal dialog with core's focus trap and Escape, with the classes and test selector core gives it, so the row of tiles moves it the same way.
+- Core's own items: `module_top_menu_item_groups`, so which modules a user sees is core's decision, and a module without a licence keeps core's upsell icon. The Nextcloud apps come first, in a column of their own, when a Nextcloud address is set.
+- Core's two hooks of the dialog are still called, so other plugins add to it as before. The plugin's own Nextcloud hook steps aside.
+- The heading "All apps and modules", and as a note how many of them are in the bar. A second line per entry from `thematiq.shell.app_switcher.lines` in `en.yml`; a module of another plugin has none. The current entry is marked with `aria-current="page"`, by the same rule as the current tile. "Manage apps" for an administrator, to **Tiles in the top bar**.
+- A small script keeps `aria-expanded` in step with the dialog and moves between the entries with the arrow keys, Home and End.
+
+It leans on `module_menu.rb`, which the guard already checks for the top bar: it is installed with the top bar and off with it. When rendering fails, core's list renders and the log says why. The cost is one core method copied in shape (about twenty lines) that must be compared with core's on every release.
+
+Differences from the design: it is a dialog of links, not a `role="menu"`, because core's dialog is one and Tab keeps working; the note counts the tiles ("7 of them are in the bar") where the design says "The first seven", because an own row need not be the first entries; Mail's line is "Your mailbox" where the board names the user.
 
 **The setting.** `top_bar_apps` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.top_bar_apps`. It is a list of keys separated by commas. A Nextcloud app has the key of its name (`files`, `mail`, `calendar`, `tasks`, `talk`, `contacts`). A module has the name of its item in core's top menu (`home`, `my_page`, `projects`, `work_packages`, `gantt`, `team_planners`, `boards`, `meetings`, `news`, `cost_reports_global`, `wikis`). Empty gives the default, `none` gives no row, and there are at most twelve.
 
@@ -282,7 +296,7 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 |---|---|---|
 | `lib/redmine/menu_manager/top_menu_helper.rb` | `Shell::TopBar#top_menu_left_menu_items`, through `super` | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/user_menu.rb` | `Shell::TopBar#lateral_user_menu_button`, a private method with two arguments | Checksum in `core_guard.rb` |
-| `lib/redmine/menu_manager/top_menu/module_menu.rb` | The hook `module_menu_dialog_content_before`, the dialog markup the popover CSS styles, and the private `more_top_menu_items` the row of apps reads | Checksum in `core_guard.rb` |
+| `lib/redmine/menu_manager/top_menu/module_menu.rb` | `Shell::AppSwitcher#render_module_top_menu_node`, which renders the plugin's list in place of core's and calls core's `module_top_menu_item_groups`; the private `more_top_menu_items` the row of apps reads | Checksum in `core_guard.rb` |
 | `app/views/layouts/base.html.erb` | The header and menu markup the files in `stylesheets/shell/` style, and where the hooks run | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/menu_helper.rb` | `Shell::ProjectMenu::Helper`: `render_menu`, `render_menu_node`, `render_menu_toggler`, `badge_for`. One of them fills in a label core leaves empty | Checksum in `core_guard.rb` |
 | `frontend/src/stimulus/controllers/dynamic/menus/main.controller.ts` | The two-layer menu: the arrow button's `descend` must keep toggling `open` on the row | Checksum in `core_guard.rb` |
@@ -314,6 +328,7 @@ You notice it in one of three ways: `script/check-core.rb` exits 1, the log says
 
 1. Run `script/check-core.rb` in the new image. It names the core files that changed.
 2. Open each one next to the override that leans on it. The table above says which.
+   - For `lib/open_project/thematiq/shell/app_switcher.rb`: core's `render_module_top_menu_node` still renders a `Primer::Alpha::Dialog` with the hooks before and after its list, and `module_top_menu_item_groups` still returns groups of menu items.
    - For `lib/open_project/thematiq/shell/top_bar.rb`: `top_menu_left_menu_items` still returns the app switcher first, `more_top_menu_items` still returns the menu items of the app switcher, and `lateral_user_menu_button(dialog, avatar)` still puts `avatar` inside the button.
    - For `lib/open_project/thematiq/shell/project_menu.rb`: `render_menu` still sets `@menu`, `render_menu_node` still returns one `<li>` per item, `badge_for(item)` still returns a span or nil, and the switcher template still prints `trigger_label` inside the button.
    - For `lib/open_project/thematiq/shell/home.rb`: compare core's `homescreen/index.html.erb` with `app/views/thematiq/shell/home.html.erb`. Whatever core's view renders, the plugin's must render too. While this part is off, Home and My page are two pages again and "My page" is back in the menus.
