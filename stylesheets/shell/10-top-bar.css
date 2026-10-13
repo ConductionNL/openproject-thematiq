@@ -115,6 +115,9 @@
   align-items: center;
   gap: 10px;
 }
+/* Signed out, core's "Sign in" button brings its own triangle. The shell draws the chevron, so one goes
+ * (first full test, finding 20). */
+.op-app-header--end > button.op-app-menu--item .Button-trailingVisual { display: none; }
 .op-app-header--end > button.op-app-menu--item .Button-label::after {
   content: "";
   flex: none;

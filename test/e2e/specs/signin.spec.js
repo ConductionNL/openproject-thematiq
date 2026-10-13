@@ -22,6 +22,16 @@ test.describe("visitor", () => {
     expect(family.split(",")[0].replace(/["']/g, "").trim()).toBe(tokens["font-family"].split(",")[0].replace(/["']/g, "").trim());
   });
 
+  // First full test, finding 20: core's triangle and the shell's chevron both showed next to "Sign in".
+  test("the sign-in button has one arrow", async ({ page }) => {
+    await page.goto("/login");
+    const button = page.locator(".op-app-header--end > button.op-app-menu--item");
+    await expect(button).toContainText("Sign in");
+    await expect(button.locator(".Button-trailingVisual")).toBeHidden();
+    const chevron = await button.locator(".Button-label").evaluate((label) => getComputedStyle(label, "::after").content);
+    expect(chevron).not.toBe("none");
+  });
+
   test("a missing page is themed and answers 404", async ({ page }) => {
     const response = await page.goto("/thematiq-e2e-no-such-page");
     expect(response.status()).toBe(404);
