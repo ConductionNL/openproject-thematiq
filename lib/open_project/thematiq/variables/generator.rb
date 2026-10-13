@@ -143,12 +143,26 @@ module OpenProject
           "--bgColor-success-emphasis" => %w[color-success],
           "--borderColor-success-emphasis" => %w[color-success],
           "--bgColor-success-muted" => %w[component-status-badge-success-background-color],
-          "--bgColor-accent-muted" => %w[component-status-badge-info-background-color]
+          "--bgColor-accent-muted" => %w[component-status-badge-info-background-color],
+          # Text on a coloured fill, such as a label or a status fill.
+          "--fgColor-onEmphasis" => %w[color-text-light],
+          # The quiet line between parts: separators and dividers.
+          "--borderColor-muted" => %w[component-separator-border-color],
+          # The focus ring. thematiq's focus colour is often see-through (rgba at 50%), which a ring must not be:
+          # its opaque channels come first, and the colour itself only counts when it is opaque.
+          "--focus-outlineColor" => %w[color-focus-rgb color-focus]
+        }.freeze
+
+        # Corners. Primer defines these on :root, beside the radius the roles already write.
+        # thematiq's "rounded" corner (28px) has no Primer step of its own, so it is carried.
+        VOCABULARY_SHAPE = {
+          "--borderRadius-small" => %w[border-radius-small],
+          "--borderRadius-full" => %w[border-radius-pill]
         }.freeze
 
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
         def self.drawn_keys
-          VOCABULARY_COLORS.values.flatten.uniq.sort
+          VOCABULARY_COLORS.merge(VOCABULARY_SHAPE).values.flatten.uniq.sort
         end
 
         PRIMER_SHAPE = {
@@ -169,7 +183,8 @@ module OpenProject
             "/* openproject-thematiq, variable layer. Generated from a validated token set. */",
             block(":root", declarations(@early ? ROOT_ALIASES : ROOT_SHAPE)),
             block(@early ? EARLY_MODE_SCOPE : MODE_SCOPE,
-                  (@early ? declarations(BODY_FONT) : []) + declarations(PRIMER_SHAPE) + fallback_aliases),
+                  (@early ? declarations(BODY_FONT) : []) + without_drawn(declarations(PRIMER_SHAPE), VOCABULARY_SHAPE) +
+                  fallback_aliases + vocabulary_declarations(VOCABULARY_SHAPE)),
             block(LIGHT_SCOPE, without_drawn(declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS), VOCABULARY_COLORS) +
                                light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS))
           ]
@@ -189,15 +204,31 @@ module OpenProject
 
         # One line per variable of the map that the set fills a key for, from the first key it fills.
         def vocabulary_declarations(map)
-          map.filter_map do |variable, keys|
-            value = keys.lazy.filter_map { |key| @token_set.vocabulary[key] }.first
-            "  #{variable}: #{value};" if value
+          vocabulary_values(map).map { |variable, value| "  #{variable}: #{value};" }
+        end
+
+        # variable => value, for the variables of the map the set fills a usable key for.
+        def vocabulary_values(map)
+          map.each_with_object({}) do |(variable, keys), result|
+            value = keys.lazy.filter_map { |key| vocabulary_value(key) }.first
+            result[variable] = value if value
           end
+        end
+
+        # The value of one key as a variable takes it. Three channels become rgb(). A focus colour that is
+        # see-through, or that the plugin cannot measure, does not count.
+        def vocabulary_value(key)
+          value = @token_set.vocabulary[key]
+          return nil unless value
+          return "rgb(#{value})" if key == "color-focus-rgb"
+          return nil if key == "color-focus" && Contrast.rgba(value)&.last != 1.0
+
+          value
         end
 
         # The role lines without the variables the vocabulary fills, so each variable is written once.
         def without_drawn(lines, map)
-          drawn = map.select { |_variable, keys| keys.any? { |key| @token_set.vocabulary.key?(key) } }.keys
+          drawn = vocabulary_values(map).keys
           lines.reject { |line| drawn.include?(line[/\A\s*(--[A-Za-z0-9-]+):/, 1]) }
         end
 

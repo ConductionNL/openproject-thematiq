@@ -76,6 +76,28 @@ class VocabularyLayerTest < Minitest::Test
     refute_includes dark, "#cc0000"
   end
 
+  def test_text_lines_and_corners
+    css = Generator.new(set({ "color-text-light" => "#ffffff", "component-separator-border-color" => "#e4e6ea",
+                              "border-radius-small" => "4px", "border-radius-pill" => "100px" }, { "radius-lg" => "12px" })).css
+    mode = blocks(css).fetch("[data-color-mode]")
+
+    assert_includes blocks(css).fetch(LIGHT), "--fgColor-onEmphasis: #ffffff;"
+    assert_includes blocks(css).fetch(LIGHT), "--borderColor-muted: #e4e6ea;"
+    assert_includes mode, "--borderRadius-small: 4px;"
+    assert_includes mode, "--borderRadius-full: 100px;"
+    assert_includes mode, "--borderRadius-medium: 12px;", "the role still writes its own corner"
+  end
+
+  def test_the_focus_ring_is_opaque
+    assert_includes light({ "color-focus-rgb" => "54, 105, 165", "color-focus" => "rgba(54, 105, 165, 0.5)" }),
+                    "--focus-outlineColor: rgb(54, 105, 165);"
+    assert_includes light({ "color-focus" => "#3669a5" }, { "primary" => "#111111" }), "--focus-outlineColor: #3669a5;"
+    see_through = light({ "color-focus" => "rgba(54, 105, 165, 0.5)" }, { "primary" => "#111111" })
+
+    assert_includes see_through, "--focus-outlineColor: #111111;", "a see-through focus colour leaves the role's ring"
+    assert_equal 1, see_through.scan("--focus-outlineColor:").size
+  end
+
   def test_a_hostile_value_never_reaches_the_layer
     HOSTILE_VALUES.each do |value|
       css = Generator.new(set({ "color-error" => value })).css

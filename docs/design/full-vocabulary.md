@@ -84,6 +84,11 @@ Rules:
 | The same three for `warning` and `success` | `--fgColor-attention`, `--bgColor-attention-*`, `--borderColor-attention-emphasis`, `--fgColor-success`, `--bgColor-success-*`, `--borderColor-success-emphasis` | Warnings and success messages, labels |
 | `component-status-badge-info-background-color` | `--bgColor-accent-muted` | Light information backgrounds |
 
+| `color-text-light` | `--fgColor-onEmphasis` | Text on coloured fills: labels, status fills |
+| `component-separator-border-color` | `--borderColor-muted` | Separators and quiet lines |
+| `color-focus-rgb` as `rgb()`, else `color-focus` when it is opaque | `--focus-outlineColor` | The focus ring of Primer controls. thematiq's `color-focus` is often 50% see-through, which a ring must not be |
+| `border-radius-small`, `border-radius-pill` | `--borderRadius-small`, `--borderRadius-full` | Small corners, and pills such as counters and labels. `border-radius-rounded` has no Primer step and is carried |
+
 `color-info` and the info badge's text colour are carried, not drawn: Primer's accent scale is the link and the primary colour here.
 
 ## What each group would drive in OpenProject

@@ -114,6 +114,7 @@ module OpenProject
           color-error color-success color-warning component-status-badge-error-background-color component-status-badge-error-color
           component-status-badge-info-background-color component-status-badge-success-background-color
           component-status-badge-success-color component-status-badge-warning-background-color component-status-badge-warning-color
+          color-text-light component-separator-border-color color-focus-rgb color-focus border-radius-small border-radius-pill
         ].freeze
 
         module_function
