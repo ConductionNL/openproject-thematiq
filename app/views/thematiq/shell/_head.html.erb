@@ -4,3 +4,12 @@
 <% if logo_css.present? %>
 <style id="<%= local_assigns.fetch(:style_id, "openproject-thematiq-logo") %>"><%= raw logo_css %></style>
 <% end %>
+<%# A design system without a logo keeps OpenProject's logo, which is white. On a light top bar, such as
+    OpenProject Gray, white does not show: there OpenProject's own dark logo and mark are used. %>
+<% bar_set = OpenProject::Thematiq.active_token_set %>
+<% if logo_css.blank? && OpenProject::Thematiq::Contrast.on(bar_set, "primary") != "#ffffff" %>
+<style id="<%= local_assigns.fetch(:style_id, "openproject-thematiq-logo") %>-light-bar">
+<%= raw OpenProject::Thematiq::Shell::Logo.rule(asset_path("logo_openproject.png")) %>
+<%= raw OpenProject::Thematiq::Shell::Logo.rule(asset_path("icon_logo.svg"), selector: OpenProject::Thematiq::Shell::Logo::MOBILE_SELECTOR) %>
+</style>
+<% end %>
