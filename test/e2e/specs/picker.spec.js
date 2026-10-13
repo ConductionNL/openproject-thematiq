@@ -20,7 +20,7 @@ test.describe("picker", () => {
 
   test("search narrows the list and says when nothing matches", async ({ page }) => {
     await page.goto(PICKER);
-    const search = page.getByRole("search").filter({ has: page.getByLabel("Search design systems") });
+    const search = page.locator("#thematiq-search-form");
     await search.getByLabel("Search design systems").fill("zuiddrecht");
     await Promise.all([page.waitForURL(/q=zuiddrecht/), search.getByRole("button", { name: "Search", exact: true }).click()]);
     await expect(page.locator('[data-test-selector="thematiq-count"]')).toHaveText(/1 of \d+ design systems/);

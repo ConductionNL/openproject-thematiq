@@ -49,8 +49,9 @@ test.describe("uploads", () => {
     await page.goto("/projects");
     // The variant for the coloured top bar comes first when both are there.
     await expect(page.locator(".op-logo--link").first()).toHaveCSS("background-image", new RegExp(inverseUrl));
-    await expect(page.locator(`link[rel="icon"][href="${faviconUrl}"]`)).toHaveCount(1);
-    await expect(page.locator(`link[rel="apple-touch-icon"][href="${touchUrl}"]`)).toHaveCount(1);
+    // The plugin writes its icon links before and after OpenProject's own, on purpose (docs/layouts.md). The last one counts.
+    await expect(page.locator('link[rel="icon"]').last()).toHaveAttribute("href", faviconUrl);
+    await expect(page.locator('link[rel="apple-touch-icon"]').last()).toHaveAttribute("href", touchUrl);
     const faces = await page.evaluate(() => [...document.styleSheets].flatMap((sheet) => {
       try { return [...sheet.cssRules].filter((rule) => rule instanceof CSSFontFaceRule).map((rule) => rule.cssText); } catch { return []; }
     }));

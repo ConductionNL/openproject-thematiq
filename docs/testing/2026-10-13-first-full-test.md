@@ -89,6 +89,20 @@ The top bar is 68 and the rows 48 on all eleven design systems tried.
 - 1024 and 390 wide: no sideways scroll on Home, the work package table, the picker, the editor and a board; at 390 the mobile mark shows and the sidebar folds away.
 - Existing checks on the fresh instance: `bin/test` 322 runs, 0 failures; `bin/check-syntax` ok; `script/check-core.rb` ok, 17 files match 17.9.1; `python3 -m unittest discover -s test/pixel` ok.
 
+## The README, followed as a newcomer
+
+The path in "Try it locally with Docker" works as written, with one change: port 8080 is taken on the test machine, and the README's own advice (`THEMATIQ_PORT=8090 ...`) works. The first start took 3 minutes 30 seconds; the README says about three. The first sign-in with `admin` / `admin`, the forced password change and **Administration**, **Thematiq design** are where the README says. What does not work as written is everything after that which runs a command in the container: see finding 3.
+
+## Existing checks on the fresh instance
+
+| Check | Result |
+|---|---|
+| `bin/test` | 322 runs, 145,615 assertions, 0 failures. One warning: `transfer.rb:66` meets a duplicate key "primary" in a JSON test input, which json 3.0 will refuse |
+| `bin/check-syntax` | ok |
+| `script/check-core.rb` | ok, 17 core files match OpenProject 17.9.1 |
+| `python3 -m unittest discover -s test/pixel` | ok |
+| Request check `test/integration/admin_page_check.rb` | passes on the fresh instance, once `SECRET_KEY_BASE` is given (finding 3). 223 checks with the new section for finding 1 |
+
 ## Not done yet
 
 Everything else in the test plan. This list shrinks as the test goes on.
