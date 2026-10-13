@@ -31,7 +31,7 @@ test.describe("uploads", () => {
 
   test("each kind appears where it should", async ({ page }) => {
     const logo = await upload(page, id, "logo", { name: "logo.png", mimeType: "image/png", buffer: png(240, 60) });
-    await expect(page.getByText("The logo is uploaded and in use.").first()).toBeVisible();
+    await expect(page.getByText("The logo is uploaded and in use.").filter({ visible: true }).first()).toBeVisible();
     const logoUrl = await shown(logo);
     expect(logoUrl).toMatch(/^\/thematiq\/files\/[0-9a-f]{64}$/);
 
@@ -42,9 +42,9 @@ test.describe("uploads", () => {
     const touch = await upload(page, id, "touch-icon", { name: "touch.png", mimeType: "image/png", buffer: png(180, 180) });
     const touchUrl = await shown(touch);
     await upload(page, id, "logo-mobile", { name: "mobile.png", mimeType: "image/png", buffer: png(64, 64) });
-    await expect(page.getByText("The mobile logo is uploaded and in use.").first()).toBeVisible();
+    await expect(page.getByText("The mobile logo is uploaded and in use.").filter({ visible: true }).first()).toBeVisible();
     await upload(page, id, "font", FONT, async (form) => { await form.getByLabel("Family name", { exact: true }).fill("E2E Barlow"); });
-    await expect(page.getByText("The font is uploaded and in use.").first()).toBeVisible();
+    await expect(page.getByText("The font is uploaded and in use.").filter({ visible: true }).first()).toBeVisible();
 
     await page.goto("/projects");
     // The variant for the coloured top bar comes first when both are there.
@@ -61,7 +61,7 @@ test.describe("uploads", () => {
 
   test("a hostile SVG is cleaned and a refused file changes nothing", async ({ page }) => {
     const form = await upload(page, id, "logo", path.join(FIXTURES, "hostile-script.svg"));
-    await expect(page.getByText("Parts of the SVG file that the plugin does not allow were left out.").first()).toBeVisible();
+    await expect(page.getByText("Parts of the SVG file that the plugin does not allow were left out.").filter({ visible: true }).first()).toBeVisible();
     const url = await shown(form);
     const served = await page.request.get(url);
     const body = await served.text();
@@ -70,11 +70,11 @@ test.describe("uploads", () => {
     expect(served.headers()["content-security-policy"]).toContain("sandbox");
 
     await upload(page, id, "logo", path.join(FIXTURES, "hostile-entity-bomb.svg"));
-    await expect(page.getByText("The SVG file declares entities or a document type of its own.").first()).toBeVisible();
+    await expect(page.getByText("The SVG file declares entities or a document type of its own.").filter({ visible: true }).first()).toBeVisible();
     await upload(page, id, "logo", { name: "logo.png", mimeType: "image/png", buffer: Buffer.from("<html><script>alert(1)</script></html>") });
-    await expect(page.getByText("The plugin does not know this kind of file. Nothing was uploaded.").first()).toBeVisible();
+    await expect(page.getByText("The plugin does not know this kind of file. Nothing was uploaded.").filter({ visible: true }).first()).toBeVisible();
     await upload(page, id, "touch-icon", { name: "small.png", mimeType: "image/png", buffer: png(64, 64) });
-    await expect(page.getByText("The picture is too small.").first()).toBeVisible();
+    await expect(page.getByText("The picture is too small.").filter({ visible: true }).first()).toBeVisible();
     expect(await shown(page.locator("#thematiq-file-logo-form"))).toBe(url);
   });
 

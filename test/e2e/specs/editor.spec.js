@@ -48,7 +48,7 @@ test.describe("editor", () => {
       page.getByRole("button", { name: "Save and apply" }).click(),
     ]);
     expect(response.status()).toBe(422);
-    await expect(page.getByText("Some values cannot be used. Correct the marked fields and save again.")).toBeVisible();
+    await expect(page.getByText("Some values cannot be used. Correct the marked fields and save again.").filter({ visible: true }).first()).toBeVisible();
     await expect(page.locator("#thematiq-token-link")).toHaveAttribute("aria-invalid", "true");
     expect(await customIds(page)).toEqual(before);
   });

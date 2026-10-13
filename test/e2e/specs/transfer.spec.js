@@ -25,7 +25,7 @@ test.describe("export, import and Figma", () => {
     await page.goto(PICKER);
     await page.setInputFiles("#thematiq-import-file", file);
     await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.locator("#thematiq-import-form").getByRole("button", { name: "Import" }).click()]);
-    await expect(page.getByText(`"${name}" is added as a custom design system.`)).toBeVisible();
+    await expect(page.getByText(`"${name}" is added as a custom design system.`).filter({ visible: true }).first()).toBeVisible();
     const added = (await customIds(page)).filter((custom) => !saved.customs.includes(custom));
     expect(added).toHaveLength(1);
     expect((await exported(page, added[0])).tokens).toEqual(before.tokens);
@@ -35,7 +35,7 @@ test.describe("export, import and Figma", () => {
     await page.goto(PICKER);
     await page.setInputFiles("#thematiq-import-file", { name: "broken.json", mimeType: "application/json", buffer: Buffer.from("{ not json") });
     await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.locator("#thematiq-import-form").getByRole("button", { name: "Import" }).click()]);
-    await expect(page.getByText("The file is not a design system file. It could not be read as JSON.")).toBeVisible();
+    await expect(page.getByText("The file is not a design system file. It could not be read as JSON.").filter({ visible: true }).first()).toBeVisible();
     expect(await customIds(page)).toEqual(saved.customs);
   });
 
@@ -48,7 +48,7 @@ test.describe("export, import and Figma", () => {
 
       await page.setInputFiles("#thematiq-figma-files", await download.path());
       await page.locator("#thematiq-figma-form").getByRole("button", { name: "Upload from Figma" }).click();
-      await expect(page.getByText(`"${source.name}" is added as a custom design system. It is not applied yet.`)).toBeVisible();
+      await expect(page.getByText(`"${source.name}" is added as a custom design system. It is not applied yet.`).filter({ visible: true }).first()).toBeVisible();
 
       const added = (await customIds(page)).filter((custom) => !saved.customs.includes(custom));
       expect(added).toHaveLength(1);

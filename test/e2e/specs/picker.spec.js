@@ -28,7 +28,7 @@ test.describe("picker", () => {
 
     await search.getByLabel("Search design systems").fill("no design system has this name");
     await Promise.all([page.waitForURL(/q=no/), search.getByRole("button", { name: "Search", exact: true }).click()]);
-    await expect(page.getByText("No design system has that name. Try another word or show all.")).toBeVisible();
+    await expect(page.getByText("No design system has that name. Try another word or show all.").filter({ visible: true }).first()).toBeVisible();
     await page.getByRole("link", { name: "Show all" }).click();
     await expect(page).toHaveURL(/\/admin\/thematiq$/);
   });
