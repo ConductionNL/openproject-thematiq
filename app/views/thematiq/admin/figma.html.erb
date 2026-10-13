@@ -21,7 +21,7 @@
     <% figma::FORMATS.each do |format| %>
       <li class="thematiq-figma__format">
         <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_download_path(id: @token_set.id, file_format: format),
-                                            "aria-label": t("thematiq.figma.download_as", name: @token_set.name, format: t("thematiq.figma.formats.#{format}.label")))) { t("thematiq.figma.formats.#{format}.label") } %>
+                                            "aria-label": t("thematiq.figma.download_as", name: @token_set.name, kind: t("thematiq.figma.formats.#{format}.label")))) { t("thematiq.figma.formats.#{format}.label") } %>
         <span class="thematiq-editor__hint"><%= t("thematiq.figma.formats.#{format}.hint") %></span>
       </li>
     <% end %>

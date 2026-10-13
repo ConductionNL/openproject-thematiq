@@ -149,7 +149,7 @@ en:
       download: "Figma"
       download_label: "Download %{name} for Figma"
       download_title: "Download \"%{name}\" for Figma"
-      download_as: "Download %{name} as %{format}"
+      download_as: "Download %{name} as %{kind}"
       download_note: "Logos, icons and fonts are not in these files."
       formats:
         dtcg:
