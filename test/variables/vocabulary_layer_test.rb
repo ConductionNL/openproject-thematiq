@@ -121,6 +121,31 @@ class VocabularyLayerTest < Minitest::Test
     refute OpenProject::Thematiq::Tokens::Vocabulary.drawn?("color-button-primary-background")
   end
 
+  def test_the_table_and_the_workspace
+    css = Generator.new(set({ "component-table-header-background-color" => "#f5f6f8", "component-table-header-color" => "#5e6168",
+                              "component-table-header-font-weight" => "400", "component-table-border-color" => "#e4e6ea",
+                              "component-table-row-hover-background-color" => "#f0f1f3",
+                              "component-content-surface-background-color" => "#f5f6f8" })).css
+    body = blocks(css).fetch(LIGHT)
+
+    assert_includes body, "--thematiq-v-table-head: #f5f6f8;"
+    assert_includes body, "--thematiq-v-table-head-ink: #5e6168;"
+    assert_includes body, "--thematiq-v-table-line: #e4e6ea;"
+    assert_includes body, "--box-list-item-bg-hover-color: #f0f1f3;"
+    assert_includes body, "--body-background: #f5f6f8;"
+    assert_includes blocks(css).fetch("[data-color-mode]"), "--thematiq-v-table-head-weight: 400;"
+  end
+
+  # The geometry layer reads every vocabulary variable with the canon's value as fallback, so a set without
+  # vocabulary looks exactly as before.
+  def test_the_geometry_layer_falls_back_to_the_canon
+    css = Dir[File.expand_path("../../stylesheets/**/*.css", __dir__)].map { |file| File.read(file) }.join
+    uses = css.scan(/var\((--thematiq-v-[a-z-]+)(,?)/)
+
+    refute_empty uses
+    uses.each { |name, comma| assert_equal ",", comma, "#{name} without a fallback" }
+  end
+
   def test_a_hostile_value_never_reaches_the_layer
     HOSTILE_VALUES.each do |value|
       css = Generator.new(set({ "color-error" => value })).css

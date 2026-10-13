@@ -81,4 +81,23 @@ test.describe("vocabulary", () => {
     await expect(page.getByRole("button", { name: "Delete this custom design system" })).toHaveCSS("color", "rgb(204, 0, 0)");
     await expect(page.getByRole("button", { name: "Save and apply" })).toHaveCSS("background-color", "rgb(31, 136, 61)");
   });
+
+  test("the table header, its lines and the workspace take the set's values", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary table ${Date.now()}`,
+                                       vocabulary: { "component-table-header-background-color": "#ffeedd", "component-table-header-color": "#5b2e91",
+                                                     "component-table-header-font-weight": "400", "component-table-border-color": "#00aa55",
+                                                     "component-table-row-hover-background-color": "#eeffee",
+                                                     "component-content-surface-background-color": "#f5f6f8" } });
+    await applySet(page, id);
+
+    await page.goto(`/projects/${require("../support/env").config.project}/work_packages`);
+    const head = page.locator("table.work-package-table thead th").first();
+    await expect(head).toHaveCSS("background-color", "rgb(255, 238, 221)");
+    await expect(head).toHaveCSS("border-bottom-color", "rgb(0, 170, 85)");
+    const label = page.locator("table.work-package-table thead th .generic-table--sort-header-outer").first();
+    await expect(label).toHaveCSS("color", "rgb(91, 46, 145)");
+    await expect(label).toHaveCSS("font-weight", "400");
+    expect(await variable(page, "--box-list-item-bg-hover-color")).toBe("#eeffee");
+    expect(await variable(page, "--body-background")).toBe("#f5f6f8");
+  });
 });

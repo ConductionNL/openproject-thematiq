@@ -92,6 +92,12 @@ Rules:
 | `component-button-color`, `-border-color`, `-hover-background-color`, `-hover-border-color`, `-active-background-color`, `-disabled-background-color`, `-disabled-border-color` | `--button-default-*` in those states, and `--button--font-color` of OpenProject's older buttons | The default button |
 | `color-error`, `color-error-hover`, `component-button-error-color` | `--button-danger-fgColor-rest`, `-iconColor-rest`, `-bgColor-hover`, `-borderColor-hover`, `-bgColor-active`, `-fgColor-hover`, `-fgColor-active` | The danger button |
 
+| `component-table-header-background-color`, `-header-color`, `-header-font-weight`, `component-table-border-color` | The plugin's own `--thematiq-v-table-*`, read by the geometry layer with the canon as fallback | The header row, its text and the lines of the work package table and the generic tables |
+| `component-table-row-hover-background-color` | `--box-list-item-bg-hover-color` | The work package row under the pointer |
+| `component-content-surface-background-color` | `--body-background` | The workspace behind the content |
+
+`component-content-card-shadow-color` is carried: Primer's card shadow is a whole shadow, not a colour, and building one would be deriving.
+
 The main button stays the action role's. thematiq's `color-button-primary-*` and `component-button-primary-action-*` are carried, so the rule that the action colour, and only that, fills the one main button holds for every set.
 
 `color-info` and the info badge's text colour are carried, not drawn: Primer's accent scale is the link and the primary colour here.

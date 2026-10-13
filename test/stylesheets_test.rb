@@ -43,7 +43,9 @@ class StylesheetsTest < Minitest::Test
   def test_only_aliases_the_variable_layer_defines_are_used
     defined = OpenProject::Thematiq::Variables::Generator::COLOR_ALIASES.keys +
               OpenProject::Thematiq::Variables::Generator::ROOT_SHAPE.keys +
-              OpenProject::Thematiq::Variables::Generator::BAR_TINTS.keys + ["--thematiq-table-head"]
+              OpenProject::Thematiq::Variables::Generator::BAR_TINTS.keys + ["--thematiq-table-head"] +
+              OpenProject::Thematiq::Variables::Generator::VOCABULARY_COLORS.keys.grep(/\A--thematiq-v-/) +
+              OpenProject::Thematiq::Variables::Generator::VOCABULARY_SHAPE.keys.grep(/\A--thematiq-v-/)
     used = FILES.flat_map { |file| File.read(file).scan(/var\((--thematiq-[a-z-]+)/).flatten }.uniq
 
     assert_empty used - defined
