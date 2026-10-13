@@ -49,6 +49,8 @@ class LocaleTest < Minitest::Test
     strings.each do |text|
       refute_match(/—|–| -- /, text, "dash in #{text.inspect}")
       refute_match(/\A[A-Z][a-z]+ [A-Z][a-z]+ [A-Z][a-z]+/, text, "title case in #{text.inspect}")
+      # I18n keeps these names for itself. A text that uses one fails only when the page is drawn.
+      refute_match(/%\{(?:format|scope|default|locale|raise|throw|fallback|separator|exception_handler|rescue_format)\}/, text, "reserved name in #{text.inspect}")
     end
   end
 end
