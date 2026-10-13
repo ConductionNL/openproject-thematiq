@@ -22,8 +22,11 @@ module Thematiq
     scope :without_bytes, -> { select(*WITHOUT_BYTES) }
 
     # True once the migration has run. Before that the plugin behaves as if nothing was uploaded.
+    # Asked of the database each time, not of the schema cache: right after the migration is rolled back
+    # on a running instance the cache still says the table is there, and the editor answered 500
+    # (first full test, finding 19). It is one small query.
     def self.ready?
-      table_exists?
+      connection.data_source_exists?(table_name)
     rescue StandardError
       false
     end

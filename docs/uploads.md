@@ -121,7 +121,7 @@ The table comes with a migration. OpenProject runs it when it starts after you i
 bundle exec rake db:migrate
 ```
 
-Until the migration ran, the plugin behaves as if nothing was uploaded. No page fails.
+Until the migration ran, the plugin behaves as if nothing was uploaded. The editor of a custom design system says the table is missing, the file route answers 404, and OpenProject shows its own banner about pending migrations. The plugin asks the database each time, so this also holds right after you roll the migration back on a running OpenProject.
 
 ## Remove the plugin
 

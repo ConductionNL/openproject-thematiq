@@ -672,6 +672,23 @@ begin
   anonymous.get "/thematiq/files/#{kept.first}"
   check("and their addresses answer 404") { anonymous.response.status == 404 }
 
+  # 8b. Right after the uploads migration is rolled back on a running instance, the schema cache still knows the
+  # table. The plugin must ask the database. The table is renamed inside a transaction that is rolled back,
+  # and the requests run on the same connection, so they see it gone.
+  Thematiq::Upload.table_exists? # fill the schema cache, as a running instance has
+  ActiveRecord::Base.transaction do
+    ActiveRecord::Base.connection.execute("ALTER TABLE thematiq_uploads RENAME TO thematiq_uploads_check_hidden")
+    check("without the table the uploads are not ready, whatever the schema cache says") { !Thematiq::Upload.ready? }
+    admin.get "/admin/thematiq/custom", params: { id: imported_id }
+    check("without the table the editor of a custom design system opens and says uploads are not ready") do
+      admin.response.status == 200 && admin.response.body.include?(I18n.t("thematiq.uploads.errors.not_ready"))
+    end
+    anonymous.get "/login"
+    check("without the table the sign-in page opens") { anonymous.response.status == 200 }
+    raise ActiveRecord::Rollback
+  end
+  check("the table is back after the rollback") { Thematiq::Upload.ready? }
+
   # 9. At the limit a new custom design system is refused. It once fell back to the id "custom" and overwrote that one.
   full = OpenProject::Thematiq::Store.new
   while (free_id = full.next_custom_id)
