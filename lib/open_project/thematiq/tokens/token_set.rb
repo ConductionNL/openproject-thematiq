@@ -13,7 +13,8 @@ module OpenProject
       # The set shape, shared by the bundled catalogue, the export file and the import file:
       #   { "id": "...", "name": "...", "tokens": { eighteen roles },
       #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
-      #     "dark": { "tokens": { colour roles for the dark theme } },     optional
+      #     "dark": { "tokens": { colour roles for the dark theme },
+      #               "vocabulary": { vocabulary values for the dark theme } },   optional
       #     "vocabulary": { thematiq names without "--nldesign-" => value } }   optional, see Vocabulary
       class TokenSet
         class InvalidSet < StandardError; end
@@ -41,7 +42,8 @@ module OpenProject
         DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
-        attr_reader :id, :name, :tokens, :dark_tokens, :vocabulary, :logo_file, :logo_inverse_file, :logo_licence, :rejected
+        attr_reader :id, :name, :tokens, :dark_tokens, :vocabulary, :dark_vocabulary, :logo_file, :logo_inverse_file, :logo_licence,
+                    :rejected
 
         # The dark block as the catalogue writes it is { "tokens" => { roles } }. The roles on their own are
         # read as well. Either way only the colour roles count: radius and font do not change with the theme.
@@ -53,7 +55,10 @@ module OpenProject
         def self.unknown_dark_keys(dark)
           return [] unless dark.is_a?(Hash)
 
-          (dark.key?("tokens") ? dark.keys - ["tokens"] : []) + ((dark_roles(dark) || {}).keys - ALL_KINDS.keys)
+          vocabulary = dark["vocabulary"]
+          extra = dark.key?("tokens") ? dark.keys - %w[tokens vocabulary] : []
+          extra += vocabulary.is_a?(Hash) ? vocabulary.keys - Vocabulary.keys : ["vocabulary"] if dark.key?("tokens") && dark.key?("vocabulary")
+          extra + ((dark_roles(dark) || {}).keys - ALL_KINDS.keys)
         end
 
         # The last resort: the values in Defaults. Used when the catalogue cannot be read.
@@ -110,6 +115,7 @@ module OpenProject
           @tokens = clean(tokens, base).freeze
           @dark_tokens = clean_dark(dark).freeze
           @vocabulary = clean_vocabulary(vocabulary).freeze
+          @dark_vocabulary = clean_vocabulary(dark.is_a?(Hash) && dark.key?("tokens") ? dark["vocabulary"] : nil, prefix: "dark.").freeze
           @rejected.freeze
         end
 
@@ -129,6 +135,7 @@ module OpenProject
                   "logo" => { "file" => logo_file, "inverse_file" => logo_inverse_file, "licence" => logo_licence,
                               "redistributable" => !logo_file.nil? } }
           set["dark"] = { "tokens" => dark_tokens.dup } if dark?
+          (set["dark"] ||= { "tokens" => {} })["vocabulary"] = dark_vocabulary.dup if dark_vocabulary.any?
           # Only when there is one, so a set without a vocabulary exports exactly as before.
           set["vocabulary"] = vocabulary.dup if vocabulary.any?
           set
@@ -139,7 +146,7 @@ module OpenProject
         # The optional vocabulary: no fallback and nothing derived. A key it does not name keeps
         # OpenProject's own value. A value that fails is left out and listed in #rejected.
         # Unknown keys are left out here; strict mode has refused them already.
-        def clean_vocabulary(raw)
+        def clean_vocabulary(raw, prefix: "")
           return {} unless raw.is_a?(Hash)
 
           Vocabulary::KINDS.each_with_object({}) do |(key, kind), result|
@@ -147,7 +154,7 @@ module OpenProject
             next if given.nil?
 
             value = given.is_a?(String) && given.length <= Validator::MAX_FONT_STACK_LENGTH ? Validator.public_send(kind, given) : nil
-            value ? result[key] = value : @rejected << "vocabulary.#{key}"
+            value ? result[key] = value : @rejected << "#{prefix}vocabulary.#{key}"
           end
         end
 

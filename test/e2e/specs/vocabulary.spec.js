@@ -133,4 +133,18 @@ test.describe("vocabulary", () => {
                                              const value = getComputedStyle(h).fontSize; h.remove(); return value; });
     expect(size).toBe("30px");
   });
+
+  test("the dark theme draws the dark values of the vocabulary", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary dark ${Date.now()}`,
+                                       vocabulary: { "color-error": "#cc0000" },
+                                       dark: { tokens: { ink: "#e2e3e4", ground: "#171a20", primary: "#5b8ac2" },
+                                               vocabulary: { "color-error": "#f43535" } } });
+    await applySet(page, id);
+
+    await page.goto(PICKER);
+    expect(await variable(page, "--fgColor-danger")).toBe("#cc0000");
+    // OpenProject's dark theme is two attributes on the body; the plugin's CSS answers to them.
+    await page.evaluate(() => { document.body.dataset.colorMode = "dark"; document.body.dataset.darkTheme = "dark"; });
+    expect(await variable(page, "--fgColor-danger")).toBe("#f43535");
+  });
 });

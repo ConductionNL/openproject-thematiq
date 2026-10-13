@@ -112,6 +112,10 @@ The main button stays the action role's. thematiq's `color-button-primary-*` and
 
 `color-info` and the info badge's text colour are carried, not drawn: Primer's accent scale is the link and the primary colour here.
 
+### The dark theme
+
+A set's `dark` block can hold a `vocabulary` of its own: `"dark": { "tokens": { … }, "vocabulary": { "color-error": "#f43535" } }`. thematiq's catalogue fills it from each set's dark variant file. The variable layer draws it in OpenProject's dark theme, through the same map as the light values, and only where it draws the light value: the colour map, in the dark block, which is written when the set's dark roles read. Sizes, weights and corners do not change with the theme. Export, import and all three Figma formats carry it (the W3C file in the plugin's extension as `darkVocabulary`, Tokens Studio in the dark token set). A custom design system keeps its base's dark vocabulary; the editor has no fields for it.
+
 ## What each group would drive in OpenProject
 
 | Group | Primer variables and OpenProject classes | How sure |
