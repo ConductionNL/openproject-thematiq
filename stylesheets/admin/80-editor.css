@@ -65,3 +65,12 @@
 .thematiq-shell__notice:hover { background: var(--tqp-soft); }
 .thematiq-shell__accent { flex: 0 0 10px; width: 10px; height: 10px; border-radius: 999px; background: var(--tqp-accent); }
 .thematiq-shell__note { font-size: 13px; color: var(--tqp-muted); }
+/* The groups of the full vocabulary start closed. Each is a details element with the group's fieldset inside. */
+.thematiq-editor__more { margin: 12px 0 0; border-top: 1px solid var(--thematiq-line); }
+.thematiq-editor__more-title { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 0; font-size: 15px; font-weight: 700; cursor: pointer; }
+.thematiq-editor__more-title .thematiq-editor__hint { margin: 0; font-weight: 400; }
+.thematiq-editor__more-title:focus-visible { outline: 2px solid var(--focus-outlineColor, currentColor); outline-offset: 2px; }
+.thematiq-editor__more > .thematiq-editor__group { border-top: 0; margin-top: 0; padding-top: 0; }
+.thematiq-editor__more > .thematiq-editor__group > .thematiq-editor__group-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.thematiq-editor__role code { font-size: 12px; }
+.thematiq-editor__label--stacked { flex-direction: column; justify-content: flex-start; gap: 2px; }

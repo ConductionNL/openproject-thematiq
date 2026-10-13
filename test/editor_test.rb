@@ -21,8 +21,29 @@ class EditorTest < Minitest::Test
   def test_every_token_is_in_exactly_one_group
     keys = Editor.groups.flat_map(&:keys)
 
-    assert_equal TokenSet::ALL_KINDS.keys.sort, keys.sort
+    assert_equal (TokenSet::ALL_KINDS.keys + OpenProject::Thematiq::Tokens::Vocabulary.keys).sort, keys.sort
     assert_equal keys.uniq, keys
+  end
+
+  def test_the_roles_come_first_and_the_vocabulary_groups_hold_only_vocabulary
+    roles, vocabulary = Editor.groups.partition { |group| !group.vocabulary }
+
+    assert_equal TokenSet::ALL_KINDS.keys.sort, roles.flat_map(&:keys).sort
+    assert_equal Editor.groups.first(roles.size), roles, "the four groups of the roles come before the vocabulary"
+    vocabulary.each { |group| refute_empty group.keys, group.id }
+  end
+
+  def test_every_vocabulary_key_has_a_label_and_every_kind_a_hint_and_an_error
+    OpenProject::Thematiq::Tokens::Vocabulary::KINDS.each do |key, kind|
+      assert_kind_of String, EN.dig("vocabulary", key), key
+      assert_kind_of String, EN.dig("editor", "kind_hint", kind.to_s), kind
+      assert_kind_of String, EN.dig("editor", "error_#{kind}"), kind
+    end
+  end
+
+  def test_reset_group_names_a_vocabulary_group
+    assert_includes Editor.keys_of("status"), "color-error"
+    refute_includes Editor.keys_of("status"), "primary"
   end
 
   def test_every_group_has_a_label_and_a_hint
@@ -71,7 +92,8 @@ class EditorTest < Minitest::Test
   def test_the_script_data_holds_only_the_plugins_own_data
     data = Editor.script_data
 
-    assert_equal TokenSet::ALL_KINDS.keys, data["kinds"].keys
+    assert_equal Editor::KINDS.keys, data["kinds"].keys
+    assert_equal TokenSet::ALL_KINDS.keys, data["preview"], "the picture only reads the roles"
     assert_equal Editor::CHECKS.size, data["checks"].size
     assert_equal 4.5, data["minimum"]
     assert_includes data["named"], "rebeccapurple"
@@ -90,6 +112,16 @@ class EditorTest < Minitest::Test
     assert_includes validator::COLOR_FUNCTION.source, "rgba?|hsla?|hwb|lab|lch|oklab|oklch"
     assert_includes SCRIPT, "px|rem|em|%"
     assert_includes validator::LENGTH.source, "px|rem|em|%"
+  end
+
+  # Each new kind's pattern is written twice, in Ruby and in the script. They must say the same.
+  def test_the_script_has_the_validators_patterns_for_the_vocabulary
+    validator = OpenProject::Thematiq::Tokens::Validator
+    js = ->(pattern) { pattern.source.gsub("\\A", "^").gsub("\\z", "$") }
+
+    [validator::SIZE, validator::FONT_WEIGHT, validator::NUMBER, validator::DURATION, validator::RGB_TRIPLET,
+     validator::FILTER_FUNCTION, validator::BORDER].each { |pattern| assert_includes SCRIPT, js.call(pattern), pattern.source }
+    validator::TEXT_TRANSFORMS.each { |word| assert_includes SCRIPT, word }
   end
 
   def test_the_script_writes_the_properties_the_preview_reads

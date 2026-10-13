@@ -10,15 +10,46 @@ module OpenProject
     #
     # The groups follow the four tabs of thematiq's token editor: branding, content area, buttons and
     # typography. A new group is one more entry in GROUPS with its text in en.yml. Nothing else changes.
+    # The vocabulary adds a group per part of thematiq's full vocabulary, by VOCABULARY_RULES.
     module Editor
-      Group = Struct.new(:id, :keys, keyword_init: true)
+      # vocabulary: true for a group of thematiq's full vocabulary. Those start closed, under "More values".
+      Group = Struct.new(:id, :keys, :vocabulary, keyword_init: true)
 
-      GROUPS = [
-        Group.new(id: "branding", keys: %w[primary primary-deep primary-light accent]),
-        Group.new(id: "content", keys: %w[ground soft chip line field menu radius radius-lg]),
-        Group.new(id: "buttons", keys: %w[action action-deep link]),
-        Group.new(id: "typography", keys: %w[ink text muted font-family])
+      # The vocabulary in groups, by the start of a key. The first rule that matches decides.
+      VOCABULARY_RULES = [
+        ["status", /\A(?:color-(?:error|warning|success|info|favorite)|component-status-badge-)/],
+        ["links", /\A(?:color-link-|component-link-)/],
+        ["text", /\A(?:color-(?:text-light|primary-text|primary-light-hover|placeholder-)|component-(?:paragraph|ordered-list|unordered-list)-)/],
+        ["surfaces", /\A(?:color-(?:background-darker|surface)|component-(?:separator|content)-)/],
+        ["focus", /\Acolor-focus/],
+        ["radii", /\Aborder-radius-/],
+        ["controls", /\A(?:color-button-|color-action-text|component-button-)/],
+        ["forms", /\Acomponent-(?:textbox|form)-/],
+        ["table", /\Acomponent-table-/],
+        ["headings", /\A(?:component-heading-|body-font-family)/],
+        ["motion", /\Aanimation-/],
+        ["header", /\A(?:color-header-|header-|color-nav-|nav-link-|component-navigation-|component-badge-)/],
+        ["brand", /\A(?:logo-|size-lint|color-logo-|brand-stripe-|color-accent-|color-footer-)/],
+        ["website", /\A(?:login-|hero-|website-)/]
       ].freeze
+
+      def self.vocabulary_group_of(key)
+        VOCABULARY_RULES.find { |_id, pattern| pattern.match?(key) }&.first
+      end
+
+      VOCABULARY_GROUPS = VOCABULARY_RULES.map do |id, _pattern|
+        Group.new(id:, keys: Tokens::Vocabulary.keys.select { |key| vocabulary_group_of(key) == id }.freeze, vocabulary: true)
+      end.freeze
+
+      GROUPS = ([
+        Group.new(id: "branding", keys: %w[primary primary-deep primary-light accent], vocabulary: false),
+        Group.new(id: "content", keys: %w[ground soft chip line field menu radius radius-lg], vocabulary: false),
+        Group.new(id: "buttons", keys: %w[action action-deep link], vocabulary: false),
+        Group.new(id: "typography", keys: %w[ink text muted font-family], vocabulary: false)
+      ] + VOCABULARY_GROUPS).freeze
+
+      # Every key the form has a field for, with its kind: the roles, then the vocabulary.
+      KINDS = Tokens::TokenSet::ALL_KINDS.merge(Tokens::Vocabulary::KINDS).freeze
 
       # One contrast check the shell draws: the text, what it sits on, and the tokens it is shown next to.
       # A name that starts with "@" is a colour the plugin works out itself, see Preview#derived.
@@ -74,7 +105,8 @@ module OpenProject
       # What the script needs: the kinds, the checks and the named colours the validator accepts.
       # All of it is the plugin's own data. Nothing an administrator typed is in here.
       def script_data
-        { "kinds" => Tokens::TokenSet::ALL_KINDS.transform_values(&:to_s),
+        { "kinds" => KINDS.transform_values(&:to_s),
+          "preview" => Tokens::TokenSet::ALL_KINDS.keys,
           "checks" => CHECKS.map { |check| { "id" => check.id, "foreground" => check.foreground, "background" => check.background } },
           "named" => Tokens::Validator::NAMED_COLORS,
           "minimum" => Contrast::MINIMUM }

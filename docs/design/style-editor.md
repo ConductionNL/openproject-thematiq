@@ -29,7 +29,7 @@ An administrator opens **Custom token overrides** in Nextcloud's theming setting
 | Export and import the overrides | The plugin had this, and gets the Figma formats | [figma.md](../figma.md) |
 | An opacity control per colour, with a checkerboard swatch | Not built | A range input beside the picker that writes an eight digit hex. Small, in the script |
 | A dark value per colour | Not built | The design systems of the catalogue bring a dark block. A custom design system keeps the dark block of its base. To build: `dark_overrides` in the custom draft and a second field per colour |
-| 713 variables, with component groups that open on demand, and an advanced group with a warning | Not built. The plugin has nineteen roles | The vocabulary of [full-vocabulary.md](full-vocabulary.md) comes first. Each of its groups becomes one more entry in `Editor::GROUPS`. A group with more than a dozen rows gets a `details` element so it starts closed |
+| 713 variables, with component groups that open on demand, and an advanced group with a warning | Built for thematiq's full vocabulary: 185 values in fourteen groups under "More values" | Each group is an entry in `Editor::GROUPS`, filled by `Editor::VOCABULARY_RULES`. Each starts closed in a `details` element, and opens when it holds a changed or refused value or when a search finds a value in it. Each row names thematiq's CSS name and says whether OpenProject draws it |
 | See Nextcloud's own value for a variable | Partly. Each row shows the value of the base design system | OpenProject's own value per variable would come with the vocabulary list |
 | A playground: buttons, inputs, note cards, list items and the login card in each state, per Nextcloud version | Partly. One picture of the shell: top bar, menu, buttons, input, table, link, a notice | More parts in the same picture, drawn with Primer's class names. No version selector: the plugin supports one OpenProject version |
 | Preview your own component: paste HTML and CSS, see it in the house style | Not built | A sandboxed frame needs a content security policy of its own. This is the largest missing part and the least used |
@@ -61,7 +61,7 @@ Add one line to `GROUPS` in `lib/open_project/thematiq/editor.rb`, and its label
 
 ## Build order from here
 
-1. The vocabulary list and its kinds, steps 1 to 3 of [full-vocabulary.md](full-vocabulary.md). A value a set does not fill keeps OpenProject's own value. Nothing is derived.
+1. Built: the vocabulary list and its kinds, steps 1 to 3 of [full-vocabulary.md](full-vocabulary.md), and its groups in the editor. A value a set does not fill keeps OpenProject's own value. Nothing is derived.
 2. A dark value per colour.
 3. Opacity per colour.
 4. More parts in the preview.
