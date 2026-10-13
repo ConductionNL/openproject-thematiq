@@ -68,7 +68,7 @@ Rules:
 | Where | What it does with `vocabulary` |
 |---|---|
 | `TokenSet` | Keeps the block, each value through the validator of its kind. A bad value is left out and named in `rejected`. In strict mode, for an import, an unknown key, a role name or a bad value refuses the file |
-| `Catalogue` | Reads the block of a bundled set the same way. The bundled catalogue has none yet: that is step 9 |
+| `Catalogue` | Reads the block of a bundled set the same way. Since step 9 the bundled catalogue from thematiq carries each set's own vocabulary (63 of 64 sets), and every value passes |
 | `CustomDraft`, `Store` | A custom design system keeps the vocabulary values that differ from its base, stored as `vocabulary` beside `overrides` |
 | `Transfer` | Export writes the block only when a set has one, so a set without one exports byte for byte as before. `test/fixtures/transfer/` holds a file exported before the vocabulary existed, and a test imports it |
 
