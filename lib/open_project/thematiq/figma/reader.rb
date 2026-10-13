@@ -32,9 +32,10 @@ module OpenProject
           def code = message
         end
 
-        # tokens and dark: role => validated value. imported: [{ role, path, value, theme }].
+        # tokens and dark: role => validated value. vocabulary: vocabulary key => validated value.
+        # imported: [{ role, path, value, theme }], with "vocabulary" => true for a vocabulary key.
         # skipped: [{ path, reason }], at most MAX_REPORTED, with the full number in skipped_count.
-        Result = Struct.new(:name, :tokens, :dark, :imported, :skipped, :skipped_count, :shape, keyword_init: true)
+        Result = Struct.new(:name, :tokens, :dark, :vocabulary, :imported, :skipped, :skipped_count, :shape, keyword_init: true)
 
         # The types a role of each kind takes: the W3C names and the ones of Tokens Studio.
         TYPES = {
@@ -42,6 +43,14 @@ module OpenProject
           length: %w[dimension number borderRadius spacing sizing],
           font_family: %w[fontFamily fontFamilies]
         }.freeze
+
+        # The types a vocabulary key of each kind takes. "other" is Tokens Studio's type for CSS text.
+        LENGTH_TYPES = %w[dimension number borderRadius borderWidth spacing sizing fontSizes other].freeze
+        VOCABULARY_TYPES = {
+          color: %w[color], length: LENGTH_TYPES, size: LENGTH_TYPES, font_family: %w[fontFamily fontFamilies],
+          font_weight: %w[fontWeight fontWeights number other], number: %w[number other], duration: %w[duration other]
+        }.freeze
+        TEXT_TYPES = %w[other].freeze
 
         # files: [[file name, text], ...]. One file, or the files of a Tokens Studio folder.
         def self.read(files)
@@ -58,9 +67,10 @@ module OpenProject
         def read
           document = assemble
           studio = studio?(document)
+          @own = own_file?(document, studio)
           light_tree, dark_tree, reference_only, dark_reference_only = studio ? studio_trees(document) : [document, nil, [], []]
 
-          tokens, imported = roles(light_tree, reference_only:, loose: !studio, theme: "light", css_only: css_only(document))
+          tokens, imported, vocabulary = roles(light_tree, reference_only:, loose: !studio, theme: "light", css_only: css_only(document))
           dark, dark_imported = dark_tree ? roles(dark_tree, reference_only: dark_reference_only, loose: false, theme: "dark", color_only: true) : [{}, []]
           own_dark(document).each do |role, value|
             next if dark.key?(role)
@@ -70,7 +80,7 @@ module OpenProject
           end
           raise Refused, "nothing_usable" if tokens.empty?
 
-          Result.new(name: name_of(document), tokens:, dark:, imported: imported + dark_imported, skipped: @skipped,
+          Result.new(name: name_of(document), tokens:, dark:, vocabulary:, imported: imported + dark_imported, skipped: @skipped,
                      skipped_count: @skipped_count, shape: studio ? "tokens-studio" : "dtcg")
         end
 
@@ -224,7 +234,7 @@ module OpenProject
           result
         end
 
-        # Returns [role => value, the list of what was imported].
+        # Returns [role => value, the list of what was imported, vocabulary key => value].
         # loose: a reference may leave out the first segment of a path. That reads a Tokens Studio file
         # that has no "$themes" and no "$metadata", where the first segment is the name of a token set.
         def roles(tree, reference_only:, loose:, theme:, css_only: {}, color_only: false)
@@ -251,7 +261,7 @@ module OpenProject
           Tokens::TokenSet::ALL_KINDS.each do |role, kind|
             next if color_only && kind != :color
 
-            READ_NAMES.fetch(role).each do |css|
+            read_names(role).each do |css|
               entry = by_css[css]
               next unless entry
 
@@ -267,8 +277,44 @@ module OpenProject
               break
             end
           end
+          vocabulary = color_only ? {} : vocabulary_of(by_css, imported, used)
           by_css.each_value { |entry| skip(entry[:path], "no_role") unless used.include?(entry[:path]) }
-          [tokens, imported]
+          [tokens, imported, vocabulary]
+        end
+
+        # A token under one of thematiq's vocabulary names becomes that key, through the validator of its kind.
+        # A token can feed a role and a key at once: thematiq's error colour is also where the accent falls back to.
+        def vocabulary_of(by_css, imported, used)
+          vocabulary = {}
+          by_css.each do |css, entry|
+            key = Tokens::Vocabulary.key_of(css)
+            next unless key
+
+            value = convert(Tokens::Vocabulary.kind(key), entry, vocabulary: true)
+            if value.is_a?(Symbol)
+              skip(entry[:path], value.to_s) unless used.include?(entry[:path])
+            else
+              vocabulary[key] = value
+              imported << { "role" => key, "path" => entry[:path], "value" => value, "theme" => "light", "vocabulary" => true }
+            end
+            used << entry[:path]
+          end
+          vocabulary
+        end
+
+        # The CSS names a role is read from. A file the plugin wrote names each role it has at the name it writes,
+        # so only that name counts there. Without this a vocabulary token thematiq also reads a role from, such as
+        # the content surface for the ground, would take the role's place on the way back, and a dark primary
+        # would become a dark action colour the design system never had.
+        def read_names(role)
+          @own ? [WRITE_NAMES.fetch(role)] : READ_NAMES.fetch(role)
+        end
+
+        # The plugin's own W3C file has its extension at the root. Its own Tokens Studio file has its light token set.
+        def own_file?(document, studio)
+          return document.key?(LIGHT_SET) if studio
+
+          document["$extensions"].is_a?(Hash) && document["$extensions"][PLUGIN_EXTENSION].is_a?(Hash)
         end
 
         # The CSS name of a path that has no extension: the table of path ends first, then a path that
@@ -279,7 +325,9 @@ module OpenProject
           segments = path.split(".")
           start = segments.index("nldesign") || segments.each_cons(2).find_index(%w[thematiq shell])
           joined = start ? "--#{segments[start..].join('-')}" : nil
-          return joined if joined && CSS_NAME.match?(joined) && READ_NAMES.any? { |_role, names| names.include?(joined) }
+          known = joined && CSS_NAME.match?(joined) &&
+                  (READ_NAMES.any? { |_role, names| names.include?(joined) } || Tokens::Vocabulary.key_of(joined))
+          return joined if known
 
           ending ? PATH_ENDS[ending] : nil
         end
@@ -307,16 +355,21 @@ module OpenProject
           "reference_too_long"
         end
 
-        # The value of one role, through the validator of its kind. A Symbol is the reason it was skipped.
-        def convert(kind, entry)
+        # The value of one role or vocabulary key, through the validator of its kind. A Symbol is the reason it was skipped.
+        def convert(kind, entry, vocabulary: false)
           type = entry[:type]
           return :missing_type if type.nil?
-          return :wrong_type unless type == :css || TYPES.fetch(kind).include?(type)
+
+          allowed = vocabulary ? VOCABULARY_TYPES.fetch(kind, TEXT_TYPES) : TYPES.fetch(kind)
+          return :wrong_type unless type == :css || allowed.include?(type)
 
           text = case kind
                  when :color then color_text(entry)
-                 when :length then length_text(entry[:value])
+                 when :length, :size then length_text(entry[:value])
                  when :font_family then font_text(entry[:value])
+                 when :font_weight, :number then number_text(entry[:value])
+                 when :duration then duration_text(entry[:value])
+                 else entry[:value].is_a?(String) ? entry[:value] : :value_refused
                  end
           return text if text.is_a?(Symbol)
 
@@ -371,6 +424,28 @@ module OpenProject
             return :value_refused unless number.is_a?(Numeric) && number.finite? && %w[px rem].include?(value["unit"])
 
             "#{number.is_a?(Float) && number == number.to_i ? number.to_i : number}#{value['unit']}"
+          else :value_refused
+          end
+        end
+
+        # A number as JSON gives it, or the text. 600 and "600" are the same weight.
+        def number_text(value)
+          case value
+          when String then value
+          when Integer then value.to_s
+          when Float then value.finite? ? (value == value.to_i ? value.to_i.to_s : value.to_s) : :value_refused
+          else :value_refused
+          end
+        end
+
+        def duration_text(value)
+          case value
+          when String then value
+          when Hash
+            number = value["value"]
+            return :value_refused unless number.is_a?(Numeric) && number.finite? && %w[ms s].include?(value["unit"])
+
+            "#{number_text(number)}#{value['unit']}"
           else :value_refused
           end
         end
