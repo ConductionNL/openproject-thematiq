@@ -27,14 +27,14 @@ Each line: severity, where, how to reproduce, expected and actual, screenshot.
 ### Major
 
 2. **Major. Top bar on a project page at 1440 wide.** Open `/projects/demo-project/work_packages` at 1440 x 1000 as the admin "OpenProject Admin". Expected: the top bar fits the window. Actual: the three parts of the top bar add up to 1462 px, the account name is cut off at the right edge and the whole page scrolls 22 px sideways. It happens on every page where the current module tile shows its label (work packages, Gantt, cost reports, my time tracking). Home and the admin pages fit; at 1024 and 390 wide it fits too, because the row of tiles folds away. Screenshot `t1440-wptable.png`.
-3. **Major, documentation. Every `docker exec ... rails` command in the docs fails on the compose instance.** The compose file sets `SECRET_KEY_BASE` only for the main process. `docker exec ... bin/rails runner` (the request check in `docs/admin-page.md`) and `rake db:migrate:down` (README "Remove the plugin", `docs/uploads.md`) stop with "INSECURE SECRET_KEY_BASE DETECTED". The README's container is also named `openproject-thematiq`, the compose one `openproject-thematiq-try-openproject-1`. Workaround that works: prefix the command with `SECRET_KEY_BASE=$(cat /var/openproject/secret/secret_key_base)`.
+3. **Major, documentation. The commands in the docs do not run on the compose instance as written.** The README's "Remove the plugin" and `docs/uploads.md` name the container `openproject-thematiq`; the compose one is `openproject-thematiq-try-openproject-1`, so the command answers "No such container". With the right name, `rake db:migrate:down` and `rake db:migrate` work. The request check in `docs/admin-page.md` (`bin/rails runner`) does not: the compose file sets `SECRET_KEY_BASE` only for the main process, and every `rails runner` in `docker exec` stops with "INSECURE SECRET_KEY_BASE DETECTED". Prefixing the command with `SECRET_KEY_BASE=$(cat /var/openproject/secret/secret_key_base)` works.
 4. **Major. An import loses the dark values.** Export a custom design system and import the file again. The file holds a `dark` block; the imported design system has the dark values of Cunningham instead (compare the two exports). A Figma upload of the W3C download keeps them. `admin_controller.rb#import` builds the draft without `dark:`.
 5. **Major. Logo invisible in OpenProject's light high contrast theme.** My account, Interface, Light, **Increase contrast**, with Zuiddrecht active. OpenProject's high contrast top bar is pale grey (`#eff2f5`); the plugin still draws the white logo variant on it, so the logo nearly disappears. Screenshot `d-light-hc-wp.png`.
 
 ### Minor
 
 6. **Minor. Table header height.** Work package table at 1440 wide. Canon 44 px, measured 45 px.
-7. **Minor. The default design system fails the plugin's own contrast check.** On a fresh install Cunningham, marked "Default" and "Active", carries the line "Low contrast, under 4.5 to 1: muted text on the page background". Screenshot `a-picker-1440.png`.
+7. **Major, accessibility. The default design system makes all secondary text fail WCAG AA.** On a fresh install Cunningham is active, and its muted colour `#74777c` is 4.48 to 1 on white. The picker says so itself ("Low contrast, under 4.5 to 1: muted text on the page background"). axe counts 131 serious findings in the plugin's markup on the picker, the editor and the work package page, all of them this one colour: the line under each design system, the hints and role names in the editor, the editor's empty fields, the "Custom" and "Default" labels, and the group headings of the project menu ("PLAN", "WORK TOGETHER"). The colour comes from the catalogue, so the fix is a choice of value or of default, not code. Screenshot `a-picker-1440.png`.
 8. **Minor. OpenProject's introduction tour points at a control that is gone.** First sign-in, select **Next** through the tour. The step "Use the return arrow in the top left corner to return to the project's main menu" points at the logo; the two-layer menu has no return arrow. Two steps also throw `TypeError: Cannot read properties of undefined (reading 'left')` (on Home and on the work package page), and the tour's close button sits on top of the account name. The tour does reach its end. Screenshots `a-tour-b2.png`, `a-home-after-lang.png`.
 9. **Minor. The README is out of date.** It says 64 design systems (twice) and "a logo ships for 15 of the 64"; the picker lists 67. It says "It styles the light theme only", while the dark theme is styled. It says the shell leans on "eight files of OpenProject"; `script/check-core.rb` checks 17. It says "Removing the plugin was not tested"; see the experiments below.
 10. **Minor. Search hides your own design systems.** Type a part of the name of a custom design system (for example "E2E") in **Search design systems**. Expected: it is found. Actual: "0 of 67 design systems"; custom ones are never searched, and the count never counts them.
@@ -48,10 +48,12 @@ Each line: severity, where, how to reproduce, expected and actual, screenshot.
 17. **Minor, accessibility. The label of the current tile is under 4.5 to 1.** axe on the work package page with Cunningham: the small label "Work packages" under the current tile, white on `#5681b3`, is 4.04 to 1 at 11 px.
 18. **Minor. "Increase contrast" is the only high contrast switch.** The two other checkboxes in My account, Interface (`force_light_theme_contrast`, `force_dark_theme_contrast`) are hidden in OpenProject 17.9.1; the earlier lane's script aimed at those, which is why it could not switch. By hand, **Increase contrast** works for light and dark.
 
+19. **Minor. Right after the rollback of the uploads migration, the editor of a custom design system answers 500.** Roll back with `rake db:migrate:down VERSION=20261012090000` on a running instance, then open **Edit** on a custom design system: 500, `relation "thematiq_uploads" does not exist`. `Thematiq::Upload.ready?` asks `table_exists?`, which the running process still answers from its schema cache. `docs/uploads.md` says "No page fails". Other pages load, with OpenProject's own banner about pending migrations; the file route answers 503 as designed. A restart would run the migration again (the image's entrypoint migrates on start), so this only lasts until the plugin is removed, which the docs say to do next.
+
 ### Cosmetic
 
-19. **Cosmetic. Two arrows next to "Sign in".** Sign-in page, not signed in, top bar right. Screenshot `v-login-1440.png`.
-20. **Cosmetic. 390 wide, the work package toolbar starts left of the screen.** The **Create** button is cut off on the left. Screenshot `w390-wp.png`. Not checked whether OpenProject without the plugin does the same.
+20. **Cosmetic. Two arrows next to "Sign in".** Sign-in page, not signed in, top bar right. Screenshot `v-login-1440.png`.
+21. **Cosmetic. 390 wide, the work package toolbar starts left of the screen.** The **Create** button is cut off on the left. Screenshot `w390-wp.png`. Not checked whether OpenProject without the plugin does the same.
 
 ## Sizes against the canon
 
@@ -102,7 +104,37 @@ The path in "Try it locally with Docker" works as written, with one change: port
 | `script/check-core.rb` | ok, 17 core files match OpenProject 17.9.1 |
 | `python3 -m unittest discover -s test/pixel` | ok |
 | Request check `test/integration/admin_page_check.rb` | passes on the fresh instance, once `SECRET_KEY_BASE` is given (finding 3). 223 checks with the new section for finding 1 |
+| Pixel check against the committed references | passes on the fresh instance: top bar and sidebar 0.00% different, once the demo project has its fresh set of modules again. With every module switched on the sidebar would differ, as the docs say |
 
-## Not done yet
+## The two experiments that change the instance
 
-Everything else in the test plan. This list shrinks as the test goes on.
+### Rolling the uploads migration back and forward
+
+With one uploaded logo in use on the active custom design system:
+
+1. `docker exec openproject-thematiq bash -lc 'cd /app && bundle exec rake db:migrate:down VERSION=20261012090000'`, as the README writes it: "No such container" (finding 3). With the compose container's name it works: the table and the line in `schema_migrations` are gone, the setting `plugin_openproject_thematiq` stays.
+2. While it is rolled back and OpenProject still runs: every page shows OpenProject's banner about pending migrations, the top bar falls back to OpenProject's logo, the file route answers 503, and the editor of a custom design system answers 500 (finding 19).
+3. `bundle exec rake db:migrate`: the table is back, empty. The uploaded logo is gone for good and its address answers 404, as `docs/uploads.md` warns. The editor works again.
+
+### Removing the plugin and putting it back
+
+1. `docker compose down` (volumes kept), then the same service on the plain `openproject/openproject:17` image with the same volumes.
+2. OpenProject starts in about two minutes and works: sign-in, Home, `/my/page` (OpenProject's own My page again), the work package table, Administration. **Plugins** says no plugins are installed. `/admin/thematiq`, `/thematiq/files/...` and `/thematiq/logos/...` answer 404. The look is OpenProject's own. No error in the log.
+3. Left behind, as the docs say: the table `thematiq_uploads` with its one row, the line `20261012090000` in `schema_migrations`, the setting `plugin_openproject_thematiq`.
+4. Back on the plugin's image: everything returns as it was. The active custom design system, its colours, its uploaded logo at the same address, all four custom design systems.
+
+The docs are right about what stays and that OpenProject works with it. Wrong: the container name (finding 3), and the README's "Removing the plugin was not tested", which is now tested on the Docker route. Not said anywhere: the image's entrypoint runs the migrations on every start, so rolling back and then restarting with the plugin still installed brings the table back.
+
+## The end-to-end suite
+
+`test/e2e/`, described in [e2e.md](e2e.md): 8 spec files, 30 tests. Two of them are marked as expected to fail, for findings 2 and 6. The accessibility pass runs on Cunningham and treats findings 7, 16 and 17 as known; anything else in the plugin's markup fails it.
+
+## Not done
+
+- A real screen reader. Only axe and the keyboard.
+- The two high contrast themes at 1024 and 390 wide, and the dark theme on every page; they were checked on the work package page, the picker and the editor.
+- Gantt, Calendar, Team planner, Backlogs, Meetings, Wiki and Time and costs were opened and looked at, not used: no drag and drop, no editing.
+- Opening a downloaded Figma file in Figma or Tokens Studio.
+- A Tokens Studio folder of several files on upload: only single files were uploaded.
+- Twelve fonts, and the limit of 12.
+- Whether finding 21 (the cut-off toolbar at 390 wide) also happens without the plugin.

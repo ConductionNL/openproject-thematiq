@@ -4,7 +4,7 @@
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { config } = require("../support/env");
-const { watchProblems, watchCsp } = require("../support/thematiq");
+const { watchProblems, watchCsp, snapshot, restore, applySet, exported } = require("../support/thematiq");
 
 const P = `/projects/${config.project}`;
 const MAIN_PAGES = ["/", "/projects", P, `${P}/work_packages`, `${P}/work_packages/details/2/overview`, `${P}/gantt`, `${P}/boards`,
@@ -32,9 +32,21 @@ test.describe("quality", () => {
   // Known findings in the plugin's markup, open in docs/testing/2026-10-13-first-full-test.md. They are attached
   // to the report and do not fail the run. Anything else in the plugin's markup does. Remove a line once it is fixed.
   const KNOWN = [
-    /^color-contrast \(serious\): \.global-search--input$/,               // finding 16: search field in the top bar, 4.38 to 1
-    /^color-contrast \(serious\): \.thematiq-app-row--item.*\.thematiq-app-row--name$/, // finding 17: label of the current tile, 4.04 to 1
+    /^color-contrast \(serious\): \.global-search--input( \[.*\])?$/,               // finding 16: search field in the top bar, 4.38 to 1
+    /^color-contrast \(serious\): \.thematiq-app-row--item.*\.thematiq-app-row--name( \[.*\])?$/, // finding 17: label of the current tile, 4.04 to 1
   ];
+
+  // The pass runs on the default design system, so a run on a fresh install and a run on a used one agree.
+  test.describe("on the default design system", () => {
+    let saved;
+    let muted;
+    test.beforeEach(async ({ page }) => {
+      // Finding 7: the muted text colour of Cunningham is 4.48 to 1 on white. Text in that colour is a known finding.
+      muted = (await exported(page, "cunningham")).tokens.muted.toLowerCase();
+      saved = await snapshot(page);
+      if (saved.active !== "cunningham") await applySet(page, "cunningham");
+    });
+    test.afterEach(async ({ page }) => { await restore(page, saved); });
 
   for (const [name, path, visitor] of [["picker", "/admin/thematiq"], ["editor", "/admin/thematiq/custom?from=cunningham"],
                                         ["work package page", `${P}/work_packages`], ["sign-in page", "/login", true]]) {
@@ -57,15 +69,18 @@ test.describe("quality", () => {
             const element = document.querySelector(selector);
             return Boolean(element && (element.closest(owners) || /thematiq/.test(element.className?.toString() || "")));
           }, [node.target[node.target.length - 1], PLUGIN.join(", ")]).catch(() => false);
-          (plugin ? ours : core).push(`${violation.id} (${violation.impact}): ${target}`);
+          const why = node.any.map((check) => check.message).join(" ");
+          const colours = (why.match(/foreground color: (#[0-9a-f]+), background color: (#[0-9a-f]+)/) || []).slice(1).join(" on ");
+          (plugin ? ours : core).push(`${violation.id} (${violation.impact}): ${target}${colours ? ` [${colours}]` : ""}`);
         }
       }
       await context.close();
-      const known = ours.filter((line) => KNOWN.some((pattern) => pattern.test(line)));
+      const known = ours.filter((line) => KNOWN.some((pattern) => pattern.test(line)) || line.includes(`[${muted} on `));
       const fresh = ours.filter((line) => !known.includes(line));
       await testInfo.attach(`axe ${name}`, { body: JSON.stringify({ plugin: fresh, known, core }, null, 2), contentType: "application/json" });
       for (const line of known) testInfo.annotations.push({ type: "known finding", description: line });
       expect(fresh, `serious or critical findings in the plugin's markup on the ${name}`).toEqual([]);
     });
   }
+  });
 });

@@ -15,7 +15,7 @@ test.describe("picker", () => {
     const total = Number((await count.innerText()).trim().split(" ")[0]);
     expect(total).toBeGreaterThanOrEqual(60);
     await expect(page.getByRole("group").locator("input.thematiq-picker__radio:not([value^=custom])")).toHaveCount(total);
-    await expect(page.getByText("Cunningham (blue base)", { exact: true })).toBeVisible();
+    await expect(page.locator(".thematiq-picker__name").filter({ hasText: /^Cunningham \(blue base\)$/ })).toHaveCount(1);
   });
 
   test("search narrows the list and says when nothing matches", async ({ page }) => {
