@@ -41,6 +41,14 @@ module OpenProject
           @script ||= File.read(SCRIPT_PATH)
         end
 
+        # OpenProject's introduction tour without the steps that point at core's return arrow, which the
+        # project menu hides. See assets/tour.js.
+        TOUR_SCRIPT_PATH = File.expand_path("assets/tour.js", __dir__)
+
+        def self.tour_script
+          @tour_script ||= File.read(TOUR_SCRIPT_PATH)
+        end
+
         PLUS_ICON = "M12 5v14M5 12h14"
 
         def self.install!

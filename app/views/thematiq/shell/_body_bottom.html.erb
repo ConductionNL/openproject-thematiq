@@ -3,4 +3,5 @@
 <%= nonced_javascript_tag do %>
 window.thematiqProjectMenuTexts = <%= raw json_escape(menu_texts.to_json) %>;
 <%= raw OpenProject::Thematiq::Shell::ProjectMenu.script %>
+<%= raw OpenProject::Thematiq::Shell::ProjectMenu.tour_script %>
 <% end %>
