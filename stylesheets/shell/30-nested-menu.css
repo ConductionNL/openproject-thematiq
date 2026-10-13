@@ -67,8 +67,8 @@
 /* The current page. */
 #main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a.selected,
 #main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action.selected {
-  background: var(--thematiq-primary-light);
-  color: var(--thematiq-primary-deep);
+  background: var(--thematiq-v-nav-active-wash, var(--thematiq-primary-light));
+  color: var(--thematiq-v-nav-active-ink, var(--thematiq-primary-deep));
   font-weight: 600;
 }
 
@@ -152,7 +152,7 @@
   border-color: transparent !important; /* core draws the selected item's left edge with a long selector */
   box-shadow: none;
   background: transparent;
-  color: var(--thematiq-primary-deep);
+  color: var(--thematiq-v-nav-active-ink, var(--thematiq-primary-deep));
   font-weight: 600;
 }
 
