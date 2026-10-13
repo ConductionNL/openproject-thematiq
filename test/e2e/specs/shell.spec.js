@@ -70,19 +70,22 @@ test.describe("shell", () => {
   });
 
   test("the table header is 44 px", async ({ page }) => {
-    // First full test, finding 6: it measures 45. This test is marked as failing until that is fixed;
-    // once it passes, Playwright reports it, and the mark must go.
-    test.fail();
+    // First full test, finding 6: it measured 45, the height OpenProject gives the thead.
     await openWorkPackages(page);
     const height = await page.locator("table.work-package-table thead tr").evaluate((el) => el.getBoundingClientRect().height);
     expect(height).toBe(44);
   });
 
-  test("the top bar fits the window at 1440 wide", async ({ page }) => {
-    // First full test, finding 2: on a module page the top bar is 22 px wider than the window.
-    test.fail();
-    await openWorkPackages(page);
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    expect(overflow).toBe(0);
-  });
+  // First full test, finding 2: on a module page the top bar was 22 px wider than a 1440 px window.
+  // 1360 is where the account label still shows on other pages.
+  for (const width of [1440, 1360]) {
+    test(`the top bar fits the window at ${width} wide`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await openWorkPackages(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow).toBe(0);
+      const bar = await page.locator(".op-app-header").evaluate((el) => el.scrollWidth - el.clientWidth);
+      expect(bar, "nothing in the top bar is cut off").toBe(0);
+    });
+  }
 });
