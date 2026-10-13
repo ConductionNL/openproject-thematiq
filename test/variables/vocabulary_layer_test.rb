@@ -98,6 +98,29 @@ class VocabularyLayerTest < Minitest::Test
     assert_equal 1, see_through.scan("--focus-outlineColor:").size
   end
 
+  def test_buttons
+    body = light({ "component-button-color" => "#1b1c1d", "component-button-border-color" => "#8a929e",
+                   "component-button-hover-background-color" => "#f0f1f3", "color-error" => "#cc0000", "color-error-hover" => "#a30000",
+                   "component-button-error-color" => "#ffffff" }, { "field" => "#c4c7cb", "action" => "#1f883d" })
+
+    assert_includes body, "--button-default-fgColor-rest: #1b1c1d;"
+    assert_includes body, "--button--font-color: #1b1c1d;"
+    assert_includes body, "--button-default-borderColor-rest: #8a929e;"
+    assert_equal 1, body.scan("--button-default-borderColor-rest:").size, "the vocabulary replaces the role's line"
+    assert_includes body, "--button-default-bgColor-hover: #f0f1f3;"
+    assert_includes body, "--button-danger-fgColor-rest: #cc0000;"
+    assert_includes body, "--button-danger-bgColor-hover: #a30000;"
+    assert_includes body, "--button-danger-fgColor-hover: #ffffff;"
+  end
+
+  def test_the_main_button_stays_the_action_colour
+    body = light({ "color-button-primary-background" => "#154273", "color-button-primary-hover" => "#162f50" }, { "action" => "#1f883d" })
+
+    assert_includes body, "--button-primary-bgColor-rest: #1f883d;"
+    refute_includes body, "#154273"
+    refute OpenProject::Thematiq::Tokens::Vocabulary.drawn?("color-button-primary-background")
+  end
+
   def test_a_hostile_value_never_reaches_the_layer
     HOSTILE_VALUES.each do |value|
       css = Generator.new(set({ "color-error" => value })).css
