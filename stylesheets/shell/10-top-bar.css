@@ -406,6 +406,50 @@
 .op-app-header .op-app-menu dialog .op-app-menu--items .ActionListItem-label { font-size: 14px; font-weight: 600; }
 .op-app-header .op-app-menu dialog .op-app-menu--items .ActionListItem { margin: 0 0 4px; }
 
+/* ---------- The plugin's own list under the nine-dot button (Shell::AppSwitcher), design OpHeader ---------- */
+
+.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-header {
+  position: static;
+  padding: 18px 20px 0 14px;
+}
+#thematiq-switcher .Overlay-headerContentWrap { align-items: center; }
+.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-titleWrap {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#thematiq-switcher .Overlay-title { font-size: 16px; font-weight: 700; line-height: 24px; }
+#thematiq-switcher .Overlay-description { margin: 0; font-size: 13px; font-weight: 400; color: var(--thematiq-muted); }
+.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-body { display: block; padding: 14px 20px 0; }
+.thematiq-switcher--columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+.thematiq-switcher--column.thematiq-apps { margin-bottom: 0; }
+.thematiq-switcher--text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; line-height: 1.25; }
+.thematiq-switcher--line { font-size: 12px; font-weight: 400; color: var(--thematiq-muted); }
+.thematiq-switcher--entry.is-current { background: var(--thematiq-primary-light); }
+.thematiq-switcher--entry.is-current .thematiq-apps--icon { background: var(--thematiq-primary-deep); color: var(--thematiq-primary-light); }
+.thematiq-switcher--entry .thematiq-apps--icon svg { width: 20px; height: 20px; }
+#thematiq-switcher .thematiq-switcher--footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 20px 16px;
+  padding: 12px 10px 0;
+  border-top: 1px solid var(--thematiq-line);
+  font-size: 13px;
+  color: var(--thematiq-muted);
+}
+.thematiq-switcher--manage { font-weight: 600; color: var(--thematiq-link); text-decoration: none; }
+.thematiq-switcher--manage:hover, .thematiq-switcher--manage:focus-visible { text-decoration: underline; }
+/* Pressed: the list is open. */
+.op-app-header .op-app-menu > .op-app-header--primer-button[aria-expanded="true"] { background: var(--shell-hover); }
+@media screen and (min-width: 1012px) {
+  .op-app-header .op-app-menu dialog#thematiq-switcher:not(:has(.thematiq-apps)) { width: 340px; }
+}
+
 /* OpenProject's introduction tour puts its close button 10 px from the top right corner, where the account
  * name of this taller bar is. Below the bar it covers nothing (first full test, finding 8).
  * !important because EnjoyHint writes top: 10px on the element itself. */
