@@ -4,7 +4,7 @@
 const { test, expect } = require("@playwright/test");
 const AxeBuilder = require("@axe-core/playwright").default;
 const { config } = require("../support/env");
-const { watchProblems, watchCsp, snapshot, restore, applySet, exported } = require("../support/thematiq");
+const { watchProblems, watchCsp, snapshot, restore, applySet } = require("../support/thematiq");
 
 const P = `/projects/${config.project}`;
 const MAIN_PAGES = ["/", "/projects", P, `${P}/work_packages`, `${P}/work_packages/details/2/overview`, `${P}/gantt`, `${P}/boards`,
@@ -39,10 +39,7 @@ test.describe("quality", () => {
   // The pass runs on the default design system, so a run on a fresh install and a run on a used one agree.
   test.describe("on the default design system", () => {
     let saved;
-    let muted;
     test.beforeEach(async ({ page }) => {
-      // Finding 7: the muted text colour of Cunningham is 4.48 to 1 on white. Text in that colour is a known finding.
-      muted = (await exported(page, "cunningham")).tokens.muted.toLowerCase();
       saved = await snapshot(page);
       if (saved.active !== "cunningham") await applySet(page, "cunningham");
     });
@@ -75,7 +72,7 @@ test.describe("quality", () => {
         }
       }
       await context.close();
-      const known = ours.filter((line) => KNOWN.some((pattern) => pattern.test(line)) || line.includes(`[${muted} on `));
+      const known = ours.filter((line) => KNOWN.some((pattern) => pattern.test(line)));
       const fresh = ours.filter((line) => !known.includes(line));
       await testInfo.attach(`axe ${name}`, { body: JSON.stringify({ plugin: fresh, known, core }, null, 2), contentType: "application/json" });
       for (const line of known) testInfo.annotations.push({ type: "known finding", description: line });

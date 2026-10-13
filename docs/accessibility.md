@@ -19,16 +19,15 @@ The plugin puts text on a design system's colours. `OpenProject::Thematiq::Contr
 
 White on `primary` and white on `action` reach 4.5 to 1 in all 64.
 
-Four design systems have another pair under 4.5 to 1:
+Three design systems have another pair under 4.5 to 1:
 
 | Design system | Pair | Contrast |
 |---|---|---|
-| `cunningham` | `muted` on `ground` | 4.49 |
 | `haarlemmermeer` | `primary-deep` on `primary-light` | 4.23 |
 | `noordoostpolder` | `primary-deep` on `primary-light` | 4.30 |
 | `vught` | `primary-deep` on `primary-light` | 4.35 |
 
-The plugin does not change these colours. They come from thematiq, and the fix belongs there. The picker marks each of the four with a line that names the pair.
+The plugin does not change these colours. They come from thematiq, and the fix belongs there. The picker marks each of the three with a line that names the pair.
 
 A custom design system gets the same check. The picker marks it when a pair falls short.
 
