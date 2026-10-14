@@ -8,7 +8,7 @@ module OpenProject
   module Thematiq
     # The answers of the read endpoints, without Rails. Every value in them comes out of a token set, so it has
     # passed the validator. Nothing an administrator typed in a free field is answered, apart from a design system's name.
-    module ReadApi
+    module ReadAPI
       VERSION = 1
 
       module_function
