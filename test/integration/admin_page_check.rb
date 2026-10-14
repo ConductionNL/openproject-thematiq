@@ -1244,6 +1244,17 @@ begin
   appearance_member.get "/thematiq/appearance", params: { mode: "light", return_to: "/projects" }
   check("light, and back to a path here") { appearance_member.response.location.end_with?("/projects") && member.reload.pref.theme == "light" }
   OpenProject::Thematiq::Store.new.save_appearance_link(false)
+
+  # The Gantt page as the OpGantt board draws it (Shell::Gantt): the script and its chips on a project's Gantt page only.
+  gantt_admin = session_for("admin", ADMIN_PASSWORD)
+  gantt_admin.get "/projects/demo-project/gantt"
+  check("the Gantt page carries the Gantt script with core's default views as chips") do
+    body = gantt_admin.response.body
+    gantt_admin.response.status == 200 && body.include?("window.thematiqGantt") && body.include?(%("key":"all_open")) &&
+      body.include?("/projects/demo-project/gantt?")
+  end
+  gantt_admin.get "/projects/demo-project/work_packages"
+  check("the work package page does not") { gantt_admin.response.status == 200 && !gantt_admin.response.body.include?("window.thematiqGantt") }
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
