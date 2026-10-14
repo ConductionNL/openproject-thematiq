@@ -75,3 +75,4 @@
 .thematiq-compliance__fail td { font-weight: 600; color: var(--fgColor-danger, currentColor); }
 /* Your own CSS. */
 .thematiq-custom-css__text { width: 100%; max-width: 960px; font-family: monospace; font-size: 13px; }
+.thematiq-inline-form { display: inline; }

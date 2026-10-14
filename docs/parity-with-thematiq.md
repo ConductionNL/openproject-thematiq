@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 120 |
+| in plugin | 122 |
 | being built | 0 |
 | to build, as is | 11 |
-| to build, adapted | 31 |
+| to build, adapted | 29 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **42 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 29 S, 11 M and 2 L.
+1. **40 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 28 S, 10 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -101,7 +101,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `app-component-playground` | Look at buttons, inputs, note cards, list items and the login card in each of their states while you edit the tokens they read | `specs/theme-preview` | to build, adapted | Show Primer components instead of Nextcloud ones | M |
 | `app-primary-lock` | Make the brand primary colour drive every component, or deliberately let components keep their own colours | `specs/component-tokens` | in plugin | #76: "The main button follows the primary colour", per custom design system. The typed values of Action are kept for when it is off |  |
 | `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | in plugin | #7: the admin page changes the design at runtime |  |
-| `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | to build, adapted | An OpenProject background job instead of a Nextcloud one. `test/no_network_test.rb` refuses a background job of the plugin today (#5), so that test changes | M |
+| `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | in plugin | #86: a design system planned for a date and time; the first page after it makes the switch, with no background job, and the history names it |  |
 | `app-rollback-history` | Roll back to an earlier version of the theme from a version history | `specs/theming-audit` | in plugin | #69: every change keeps the whole setup as a version; a restore first shows what it changes |  |
 | `app-reset-core` | Reset Nextcloud's own theming values back to stock in one action | `specs/theming-sync` | to build, adapted | Reset OpenProject's own design values (`CustomStyle`, `DesignColor`). See question 6 | S |
 | `app-simple-theme-switch` | Let people who are not token specialists switch between brand themes without learning the token editor | `specs/token-set-dropdown` | in plugin | #7: the picker |  |
@@ -249,7 +249,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `gov-licence-clarity` | See the licence of every bundled font and asset stated in the product | `specs/claim-accuracy` | in plugin | #15: a licence per logo and font in the catalogue (`docs/logos-and-fonts.md`) |  |
 | `gov-environment-marker` | Show a visible difference between the test and the production environment, so nobody works in the wrong one | `specs/config-portability` | in plugin | #79: a label on every page, the sign-in page included, from the admin page or `THEMATIQ_ENVIRONMENT_LABEL` |  |
 | `gov-token-deprecation` | Mark a token as deprecated with a severity, a replacement token and a removal date, so teams that consume the house style see it before it disappears | `specs/theming-audit` | in plugin | #79: a deprecation per token with severity, replacement and removal date; shown in the editor, listed at `/thematiq/api/v1/deprecations`, never acted on |  |
-| `gov-lock-per-space` | Lock the organisation theme on selected sites or spaces, so their owners cannot change the branding, while other spaces keep their freedom | `specs/per-group-theming` | to build, adapted | #67: projects choose only when the instance allows it, from a list. A lock per project is not built | S |
+| `gov-lock-per-space` | Lock the organisation theme on selected sites or spaces, so their owners cannot change the branding, while other spaces keep their freedom | `specs/per-group-theming` | in plugin | #86: an instance admin locks a project's design system; its project admins see it read-only |  |
 | `gov-no-public-cdn` | Use the brand center and its branding governance without publishing brand assets on a public content delivery network | `specs/custom-fonts` | in plugin | #5: nothing in the plugin opens a connection (`test/no_network_test.rb`) |  |
 | `gov-central-brand-library` | Keep one house style in a central library that many sites or departments on the instance use, edited only by the brand team | `specs/admin-settings` | in plugin | #67: the instance's design systems are the library projects choose from, and only an instance admin authors them |  |
 

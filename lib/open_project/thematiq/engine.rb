@@ -98,6 +98,11 @@ module OpenProject
         require "open_project/thematiq/shell"
         OpenProject::Thematiq::Shell.install!
 
+        # A planned switch is made by the first page after its time; the history names it.
+        OpenProject::Thematiq::Store.on_switch = lambda do |token_set, store|
+          ::Thematiq::Change.record("scheduled_switch", user: nil, detail: token_set.name, store:)
+        end
+
         # The uploaded files of a custom design system come from the plugin's table. A page asks several
         # times while it is drawn, so the answer is kept for the length of one request.
         OpenProject::Thematiq::Assets.upload_source = lambda do |set_id|

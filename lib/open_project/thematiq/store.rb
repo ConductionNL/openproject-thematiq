@@ -6,6 +6,7 @@ require "open_project/thematiq/custom_draft"
 require "open_project/thematiq/editor"
 require "open_project/thematiq/contrast"
 require "date"
+require "time"
 require "open_project/thematiq/custom_css"
 require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
@@ -63,9 +64,93 @@ module OpenProject
       end
 
       # What the pages are styled with: the active custom design system, else the chosen set of the
-      # catalogue, else the default.
+      # catalogue, else the default. A planned switch whose time has come is made first (see #due_switch).
       def active_token_set
+        apply_due_switch
         (environment_id && find_set(environment_id)) || custom_set(active_custom_id) || catalogue.find(active_id) || catalogue.default
+      end
+
+      # --- a planned switch: a design system that becomes the one in use at a date and time ---
+      #
+      # No background job: the first page after the time makes the switch (app-scheduled-switch, adapted). So a
+      # switch planned for midnight happens with the first visitor after midnight.
+
+      MAX_SWITCHES = 20
+
+      # Every planned switch, oldest first: { "set_id", "at" (Time, UTC), "name" }. One whose design system is gone is left out.
+      def planned_switches
+        stored = data["planned_switches"]
+        return [] unless stored.is_a?(Array)
+
+        stored.filter_map do |entry|
+          next unless entry.is_a?(Hash)
+
+          at = (Time.iso8601(entry["at"].to_s) rescue nil)
+          token_set = at && find_set(entry["set_id"].to_s)
+          { "set_id" => token_set.id, "at" => at.utc, "name" => token_set.name } if token_set
+        end.sort_by { |entry| entry["at"] }
+      end
+
+      # Plans a switch. nil, or a short code why nothing was stored.
+      def plan_switch(set_id:, at:, now: Time.now)
+        return "unknown_set" unless find_set(set_id.to_s)
+
+        time = at.is_a?(Time) ? at : (Time.iso8601(at.to_s) rescue nil)
+        return "time" if time.nil? || time <= now
+
+        current = raw_switches
+        return "too_many" if current.size >= MAX_SWITCHES
+
+        write("planned_switches" => current + [{ "set_id" => set_id.to_s, "at" => time.utc.iso8601 }])
+        nil
+      end
+
+      def cancel_switch(index)
+        current = raw_switches
+        write("planned_switches" => current.reject.with_index { |_entry, position| position == index.to_i })
+      end
+
+      # The switch whose time has come, if any: made now, and taken off the list. Returns its design system or nil.
+      # on_switch: called with the design system, for the history.
+      def apply_due_switch(now: Time.now)
+        due = planned_switches.select { |entry| entry["at"] <= now }
+        return nil if due.empty?
+
+        last = due.last
+        remaining = raw_switches.reject do |entry|
+          at = (Time.iso8601(entry["at"].to_s) rescue nil)
+          at.nil? || at <= now
+        end
+        write("planned_switches" => remaining)
+        token_set = activate(last["set_id"])
+        self.class.on_switch&.call(token_set, self) if token_set
+        token_set
+      end
+
+      class << self
+        # The engine sets this to write a history row when a planned switch is made.
+        attr_accessor :on_switch
+      end
+
+      # --- locks: a project's design system that its project admins cannot change ---
+
+      def locked_projects
+        stored = data["locked_projects"]
+        stored.is_a?(Array) ? stored.grep(String).select { |identifier| identifier.match?(/\A[a-z0-9][a-z0-9_-]{0,99}\z/) } : []
+      end
+
+      def locked?(identifier)
+        locked_projects.include?(identifier.to_s)
+      end
+
+      def lock_project(identifier, locked)
+        identifier = identifier.to_s
+        return false unless identifier.match?(/\A[a-z0-9][a-z0-9_-]{0,99}\z/)
+
+        list = locked_projects - [identifier]
+        list << identifier if locked
+        write("locked_projects" => list)
+        true
       end
 
       # Makes a design system the active one: a set of the catalogue or a custom design system.
@@ -445,6 +530,10 @@ module OpenProject
 
       def remember_bundle_file_digest(digest)
         write("bundle_file_digest" => digest)
+      end
+
+      def raw_switches
+        data["planned_switches"].is_a?(Array) ? data["planned_switches"].select { |entry| entry.is_a?(Hash) } : []
       end
 
       # --- settings left by the version that fetched from thematiq ---

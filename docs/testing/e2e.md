@@ -28,6 +28,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 | `vocabulary.spec.js` | A design system with values of thematiq's full vocabulary, imported as a file, reaches Primer's variables and OpenProject's own elements; a key it leaves out keeps OpenProject's value |
+| `schedule.spec.js` | A switch is planned, listed and cancelled (the switch itself is in the request check) |
 | `scopes.spec.js` | A project's design system styles its whole page, and leaving the project and coming back swaps the style tags (Turbo); a module's design system reaches the content only; projects may not choose by default |
 | `governance.spec.js` | The environment marker on every page, the sign-in page too; a deprecated token in the editor and the read endpoint |
 | `history.spec.js` | Each change is listed with who made it; restoring a version shows what it changes first, then brings it back |

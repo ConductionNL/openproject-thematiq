@@ -1144,6 +1144,34 @@ begin
   admin.post "/admin/thematiq/custom/files", params: { id: "library", kind: "logo", file: upload.call("<svg/>"), authenticity_token: library_token }
   check("the library takes fonts only") { Thematiq::Upload.where(set_id: "library", kind: "logo").none? }
   Thematiq::Upload.remove_set("library")
+
+  # 25. A planned switch, and a locked project
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  OpenProject::Thematiq::Store.new.plan_switch(set_id: "zuiddrecht", at: Time.now + 1)
+  sleep 2
+  switch_view = session_for
+  switch_view.get "/login"
+  check("the first page after the time makes the planned switch, and the history names it") do
+    head_style(switch_view).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") &&
+      OpenProject::Thematiq::Store.new.planned_switches.empty? && Thematiq::Change.order(:id).last.action == "scheduled_switch"
+  end
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  store_for_lock = OpenProject::Thematiq::Store.new
+  store_for_lock.save_project_rules(allow: true, choices: [])
+  store_for_lock.lock_project(parent_project.identifier, true)
+  lock_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  lock_session.get "/projects/#{parent_project.identifier}/settings/design"
+  lock_token = CGI.unescapeHTML(lock_session.response.body[/<form[^>]*id="thematiq-project-design-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  check("a locked project shows its design system read-only to its project admin") do
+    lock_session.response.status == 200 && lock_session.response.body.include?('data-test-selector="thematiq-project-locked"')
+  end
+  lock_session.post "/projects/#{parent_project.identifier}/settings/design", params: { design_system: "zuiddrecht", authenticity_token: lock_token }
+  check("a project admin cannot change a locked project") do
+    lock_session.response.status == 403 && Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "").nil?
+  end
+  store_for_lock.lock_project(parent_project.identifier, false)
+  store_for_lock.save_project_rules(allow: false, choices: [])
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

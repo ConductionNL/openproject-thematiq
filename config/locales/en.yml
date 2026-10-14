@@ -111,6 +111,27 @@ en:
         property: "A property the plugin does not accept"
         value: "A value the plugin does not accept, such as url() or an unclosed quote"
         too_many_rules: "More than 1,000 rules"
+    schedule:
+      title: "Planned switch"
+      hint: "Plan a design system for a date and time, such as a campaign or a holiday look. The first page after that time makes the switch, for everyone, and the history names it. To go back afterwards, plan the design system of now for a later time."
+      set: "Design system"
+      at: "From"
+      at_hint: "In your time zone, %{zone}."
+      save: "Plan the switch"
+      entry: "%{name} from %{time}"
+      cancel: "Cancel"
+      cancel_label: "Cancel the switch to %{name}"
+      notice_planned: "%{name} is planned from %{time}."
+      notice_cancelled: "The planned switch is cancelled."
+      errors:
+        unknown_set: "Choose a design system from the list."
+        time: "Choose a date and time in the future."
+        too_many: "You can plan up to 20 switches."
+    locks:
+      label: "Lock this project's design system"
+      hint: "Project admins can no longer change it here. Only an instance admin can, and only an instance admin unlocks it."
+      read_only: "An instance admin locked the design system of this project. You can see it, not change it."
+      admin_note: "This project's design system is locked: its project admins cannot change it."
     library:
       title: "Font library"
       hint: "Fonts of your organisation, uploaded once. Every design system whose font names the family uses them, the shipped ones too. A design system's own upload of the same family wins. Up to %{count} files."
@@ -299,6 +320,9 @@ en:
         deprecation: "Changed a deprecation"
         custom_css: "Changed your own CSS"
         own_token: "Changed an own token"
+        scheduled_switch: "Made a planned switch"
+        schedule: "Planned or cancelled a switch"
+        lock: "Locked or unlocked a project's design system"
     bundle:
       title: "The whole setup"
       hint: "One file with the whole setup: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Use it to move the setup from a test to a production OpenProject. Uploaded logos, icons and fonts are not in it."
@@ -348,6 +372,8 @@ en:
         deprecations: "The deprecations in the configuration file cannot be read. Nothing was changed."
         custom_css: "The CSS in the configuration file does not pass the checks. Nothing was changed."
         own_tokens: "The own tokens in the configuration file cannot be read. Nothing was changed."
+        locks: "The locked projects in the configuration file cannot be read. Nothing was changed."
+        planned_switches: "The planned switches in the configuration file cannot be read. Nothing was changed."
     editor:
       title: "Custom design system"
       description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."

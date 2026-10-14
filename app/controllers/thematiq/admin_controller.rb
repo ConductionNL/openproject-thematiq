@@ -204,6 +204,30 @@ module Thematiq
       end
     end
 
+    # A planned switch: a design system that becomes the one in use at a date and time, or the cancelling of one.
+    # The time is read in the administrator's own time zone.
+    def update_schedule
+      if params[:cancel].present?
+        @store.cancel_switch(params[:cancel].to_i)
+        record_change("schedule", "cancelled")
+        flash[:notice] = t("thematiq.schedule.notice_cancelled")
+      else
+        at = begin
+          Time.zone.parse(params[:at].to_s)
+        rescue ArgumentError
+          nil
+        end
+        code = at ? @store.plan_switch(set_id: params[:set_id], at:) : "time"
+        if code
+          flash[:error] = t("thematiq.schedule.errors.#{code}")
+        else
+          record_change("schedule", "#{params[:set_id].to_s.first(64)} at #{at.utc.iso8601}")
+          flash[:notice] = t("thematiq.schedule.notice_planned", name: @store.find_set(params[:set_id].to_s).name, time: helpers.format_time(at))
+        end
+      end
+      redirect_to action: :show, anchor: "thematiq-schedule"
+    end
+
     # An own token, --thematiq-org-<name>, or its removal.
     def update_own_token
       if params[:remove].present?
@@ -589,7 +613,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens].freeze
+                       deprecations custom_css own_tokens locks planned_switches].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
