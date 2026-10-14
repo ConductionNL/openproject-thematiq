@@ -144,3 +144,7 @@ docker exec -e THEMATIQ_CHECK_PASSWORD='<admin password>' -e THEMATIQ_CHECK_HOST
 3. Select **Restore this version**.
 
 The restore is a row of its own, so the setup from before it can be restored too. The rows cannot be changed or deleted from OpenProject. The setup is kept for the newest 50 changes; older rows keep who, what and when. Uploaded logos, icons and fonts are not part of a version and stay as they are.
+
+## A brand manager who is not an administrator
+
+Give someone the global permission **Manage the design**: under **Administration**, **Users and permissions**, **Roles and permissions**, make or edit a global role with it, then give that role to the person under their **Global roles**. They then see **Thematiq design** in the administration and can do everything on it: pick, edit, upload, import, restore. They see nothing else of the administration. Their changes carry their name in the history.

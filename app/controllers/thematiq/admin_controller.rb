@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 module Thematiq
-  # The "Thematiq design" page in the administration. Admins only.
+  # The "Thematiq design" page in the administration. For administrators, and for a brand manager with the global
+  # permission "Manage the design" (gov-delegated-role).
   class AdminController < ApplicationController
-    before_action :require_admin
+    before_action :authorize_global
     before_action :load_state
 
     layout "admin"

@@ -1,4 +1,5 @@
 en:
+  permission_manage_design: "Manage the design"
   permission_choose_design_system: "Choose design system"
   plugin_openproject_thematiq:
     name: "Thematiq"

@@ -1035,7 +1035,35 @@ begin
   reader.get "/thematiq/api/v1/deprecations", headers: { "Accept" => "application/json" }
   check("a member reads the deprecations") { (JSON.parse(reader.response.body)["deprecations"] rescue []).any? { |entry| entry["key"] == "accent" } }
   OpenProject::Thematiq::Store.new.delete_deprecation("accent")
+
+  # 18. A brand manager: the global permission "Manage the design", without being an administrator
+  manager_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  manager_session.get "/admin/thematiq"
+  check("without the permission the member gets 403") { manager_session.response.status == 403 }
+  design_role = GlobalRole.create!(name: "Thematiq check brand manager #{SecureRandom.hex(3)}", permissions: [:manage_design])
+  global_member = Member.new(principal: member, project: nil)
+  global_member.member_roles.build(role: design_role)
+  global_member.save!
+  manager_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  manager_session.get "/admin/thematiq"
+  check("with the permission a member opens the design page") { manager_session.response.status == 200 && manager_session.response.body.include?("thematiq-picker-form") }
+  check("the menu of the administration offers it") { manager_session.response.body.include?("Thematiq design") }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  manager_session.get "/admin/thematiq/compare", params: { set_id: "zuiddrecht" }
+  manager_token = CGI.unescapeHTML(manager_session.response.body[/<form[^>]*id="thematiq-compare-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  manager_session.post "/admin/thematiq", params: { set_id: "zuiddrecht", authenticity_token: manager_token }
+  check("a brand manager applies a design system, and the history names them") do
+    OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" && Thematiq::Change.order(:id).last.user_id == member.id
+  end
+  manager_session.get "/users"
+  check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
+  manager_session.get "/admin/settings/general"
+  check("not the general settings either") { manager_session.response.status == 403 }
 ensure
+  if defined?(global_member) && global_member&.persisted?
+    global_member.destroy
+  end
+  design_role&.destroy if defined?(design_role)
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
     Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }
