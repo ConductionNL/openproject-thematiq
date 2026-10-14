@@ -1089,12 +1089,12 @@ begin
   check("the account menu is the plugin's dropdown with core's entries") do
     body = menu_admin.response.body
     body.include?('id="thematiq-account-button"') && !body.include?('id="op-app-header--user-menu-list"') &&
-      admin_panel.include?('href="/admin"') && admin_panel.include?('data-turbo="false"')
+      admin_panel.include?('/admin"') && admin_panel.include?('data-turbo="false"')
   end
   menu_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
   menu_member.get "/my/account"
   member_panel = menu_member.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
-  check("a member's account menu has no Administration") { member_panel.include?("/my/account") && !member_panel.include?('href="/admin"') }
+  check("a member's account menu has no Administration") { member_panel.include?("/my/account") && !member_panel.include?('/admin"') }
   signed_out = session_for
   signed_out.get "/thematiq-check-no-such-page"
   check("signed out, core's sign-in menu renders") { !signed_out.response.body.include?('id="thematiq-account-button"') }

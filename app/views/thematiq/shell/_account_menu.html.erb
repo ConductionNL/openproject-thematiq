@@ -29,7 +29,7 @@
         <% if link[:divider] %><li class="thematiq-account-menu--divider" role="separator"></li><% end %>
         <li>
           <%= link_to link[:href], **link[:options], class: "thematiq-account-menu--entry", data: link[:data] do %>
-            <% if link[:icon] %><%= render(Primer::Beta::Octicon.new(icon: link[:icon], "aria-hidden": "true")) %><% end %>
+            <% if link[:icon] %><%= render(Primer::Beta::Octicon.new(icon: link[:icon])) %><% end %>
             <span><%= link[:label] %></span>
           <% end %>
         </li>
