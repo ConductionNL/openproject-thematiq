@@ -9,7 +9,7 @@ test.describe("contrast report", () => {
     await expect(page.getByRole("heading", { name: "Contrast report" })).toBeVisible();
     const system = page.locator(".thematiq-compliance__system").first();
     await expect(system).toContainText("Used by: instance");
-    await expect(system.getByRole("cell", { name: "main text on the page background" })).toBeVisible();
+    await expect(system.getByRole("cell", { name: "main text on the page background" }).first()).toBeVisible();
 
     const response = await page.request.get("/admin/thematiq/compliance.json");
     expect(response.status()).toBe(200);
