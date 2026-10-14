@@ -1030,8 +1030,10 @@ begin
   check("a removal date in the past is refused") { OpenProject::Thematiq::Store.new.deprecations.empty? }
   deprecation_token = form_token(admin, "/admin/thematiq", "thematiq-deprecation-form")
   admin.post "/admin/thematiq/deprecations", params: { key: "accent", severity: "warning", authenticity_token: deprecation_token }
-  gov_member.get "/thematiq/api/v1/deprecations", headers: { "Accept" => "application/json" }
-  check("a member reads the deprecations") { (JSON.parse(gov_member.response.body)["deprecations"] rescue []).any? { |entry| entry["key"] == "accent" } }
+  # A session of its own: the refused post above signed the member's session out.
+  reader = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  reader.get "/thematiq/api/v1/deprecations", headers: { "Accept" => "application/json" }
+  check("a member reads the deprecations") { (JSON.parse(reader.response.body)["deprecations"] rescue []).any? { |entry| entry["key"] == "accent" } }
   OpenProject::Thematiq::Store.new.delete_deprecation("accent")
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
