@@ -178,6 +178,12 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 
 On the page of step 3, select **Try it yourself first**. Only you see that design system, on every page, until you select **Publish to everyone** or **Discard** in the banner at the foot of the page. A trial ends by itself after a day.
 
+### Legal links, a brand stripe and a sign-in background
+
+- **Legal links.** Under **Legal links**, give the addresses of a privacy statement, an imprint and an accessibility statement. They show at the end of every page and on the sign-in page, in the design system's footer colours.
+- **Brand stripe.** A design system with thematiq's three stripe colours draws them under the top bar, in their ratios.
+- **Sign-in background.** A custom design system can carry a photo for behind the sign-in page: upload it under **Logo, icons and fonts**.
+
 ### Plan a switch
 
 Under **Planned switch**, choose a design system and a date and time. The first page after that time makes the switch, for everyone, and the history names it. There is no background job: on a quiet instance the switch happens with the first visitor after the time.

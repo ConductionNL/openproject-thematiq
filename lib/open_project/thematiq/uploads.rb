@@ -31,6 +31,9 @@ module OpenProject
         Kind.new(name: "logo_mobile", formats: %w[svg png jpeg webp], max_bytes: 256 * KILOBYTE, min_side: 16, max_width: 1000, max_height: 1000, single: true),
         Kind.new(name: "favicon", formats: %w[png ico svg], max_bytes: 128 * KILOBYTE, min_side: 16, max_width: 512, max_height: 512, single: true),
         Kind.new(name: "touch_icon", formats: %w[png], max_bytes: 512 * KILOBYTE, min_side: 120, max_width: 1024, max_height: 1024, single: true),
+        # The background of the sign-in page (ast-upload-background). A photo, so larger, and never SVG.
+        Kind.new(name: "login_background", formats: %w[jpeg png webp], max_bytes: 2048 * KILOBYTE, min_side: 200, max_width: 4000, max_height: 4000,
+                 single: true),
         Kind.new(name: "font", formats: %w[woff2 woff ttf otf], max_bytes: 2048 * KILOBYTE, single: false)
       ].to_h { |kind| [kind.name, kind.freeze] }.freeze
 

@@ -16,8 +16,8 @@ class UploadsInspectorTest < Minitest::Test
 
   # --- the kinds ---
 
-  def test_the_kinds_are_the_six_the_admin_page_offers
-    assert_equal %w[logo logo_inverse logo_mobile favicon touch_icon font], Uploads::KINDS.keys
+  def test_the_kinds_are_the_seven_the_admin_page_offers
+    assert_equal %w[logo logo_inverse logo_mobile favicon touch_icon login_background font], Uploads::KINDS.keys
     assert(Uploads::KINDS.values.all? { |kind| kind.max_bytes.between?(64 * 1024, 2 * 1024 * 1024) })
     assert(Uploads::KINDS.values.all? { |kind| (kind.formats - Uploads::FORMATS.keys).empty? })
     assert_equal ["font"], Uploads::KINDS.values.reject(&:single).map(&:name)

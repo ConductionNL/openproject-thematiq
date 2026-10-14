@@ -20,6 +20,11 @@
 </style>
 <% end %>
 <%= render partial: "thematiq/shell/head" %>
+<%# The sign-in page's background, when the design system has one uploaded. %>
+<% login_background = (OpenProject::Thematiq::Assets.bundled.login_background_css(OpenProject::Thematiq.active_token_set, root: OpenProject::Configuration["rails_relative_url_root"].to_s) rescue "") %>
+<% if login_background.present? %>
+<style id="openproject-thematiq-login-background" data-turbo-track="reload"><%= raw login_background %></style>
+<% end %>
 <%# The organisation's own tokens, --thematiq-org-*, from checked values. %>
 <% own_tokens_css = (OpenProject::Thematiq::Store.new.own_tokens_css rescue nil) %>
 <% if own_tokens_css %>
