@@ -20,5 +20,19 @@
 </style>
 <% end %>
 <%= render partial: "thematiq/shell/head" %>
+<%# The organisation's own tokens, --thematiq-org-*, from checked values. %>
+<% own_tokens_css = (OpenProject::Thematiq::Store.new.own_tokens_css rescue nil) %>
+<% if own_tokens_css %>
+<style id="openproject-thematiq-own-tokens" data-turbo-track="reload">
+<%= raw own_tokens_css %>
+</style>
+<% end %>
+<%# The administrator's own CSS, last, so it wins. Off by default; written anew from checked parts (CustomCss). %>
+<% own_css = (OpenProject::Thematiq::Store.new.served_custom_css rescue nil) %>
+<% if own_css %>
+<style id="openproject-thematiq-custom" data-turbo-track="reload">
+<%= raw own_css %>
+</style>
+<% end %>
 <%# After OpenProject's own favicon link, so a browser that takes the last one takes this. %>
 <%= render partial: "thematiq/hooks/icons" %>

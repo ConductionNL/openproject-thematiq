@@ -6,7 +6,7 @@ module Thematiq
   # Nothing here writes. See docs/api.md.
   class APIController < ApplicationController
     before_action :require_login
-    authorization_checked! :sets, :set, :stylesheet, :manifest, :contrast, :deprecations
+    authorization_checked! :sets, :set, :stylesheet, :manifest, :contrast, :deprecations, :own_tokens
 
     # Every design system there is, custom ones first, and which one is in use.
     def sets
@@ -57,6 +57,11 @@ module Thematiq
         entry.merge("css_name" => css_name(entry["key"]), "replacement_css_name" => entry["replacement"] && css_name(entry["replacement"]))
       end
       render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION, "deprecations" => list }
+    end
+
+    # The organisation's own tokens: name, CSS name, kind, value and dark value.
+    def own_tokens
+      render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION, "own_tokens" => OpenProject::Thematiq::Store.new.own_tokens }
     end
 
     private

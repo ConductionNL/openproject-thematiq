@@ -6,6 +6,8 @@ require "open_project/thematiq/custom_draft"
 require "open_project/thematiq/editor"
 require "open_project/thematiq/contrast"
 require "date"
+require "open_project/thematiq/custom_css"
+require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
 
@@ -344,6 +346,95 @@ module OpenProject
       def replace_setup(settings)
         kept = data.except(*Bundle::SETTING_KEYS, "custom", "use_custom")
         @backend.write(kept.merge(settings.slice(*Bundle::SETTING_KEYS)))
+      end
+
+      # --- own tokens: values an organisation adds, as --thematiq-org-<name>, for its own CSS and other plugins ---
+
+      OWN_TOKEN_NAME = /\A[a-z][a-z0-9-]{0,40}\z/
+      OWN_TOKEN_KINDS = %w[color length number font_family duration].freeze
+      MAX_OWN_TOKENS = 100
+
+      # Every own token, checked again: name, label, kind, value and an optional dark value.
+      def own_tokens
+        stored = data["own_tokens"]
+        return [] unless stored.is_a?(Hash)
+
+        stored.filter_map do |name, entry|
+          next unless OWN_TOKEN_NAME.match?(name.to_s) && entry.is_a?(Hash) && OWN_TOKEN_KINDS.include?(entry["kind"])
+
+          value = Tokens::Validator.public_send(entry["kind"], entry["value"].to_s[0, 400])
+          next unless value
+
+          dark = entry["kind"] == "color" && entry["dark"] ? Tokens::Validator.color(entry["dark"].to_s[0, 400]) : nil
+          { "name" => name, "label" => Tokens::Validator.label(entry["label"], max: 80) || name, "kind" => entry["kind"],
+            "value" => value, "dark" => dark, "css_name" => "--thematiq-org-#{name}" }
+        end.sort_by { |token| token["name"] }
+      end
+
+      # Stores one own token. nil, or a short code that says why nothing was stored.
+      def save_own_token(name:, label:, kind:, value:, dark: nil)
+        name = name.to_s.strip
+        return "name" unless OWN_TOKEN_NAME.match?(name)
+        return "kind" unless OWN_TOKEN_KINDS.include?(kind.to_s)
+
+        cleaned = Tokens::Validator.public_send(kind.to_s, value.to_s.strip[0, 400])
+        return "value" unless cleaned
+
+        dark_value = nil
+        if kind.to_s == "color" && !dark.to_s.strip.empty?
+          dark_value = Tokens::Validator.color(dark.to_s.strip[0, 400])
+          return "dark" unless dark_value
+        end
+        text = label.to_s.strip.empty? ? name : Tokens::Validator.label(label, max: 80)
+        return "label" unless text
+
+        current = data["own_tokens"].is_a?(Hash) ? data["own_tokens"] : {}
+        return "too_many" if !current.key?(name) && current.size >= MAX_OWN_TOKENS
+
+        write("own_tokens" => current.merge(name => { "label" => text, "kind" => kind.to_s, "value" => cleaned, "dark" => dark_value }.compact))
+        nil
+      end
+
+      def delete_own_token(name)
+        current = data["own_tokens"].is_a?(Hash) ? data["own_tokens"] : {}
+        write("own_tokens" => current.except(name.to_s))
+      end
+
+      # The CSS of the own tokens: :root, and the dark values in OpenProject's dark theme. nil when there are none.
+      def own_tokens_css
+        tokens = own_tokens
+        return nil if tokens.empty?
+
+        light = tokens.map { |token| "  #{token['css_name']}: #{token['value']};" }
+        dark = tokens.select { |token| token["dark"] }.map { |token| "  #{token['css_name']}: #{token['dark']};" }
+        css = ":root {\n#{light.join("\n")}\n}"
+        css += "\n#{Variables::Generator::DARK_SCOPE} {\n#{dark.join("\n")}\n}" if dark.any?
+        css
+      end
+
+      # --- the administrator's own CSS: off by default, checked by CustomCss, served last ---
+
+      def custom_css_enabled?
+        data["custom_css_enabled"] == true
+      end
+
+      # The stored CSS, checked again on the way out. Empty when it no longer passes.
+      def custom_css
+        result = CustomCss.check(data["custom_css"].to_s)
+        result.ok? ? result.css : ""
+      end
+
+      # What the page gets: the CSS when it is on and not empty, else nil.
+      def served_custom_css
+        css = custom_css_enabled? ? custom_css : ""
+        css.empty? ? nil : css
+      end
+
+      # Checks and stores. Returns the CustomCss::Result; nothing is stored when it has errors.
+      def save_custom_css(enabled:, text:)
+        result = CustomCss.check(text)
+        write("custom_css_enabled" => enabled == true, "custom_css" => result.css) if result.ok?
+        result
       end
 
       # The digest of the configuration file BootBundle applied last, so an unchanged file is not applied again.

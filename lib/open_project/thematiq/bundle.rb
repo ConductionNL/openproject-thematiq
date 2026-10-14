@@ -5,6 +5,7 @@ require "open_project/thematiq/tokens"
 require "open_project/thematiq/custom_draft"
 require "open_project/thematiq/scopes"
 require "open_project/thematiq/store"
+require "open_project/thematiq/custom_css"
 
 module OpenProject
   module Thematiq
@@ -24,7 +25,7 @@ module OpenProject
 
       # The settings a bundle carries. Anything else in the plugin's settings is not part of the setup.
       SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
-                        environment_label environment_colour deprecations].freeze
+                        environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -137,6 +138,20 @@ module OpenProject
         raise Refused, "top_bar_apps" unless apps.nil? || (apps.is_a?(String) && apps.length <= 500)
 
         check_marker_and_deprecations(settings)
+        raise Refused, "custom_css" unless [nil, true, false].include?(settings["custom_css_enabled"])
+        check_own_tokens(settings["own_tokens"])
+        raise Refused, "custom_css" unless settings["custom_css"].nil? || (settings["custom_css"].is_a?(String) && CustomCss.check(settings["custom_css"]).ok?)
+      end
+
+      def self.check_own_tokens(tokens)
+        return if tokens.nil?
+        raise Refused, "own_tokens" unless tokens.is_a?(Hash) && tokens.size <= Store::MAX_OWN_TOKENS
+
+        probe = Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {})
+        tokens.each do |name, entry|
+          raise Refused, "own_tokens" unless entry.is_a?(Hash) &&
+                                             probe.save_own_token(name:, label: entry["label"], kind: entry["kind"], value: entry["value"], dark: entry["dark"]).nil?
+        end
       end
 
       # The environment marker and the deprecations, checked by the store's own rules on a store of their own.

@@ -40,6 +40,8 @@ module OpenProject
     require "open_project/thematiq/compliance"
     require "open_project/thematiq/metrics"
     require "open_project/thematiq/boot_bundle"
+    require "open_project/thematiq/css_tokens"
+    require "open_project/thematiq/custom_css"
 
     # The token set the page being drawn is styled with: the page's own when the head hooks worked it out
     # (PageScope, a design system per project), else the instance's.
