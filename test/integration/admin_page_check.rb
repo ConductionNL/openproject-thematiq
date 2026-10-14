@@ -1009,6 +1009,32 @@ begin
   check("the contrast report downloads as JSON with the design system in use") do
     admin.response.status == 200 && report["design_systems"].to_a.first.to_h["used_by"].to_a.include?("instance")
   end
+
+  # 17. The environment marker and deprecations
+  gov_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  gov_member.post "/admin/thematiq/marker", params: { environment_label: "Hacked" }
+  check("a non-admin cannot set the environment marker") { [403, 422].include?(gov_member.response.status) && OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "<script>alert(1)</script>", authenticity_token: marker_token }
+  check("a marker with markup is refused") { OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "Test", environment_colour: "#008800", authenticity_token: marker_token }
+  marker_view = session_for
+  marker_view.get "/login"
+  check("the marker shows on the sign-in page") { marker_view.response.body.include?('data-test-selector="thematiq-environment-marker"') }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "", authenticity_token: marker_token }
+  check("an empty label clears the marker") { OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  deprecation_token = form_token(admin, "/admin/thematiq", "thematiq-deprecation-form")
+  admin.post "/admin/thematiq/deprecations", params: { key: "accent", severity: "warning", removal: "2001-01-01", authenticity_token: deprecation_token }
+  check("a removal date in the past is refused") { OpenProject::Thematiq::Store.new.deprecations.empty? }
+  deprecation_token = form_token(admin, "/admin/thematiq", "thematiq-deprecation-form")
+  admin.post "/admin/thematiq/deprecations", params: { key: "accent", severity: "warning", authenticity_token: deprecation_token }
+  # A session of its own: the refused post above signed the member's session out.
+  reader = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  reader.get "/thematiq/api/v1/deprecations", headers: { "Accept" => "application/json" }
+  check("a member reads the deprecations") { (JSON.parse(reader.response.body)["deprecations"] rescue []).any? { |entry| entry["key"] == "accent" } }
+  OpenProject::Thematiq::Store.new.delete_deprecation("accent")
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

@@ -6,7 +6,7 @@ module Thematiq
   # Nothing here writes. See docs/api.md.
   class APIController < ApplicationController
     before_action :require_login
-    authorization_checked! :sets, :set, :stylesheet, :manifest, :contrast
+    authorization_checked! :sets, :set, :stylesheet, :manifest, :contrast, :deprecations
 
     # Every design system there is, custom ones first, and which one is in use.
     def sets
@@ -51,7 +51,19 @@ module Thematiq
       render json: OpenProject::Thematiq::ReadAPI.contrast(params[:foreground], params[:background])
     end
 
+    # Every deprecated token: what to use instead and by when. due: the date has passed. No user data.
+    def deprecations
+      list = OpenProject::Thematiq::Store.new.deprecations.map do |entry|
+        entry.merge("css_name" => css_name(entry["key"]), "replacement_css_name" => entry["replacement"] && css_name(entry["replacement"]))
+      end
+      render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION, "deprecations" => list }
+    end
+
     private
+
+    def css_name(key)
+      OpenProject::Thematiq::Tokens::Vocabulary.key?(key) ? OpenProject::Thematiq::Tokens::Vocabulary.css_name(key) : "--thematiq-#{key == 'font-family' ? 'font' : key}"
+    end
 
     def find_set
       OpenProject::Thematiq::Store.new.find_set(params[:id].to_s)

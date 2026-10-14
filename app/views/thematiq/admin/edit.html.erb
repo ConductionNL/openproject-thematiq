@@ -3,6 +3,7 @@
 <% preview_set = @draft.token_set %>
 <% editor = OpenProject::Thematiq::Editor %>
 <% dark_error = ->(key) { OpenProject::Thematiq::CustomDraft.dark_error(key) } %>
+<% deprecated = @store.deprecations.index_by { |entry| entry["key"] } %>
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
@@ -130,6 +131,14 @@
                   <span class="Button-content"><span class="Button-label"><%= t("thematiq.editor.reset_token") %></span></span>
                 </button>
               </div>
+              <% if (entry = deprecated[key]) %>
+                <p class="thematiq-editor__deprecated" data-thematiq-deprecated="<%= key %>">
+                  <strong><%= entry["due"] ? t("thematiq.deprecations.due") : t("thematiq.deprecations.badge", severity: t("thematiq.deprecations.severities.#{entry["severity"]}")) %></strong>
+                  <% if entry["replacement"] %><%= t("thematiq.deprecations.badge_replacement", replacement: entry["replacement"]) %><% end %>
+                  <% if entry["removal"] %><%= t("thematiq.deprecations.badge_removal", date: entry["removal"]) %><% end %>
+                  <%= entry["message"] %>
+                </p>
+              <% end %>
               <p class="thematiq-editor__hint" id="<%= field_id %>-hint">
                 <%= t("thematiq.editor.kind_hint.#{kind}") %>
                 <% if @draft.base[key] %><%= t("thematiq.editor.base_value", name: @draft.base.name, value: @draft.base[key]) %><% end %>

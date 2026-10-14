@@ -176,6 +176,33 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-top-bar"
     end
 
+    # The environment marker: a label on every page, such as "Test", in a colour. Empty clears it.
+    def update_environment_marker
+      if @store.save_environment_marker(params[:environment_label], params[:environment_colour])
+        record_change("environment_marker", params[:environment_label].to_s.strip.first(30).presence)
+        flash[:notice] = t("thematiq.marker.notice_saved")
+      else
+        flash[:error] = t("thematiq.marker.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-marker"
+    end
+
+    # A deprecation of one token, or its removal. It changes no value: it is a notice for the people who use the tokens.
+    def update_deprecation
+      if params[:remove].present?
+        @store.delete_deprecation(params[:remove].to_s)
+        record_change("deprecation", params[:remove].to_s.first(80))
+        flash[:notice] = t("thematiq.deprecations.notice_removed")
+      elsif (code = @store.save_deprecation(key: params[:key], severity: params[:severity], replacement: params[:replacement],
+                                            removal: params[:removal], message: params[:message]))
+        flash[:error] = t("thematiq.deprecations.errors.#{code}")
+      else
+        record_change("deprecation", params[:key].to_s.first(80))
+        flash[:notice] = t("thematiq.deprecations.notice_saved")
+      end
+      redirect_to action: :show, anchor: "thematiq-deprecations"
+    end
+
     # Design systems per project and module: whether projects may choose, from which, and one per module.
     def update_scopes
       return refuse_scopes("not_ready") unless Thematiq::Scope.ready?
@@ -477,7 +504,8 @@ module Thematiq
     end
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
-                       nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared].freeze
+                       nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
+                       deprecations].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"

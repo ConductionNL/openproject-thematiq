@@ -18,6 +18,9 @@ Rails.application.routes.draw do
   post "admin/thematiq/figma", to: "thematiq/admin#figma_upload"
   post "admin/thematiq/shell", to: "thematiq/admin#update_shell", as: :admin_thematiq_shell
   post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
+  post "admin/thematiq/marker", to: "thematiq/admin#update_environment_marker", as: :admin_thematiq_marker
+  post "admin/thematiq/deprecations", to: "thematiq/admin#update_deprecation", as: :admin_thematiq_deprecations
+  get "thematiq/api/v1/deprecations", to: "thematiq/api#deprecations", as: :thematiq_api_deprecations, format: false
   post "admin/thematiq/scopes", to: "thematiq/admin#update_scopes", as: :admin_thematiq_scopes
   get "admin/thematiq/history.csv", to: "thematiq/admin#history_export", as: :admin_thematiq_history_export, format: false
   get "admin/thematiq/history", to: "thematiq/admin#history", as: :admin_thematiq_history

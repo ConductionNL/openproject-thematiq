@@ -3,6 +3,9 @@
 require "open_project/thematiq/tokens"
 require "open_project/thematiq/catalogue"
 require "open_project/thematiq/custom_draft"
+require "open_project/thematiq/editor"
+require "open_project/thematiq/contrast"
+require "date"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
 
@@ -248,6 +251,86 @@ module OpenProject
         return false unless picked.all? { |key| Shell::AppRow::KEY.match?(key) && allowed.include?(key) }
 
         picked.join(", ")
+      end
+
+      # --- the environment marker: a label on every page, so nobody works in the wrong OpenProject ---
+
+      ENVIRONMENT_LABEL_KEY = "THEMATIQ_ENVIRONMENT_LABEL"
+      MARKER_LABEL = /\A[\p{L}\p{N}][\p{L}\p{N} ._-]{0,29}\z/
+      MARKER_COLOUR = "#d1242f"
+
+      # { "label" => ..., "colour" => ..., "text" => ..., "from_environment" => bool } or nil when there is none.
+      # The environment variable wins over the admin page, like THEMATIQ_DESIGN_SYSTEM.
+      def environment_marker
+        from_env = @env[ENVIRONMENT_LABEL_KEY].to_s.strip
+        label = MARKER_LABEL.match?(from_env) ? from_env : data["environment_label"]
+        return nil unless label.is_a?(String) && MARKER_LABEL.match?(label)
+
+        colour = Tokens::Validator.color(data["environment_colour"].to_s) || MARKER_COLOUR
+        { "label" => label, "colour" => colour, "text" => Contrast.best_on(colour, ["#ffffff", "#1b1c1d"]),
+          "from_environment" => MARKER_LABEL.match?(from_env) }
+      end
+
+      # Stores the label and its colour, or clears both when the label is empty. false: nothing stored.
+      def save_environment_marker(label, colour)
+        label = label.to_s.strip
+        return write("environment_label" => nil, "environment_colour" => nil) || true if label.empty?
+
+        colour = colour.to_s.strip.empty? ? MARKER_COLOUR : Tokens::Validator.color(colour.to_s[0, 100])
+        return false unless MARKER_LABEL.match?(label) && colour
+
+        write("environment_label" => label, "environment_colour" => colour)
+        true
+      end
+
+      # --- deprecations: a token an organisation is moving away from, with a severity, a replacement and a date ---
+
+      SEVERITIES = %w[info warning critical].freeze
+      MAX_DEPRECATIONS = 200
+
+      # Every stored deprecation, checked again on the way out. due: the removal date has passed. Nothing is
+      # ever removed or changed because of a deprecation: it is a notice.
+      def deprecations(today: Date.today)
+        stored = data["deprecations"]
+        return [] unless stored.is_a?(Hash)
+
+        stored.filter_map do |key, entry|
+          next unless entry.is_a?(Hash) && Editor::KINDS.key?(key) && SEVERITIES.include?(entry["severity"])
+
+          removal = (Date.iso8601(entry["removal"].to_s) rescue nil)
+          replacement = Editor::KINDS.key?(entry["replacement"]) ? entry["replacement"] : nil
+          { "key" => key, "severity" => entry["severity"], "replacement" => replacement, "removal" => removal&.iso8601,
+            "message" => Tokens::Validator.label(entry["message"], max: 200), "due" => !removal.nil? && removal < today }
+        end.sort_by { |entry| entry["key"] }
+      end
+
+      # Stores one deprecation. Returns nil, or a short code that says why nothing was stored.
+      def save_deprecation(key:, severity:, replacement: nil, removal: nil, message: nil, today: Date.today)
+        key = key.to_s
+        replacement = replacement.to_s.empty? ? nil : replacement.to_s
+        return "unknown_key" unless Editor::KINDS.key?(key)
+        return "severity" unless SEVERITIES.include?(severity.to_s)
+        return "replacement" if replacement && (!Editor::KINDS.key?(replacement) || replacement == key)
+
+        date = nil
+        unless removal.to_s.strip.empty?
+          date = (Date.iso8601(removal.to_s.strip) rescue nil)
+          return "removal" if date.nil? || date < today
+        end
+        text = message.to_s.strip.empty? ? nil : Tokens::Validator.label(message, max: 200)
+        return "message" if !message.to_s.strip.empty? && text.nil?
+
+        current = data["deprecations"].is_a?(Hash) ? data["deprecations"] : {}
+        return "too_many" if !current.key?(key) && current.size >= MAX_DEPRECATIONS
+
+        write("deprecations" => current.merge(key => { "severity" => severity.to_s, "replacement" => replacement,
+                                                        "removal" => date&.iso8601, "message" => text }.compact))
+        nil
+      end
+
+      def delete_deprecation(key)
+        current = data["deprecations"].is_a?(Hash) ? data["deprecations"] : {}
+        write("deprecations" => current.except(key.to_s))
       end
 
       # --- the whole setup, for the history and the configuration file (Bundle) ---
