@@ -601,3 +601,21 @@ end %>
   <% end %>
   <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.footer.save") } %>
 <% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-email") { t("thematiq.email.title") }
+end %>
+<%= form_with(url: admin_thematiq_email_path, method: :post, data: { turbo: false }, id: "thematiq-email-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.email.hint") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="email_styled" value="1" id="thematiq-email-styled" <%= "checked" if @store.email_styled? %>>
+    <%= t("thematiq.email.styled") %>
+  </label>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-email-footer"><%= t("thematiq.email.footer") %></label>
+    <textarea name="email_footer" id="thematiq-email-footer" class="FormControl-textarea" rows="4" maxlength="<%= OpenProject::Thematiq::Email::MAX_FOOTER %>"
+              aria-describedby="thematiq-email-footer-hint"><%= @store.email_footer %></textarea>
+    <p class="thematiq-editor__hint" id="thematiq-email-footer-hint"><%= t("thematiq.email.footer_hint", count: OpenProject::Thematiq::Email::MAX_FOOTER) %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.email.save") } %>
+<% end %>

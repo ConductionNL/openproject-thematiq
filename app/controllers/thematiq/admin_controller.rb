@@ -228,6 +228,17 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-schedule"
     end
 
+    # E-mail in the house style, and the organisation's text under every e-mail.
+    def update_email
+      if @store.save_email_settings(styled: params[:email_styled] == "1", footer: params[:email_footer].to_s.first(OpenProject::Thematiq::Email::MAX_FOOTER + 1))
+        record_change("email")
+        flash[:notice] = t("thematiq.email.notice_saved")
+      else
+        flash[:error] = t("thematiq.email.error_invalid", count: OpenProject::Thematiq::Email::MAX_FOOTER)
+      end
+      redirect_to action: :show, anchor: "thematiq-email"
+    end
+
     # The footer's legal links.
     def update_footer_links
       given = OpenProject::Thematiq::Store::FOOTER_LINKS.to_h { |kind| [kind, params.dig(:footer_links, kind).to_s] }
@@ -625,7 +636,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches footer_links].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links email].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"

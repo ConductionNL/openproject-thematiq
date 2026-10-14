@@ -1195,7 +1195,21 @@ begin
   check("the legal links show on the sign-in page") { footer_view.response.body.include?('href="https://example.org/imprint"') }
   OpenProject::Thematiq::Store.new.save_footer_links({})
 
-  # 27. The sign-in page of Nextcloud Zuiddrecht: the brand above core's own form, a line under the heading
+  # 27. E-mail in the house style
+  mail_admin = User.find_by(login: "admin")
+  plain_mail = UserMailer.test_mail(mail_admin).html_part.body.to_s
+  check("e-mail keeps OpenProject's look while the switch is off") { !plain_mail.include?("thematiq-mail-header") }
+  OpenProject::Thematiq::Store.new.save_email_settings(styled: true, footer: "Check town\nPostbus 1 & co")
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  styled_mail = UserMailer.test_mail(mail_admin).html_part.body.to_s
+  check("with the switch on, e-mail has the band and the organisation's text") do
+    styled_mail.include?("thematiq-mail-header") && styled_mail.include?("background: #{catalogue.find('zuiddrecht')['primary']};") &&
+      styled_mail.include?("Check town<br>Postbus 1 &amp; co")
+  end
+  OpenProject::Thematiq::Store.new.save_email_settings(styled: false, footer: "")
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  # 28. The sign-in page of Nextcloud Zuiddrecht: the brand above core's own form, a line under the heading
   sign_in_view = session_for
   sign_in_view.get "/login"
   check("the sign-in page has the brand block above core's own form") do
@@ -1208,6 +1222,7 @@ begin
     body = sign_in_view.response.body
     body.include?("For the staff of Gemeente Zuiddrecht.") && body.include?("/thematiq/logos/zuiddrecht-emblem.svg")
   end
+  OpenProject::Thematiq::Store.new.activate("cunningham")
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
