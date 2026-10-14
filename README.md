@@ -187,6 +187,7 @@ Every change is kept in **History**, a link on **Thematiq design**: when, who, a
 1. On **Thematiq design**, select **Customise** next to the design system you want to start from.
 2. Give it a name and change the values you want. They are in four groups: branding, content area, buttons and links, typography. Under **More values** is thematiq's full vocabulary in closed groups, such as status colours, forms and tables; each value says whether OpenProject draws it. Leave a field empty to keep the original value.
 3. Watch the preview beside the form. It follows what you type, and nothing is saved yet. Each colour shows the contrast of the text that goes with it.
+   Each colour also has a field for the dark theme, empty to keep the dark value of the base, and an opacity control next to its colour picker. Above the preview, choose whether to see it as the design system of the instance or a project (the whole page) or of a module (the content area only).
 4. A changed value has the badge **Changed**. **Reset** puts one value back, **Reset group** a whole group.
 5. Select **Save and apply**.
 
