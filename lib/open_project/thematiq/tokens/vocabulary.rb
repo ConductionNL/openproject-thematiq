@@ -120,6 +120,8 @@ module OpenProject
           component-button-disabled-border-color color-error-hover component-button-error-color
           component-table-header-background-color component-table-header-color component-table-border-color
           component-table-row-hover-background-color component-content-surface-background-color component-table-header-font-weight
+          component-navigation-active-background-color component-navigation-active-color component-navigation-badge-background-color
+          component-navigation-badge-color
         ].freeze
 
         module_function

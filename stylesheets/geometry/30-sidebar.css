@@ -17,9 +17,11 @@
 }
 #main-menu .op-submenu--item-action { padding: 0 10px; }
 
-/* active item: primary-light background, primary-deep text, weight 600 */
+/* active item: primary-light background, primary-deep text, weight 600. A set that fills thematiq's navigation
+ * colours gets those instead (the --thematiq-v-* variables are written only then). */
 #main-menu .op-submenu--item-action.selected, #main-menu .main-menu-item a.selected, #main-menu .selected > a {
-  background: var(--thematiq-primary-light); color: var(--thematiq-primary-deep); font-weight: 600;
+  background: var(--thematiq-v-nav-active-wash, var(--thematiq-primary-light));
+  color: var(--thematiq-v-nav-active-ink, var(--thematiq-primary-deep)); font-weight: 600;
 }
 
 /* group title: 12 px weight 600, uppercase, letter-spacing 0.06em, muted */

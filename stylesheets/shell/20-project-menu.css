@@ -136,8 +136,8 @@
   margin-left: auto;
   padding: 0 6px;
   border-radius: 11px;
-  background: var(--thematiq-primary-light);
-  color: var(--thematiq-primary-deep);
+  background: var(--thematiq-v-nav-badge-bg, var(--thematiq-primary-light));
+  color: var(--thematiq-v-nav-badge-ink, var(--thematiq-primary-deep));
   font-size: 12px;
   font-weight: 700;
   line-height: 1;

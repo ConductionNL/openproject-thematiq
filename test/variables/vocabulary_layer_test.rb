@@ -136,6 +136,18 @@ class VocabularyLayerTest < Minitest::Test
     assert_includes blocks(css).fetch("[data-color-mode]"), "--thematiq-v-table-head-weight: 400;"
   end
 
+  def test_the_navigation_draws_a_wash_with_its_label_and_stays_off_a_coloured_menu
+    nav = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000",
+            "component-navigation-badge-background-color" => "#cc0000", "component-navigation-badge-color" => "#ffffff" }
+    body = light(nav)
+
+    assert_includes body, "--thematiq-v-nav-active-wash: color-mix(in srgb, #cc0000 16%, var(--thematiq-surface));"
+    assert_includes body, "--thematiq-v-nav-active-ink: #a30000;"
+    assert_includes body, "--thematiq-v-nav-badge-bg: #cc0000;"
+    assert_includes body, "--thematiq-v-nav-badge-ink: #ffffff;"
+    refute_includes light(nav, { "menu" => "#102030" }), "--thematiq-v-nav-"
+  end
+
   # The geometry layer reads every vocabulary variable with the canon's value as fallback, so a set without
   # vocabulary looks exactly as before.
   def test_the_geometry_layer_falls_back_to_the_canon
