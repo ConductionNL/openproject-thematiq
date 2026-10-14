@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 113 |
+| in plugin | 118 |
 | being built | 0 |
-| to build, as is | 15 |
-| to build, adapted | 34 |
+| to build, as is | 12 |
+| to build, adapted | 32 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **49 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 32 S, 14 M and 3 L.
+1. **44 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 30 S, 11 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -111,7 +111,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
-| `aut-upload-css` | Upload your own house style as a CSS file of design tokens | `specs/custom-token-sets` | to build, adapted | A thematiq CSS file has the full vocabulary. The plugin needs the mapping to 18 roles, which today is PHP in thematiq (`ShellTokenController`) | M |
+| `aut-upload-css` | Upload your own house style as a CSS file of design tokens | `specs/custom-token-sets` | in plugin | #83: a CSS file of design tokens as thematiq writes a token set, light and dark, becomes a custom design system with a report of what was left out |  |
 | `aut-upload-dtcg` | Upload your own house style as a W3C Design Tokens (DTCG) JSON file | `specs/custom-token-sets` | in plugin | #36: "Upload from Figma" reads W3C design tokens and Tokens Studio files (`docs/figma.md`), the vocabulary included (#55) |  |
 | `aut-upload-validate` | Get told on upload which tokens are missing or invalid before the set is accepted | `specs/custom-token-sets` | in plugin | #10: an imported file is checked strictly and refused with a reason. #36 lists what it skipped and why |  |
 | `aut-upload-security` | Be protected from uploaded styles that could run script or load outside resources (unsafe content is refused with reasons) | `specs/custom-token-sets` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` |  |
@@ -124,18 +124,18 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-token-live` | See an edited token take effect immediately, before saving | `specs/token-editor-ui` | in plugin | #35: a script with OpenProject's nonce draws the preview while you type |  |
 | `aut-overrides-persist` | Save your token edits so they survive a restart and apply to everyone (thematiq has this in part) | `specs/custom-css-overrides` | in plugin | #8: "Save and apply" keeps the name, the base and the overrides |  |
 | `aut-overrides-import-export` | Export your token edits as a file and import them again on another instance | `specs/token-import-export` | in plugin | #10 and the Figma formats of #36 |  |
-| `aut-custom-css` | Add your own free-form CSS rules for things tokens cannot express | `specs/custom-css-freeform` | to build, as is | Needs the sanitiser first | S |
-| `aut-custom-css-sanitise` | Have free-form CSS checked on the server before it is saved, with unsafe rules refused | `specs/custom-css-freeform` | to build, as is | Port thematiq's CSS sanitiser from PHP to Ruby | M |
+| `aut-custom-css` | Add your own free-form CSS rules for things tokens cannot express | `specs/custom-css-freeform` | in plugin | #83: "Your own CSS", off by default, served last on every page |  |
+| `aut-custom-css-sanitise` | Have free-form CSS checked on the server before it is saved, with unsafe rules refused | `specs/custom-css-freeform` | in plugin | #83: an allow-list parser: rules and @media only, no url(), no escapes, no markup; the CSS is written anew from checked parts and one bad part refuses all |  |
 | `aut-component-scoped` | Change the tokens of one component type (for example buttons) without changing the global palette | `specs/component-tokens` | to build, adapted | #59 draws thematiq's button component tokens on Primer's buttons. Other components have no tokens of their own yet. See question 4 | M |
 | `aut-dark-variant-auto` | Get a dark variant of your house style derived automatically | `specs/dark-mode` | in plugin | The catalogue carries the dark blocks thematiq derives (#27, #66). The plugin itself derives nothing: a custom design system keeps its base's dark values, and #68 takes dark values by hand |  |
-| `aut-semantic-aliases` | Define tokens as references to other tokens so one change flows through the semantic layer (thematiq has this in part) | `specs/custom-token-sets` | to build, as is | #36 resolves references in curly braces when a Figma file is read, so the stored set holds values, not references | S |
+| `aut-semantic-aliases` | Define tokens as references to other tokens so one change flows through the semantic layer (thematiq has this in part) | `specs/custom-token-sets` | to build, adapted | #36 and #83 follow references in curly braces and `var()` when a file is read; a stored design system keeps values, not references | S |
 | `aut-multi-brand-themes` | Maintain several brands or themes in one token source and switch between them | `specs/theming-audit` | in plugin | #6, #13: one catalogue file holds every set |  |
 | `aut-git-sync` | Store and version the token source in a Git repository with pull requests | `specs/theme-as-code` | in plugin | `data/catalogue/shell-catalogue.json` lives in the repository |  |
 | `aut-colour-only-ui` | Set a brand with nothing more than a primary colour, a background colour and a logo in a simple form | `specs/simple-brand-form` | in plugin | #71: "Start from your colours": a name, a main and a background colour open in the editor, unsaved; a logo is added once it is saved |  |
-| `aut-motion-tokens` | Define motion, duration and easing as tokens of the house style | `specs/dark-mode` | to build, adapted | The vocabulary carries `animation-quick` and `animation-slow` (#54). OpenProject has no motion variables to draw them on | S |
+| `aut-motion-tokens` | Define motion, duration and easing as tokens of the house style | `specs/dark-mode` | in plugin | #83: `animation-quick` and `animation-slow` reach the plugin's own animation. OpenProject has no motion variables of its own to draw them on |  |
 | `aut-broken-reference-list` | See one list of every broken token reference in the house style before publishing it | `specs/custom-token-sets` | in plugin | #36: the upload report names every reference it could not follow, and why |  |
 | `aut-light-dark-values` | Give a colour token separate light and dark values in the house style editor | `specs/dark-mode` | in plugin | #68: a dark field under every colour, roles and vocabulary alike. Empty keeps the base's dark value, else OpenProject's own |  |
-| `aut-add-token` | Add a new design token from the house style editor without changing the theme code | `specs/theming-audit` | to build, adapted | The vocabulary widened the set to 185 values (#54), but an administrator cannot add one. See question 4 | M |
+| `aut-add-token` | Add a new design token from the house style editor without changing the theme code | `specs/theming-audit` | in plugin | #83: own tokens as `--thematiq-org-<name>`, light and dark, listed at `/thematiq/api/v1/own-tokens` |  |
 | `aut-alpha-hex` | Set colour tokens with transparency using 8-digit hex values | `specs/dark-mode` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` accepts 4 and 8 digit hex. #68 adds an opacity control per colour |  |
 | `aut-component-preview` | See your own components rendered with the house style tokens while you build them, before publishing | `specs/own-component-preview` | to build, adapted | With `app-component-playground` | S |
 | `x-action-colour` | Give the main button a colour of its own, apart from the brand colour (newer than thematiq's list) | `changes/action-colour-token` | in plugin | `lib/open_project/thematiq/variables/generator.rb`: the `action` and `action-deep` roles |  |
