@@ -121,7 +121,8 @@ module OpenProject
           component-table-header-background-color component-table-header-color component-table-border-color
           component-table-row-hover-background-color component-content-surface-background-color component-table-header-font-weight
           component-navigation-active-background-color component-navigation-active-color component-navigation-badge-background-color
-          component-navigation-badge-color
+          component-navigation-badge-color component-heading-1-font-size component-heading-2-font-size component-heading-3-font-size
+          component-heading-4-font-size component-heading-5-font-size component-heading-6-font-size body-font-family
         ].freeze
 
         module_function

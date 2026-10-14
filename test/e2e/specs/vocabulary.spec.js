@@ -118,4 +118,19 @@ test.describe("vocabulary", () => {
     await expect(count).toHaveCSS("background-color", "rgb(204, 0, 0)");
     await expect(count).toHaveCSS("color", "rgb(255, 255, 255)");
   });
+
+  test("heading sizes and the body font", async ({ page }) => {
+    const id = await importSet(page, { ...BASE, name: `E2E vocabulary headings ${Date.now()}`,
+                                       vocabulary: { "component-heading-2-font-size": "30px", "body-font-family": "Georgia, serif" } });
+    await applySet(page, id);
+
+    await page.goto(PICKER);
+    expect(await variable(page, "--h2-size")).toBe("30px");
+    expect(await variable(page, "--h1-size"), "a size the set leaves out stays unset, so OpenProject's fallback holds").toBe("");
+    await expect(page.locator("body")).toHaveCSS("font-family", "Georgia, serif");
+    // A heading of OpenProject's own in the content reads the size: an h2 of the page.
+    const size = await page.evaluate(() => { const h = document.createElement("h2"); h.textContent = "x"; document.querySelector("#content").appendChild(h);
+                                             const value = getComputedStyle(h).fontSize; h.remove(); return value; });
+    expect(size).toBe("30px");
+  });
 });

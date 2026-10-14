@@ -200,7 +200,14 @@ module OpenProject
           "--borderRadius-small" => %w[border-radius-small],
           "--borderRadius-full" => %w[border-radius-pill],
           # The weight of the table header's text, in every theme. The geometry layer falls back to the canon's 600.
-          "--thematiq-v-table-head-weight" => %w[component-table-header-font-weight]
+          "--thematiq-v-table-head-weight" => %w[component-table-header-font-weight],
+          # Headings: Primer's --h1-size to --h6-size, which OpenProject 17.9.1 never sets and reads with a fallback
+          # (h1 and the .h1 to .h6 and .f1 to .f6 classes from 768 px up). A set that leaves them out keeps those.
+          "--h1-size" => %w[component-heading-1-font-size], "--h2-size" => %w[component-heading-2-font-size],
+          "--h3-size" => %w[component-heading-3-font-size], "--h4-size" => %w[component-heading-4-font-size],
+          "--h5-size" => %w[component-heading-5-font-size], "--h6-size" => %w[component-heading-6-font-size],
+          # The body text's own font, where thematiq gives one apart from the font of the whole set.
+          "--body-font-family" => %w[body-font-family]
         }.freeze
 
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
