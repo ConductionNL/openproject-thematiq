@@ -261,6 +261,10 @@ A task that changes the setup leaves a row in the history.
 
 Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design system, for example `zuiddrecht`. It wins over the admin page, which then says so and turns Apply off. An id that is not there is ignored, and the admin page and the health report say so. `docker/compose.yml` passes the variable through: `THEMATIQ_DESIGN_SYSTEM=zuiddrecht docker compose -f docker/compose.yml up -d`.
 
+### Metrics
+
+Set `THEMATIQ_METRICS_TOKEN` to a secret of 24 characters or more, and `GET /thematiq/metrics` answers Prometheus' text format to a scraper that sends `Authorization: Bearer <token>`: whether the plugin is healthy, the design system in use, the counts of custom design systems, scopes and history rows. Without the variable the address answers 404. It opens no connection itself: the scraper comes to it.
+
 ### Health
 
 `GET /admin/thematiq/health`, for an administrator, answers JSON: the version, the catalogue, the design system in use, whether the plugin's tables are there and whether a core file the shell leans on changed. The status is 200 when all is well and 503 with a list of problems otherwise. `rake thematiq:health` gives the same without a session.
