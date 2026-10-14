@@ -170,9 +170,17 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 
 1. Open **Administration**, then **Thematiq design**.
 2. Type part of a name in **Search design systems** and select **Search**, or scroll the list.
-3. Select a design system and select **Apply**.
+3. Select a design system and select **Apply**. A page shows what changes: the shell now and after, and every value that differs, light and dark. Nothing is applied yet.
+4. Untick a value to keep its value of now. Then the result is saved as a new custom design system.
+5. Select **Apply**. The page repaints at once. Everyone else sees the design system on their next page.
 
-Everyone sees the chosen design system on their next page.
+### Try a design system first
+
+On the page of step 3, select **Try it yourself first**. Only you see that design system, on every page, until you select **Publish to everyone** or **Discard** in the banner at the foot of the page. A trial ends by itself after a day.
+
+### Go back to an earlier version
+
+Every change is kept in **History**, a link on **Thematiq design**: when, who, and what. Select **Restore** next to a change. A page lists what the restore changes. Nothing is written until you select **Restore this version**. A restore is a change of its own, so it can be undone too. Uploaded logos, icons and fonts are not part of a version.
 
 ### Edit a design system
 
