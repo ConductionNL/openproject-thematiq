@@ -21,6 +21,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `shell.spec.js` | The two-layer project menu, the row of tiles, Home and `/my/page`, the sizes of the canon |
 | `top-bar.spec.js` | The field for the tiles of the top bar: an own row shows in its order, no row shows no tiles, an empty own row is refused |
 | `api.spec.js` | The read endpoints for a signed-in person, and thematiq's shell-tokens answer without a session |
+| `account-menu.spec.js` | The account menu is a dropdown under the avatar: a click, the pointer and the keyboard open it, Escape returns the focus, core's entries, no Administration for a member, 390 px |
 | `app-switcher.spec.js` | The list under the nine-dot button: heading, two columns, a second line, the current entry, Manage apps, `aria-expanded`, arrow keys and Escape; one column without a Nextcloud address |
 | `library.spec.js` | A font in the library loads for a design system that names its family |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
