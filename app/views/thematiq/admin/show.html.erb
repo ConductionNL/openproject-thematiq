@@ -149,6 +149,28 @@
 <% end %>
 
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-short-form") { t("thematiq.short_form.title") }
+end %>
+<%# thematiq's short form: a name and two colours. The rest is worked out and opens in the editor, unsaved. %>
+<%= form_with(url: admin_thematiq_from_colours_path, method: :post, data: { turbo: false }, id: "thematiq-short-form-form",
+              class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.short_form.hint") %></p>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-short-name"><%= t("thematiq.editor.name") %></label>
+    <input type="text" name="name" id="thematiq-short-name" class="FormControl-input FormControl-medium" maxlength="80" required>
+  </div>
+  <% [["primary", "#1a67a3"], ["background", "#ffffff"]].each do |field, example| %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-short-<%= field %>"><%= t("thematiq.short_form.#{field}") %></label>
+      <input type="color" name="<%= field %>" id="thematiq-short-<%= field %>" value="<%= example %>" required
+             aria-describedby="thematiq-short-<%= field %>-hint">
+      <p class="thematiq-editor__hint" id="thematiq-short-<%= field %>-hint"><%= t("thematiq.short_form.#{field}_hint") %></p>
+    </div>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.short_form.submit") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium) { t("thematiq.transfer.import_title") }
 end %>
 

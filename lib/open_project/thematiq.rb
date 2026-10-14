@@ -34,6 +34,7 @@ module OpenProject
     require "open_project/thematiq/bundle"
     require "open_project/thematiq/diff"
     require "open_project/thematiq/trial"
+    require "open_project/thematiq/short_form"
 
     # The token set the page being drawn is styled with: the page's own when the head hooks worked it out
     # (PageScope, a design system per project), else the instance's.

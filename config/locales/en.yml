@@ -59,6 +59,16 @@ en:
       trial_hint: "Only you see the design system, on every page, until you publish or discard it, or for a day at most."
       kept_name: "%{name}, with values kept"
       failed: "The page could not repaint itself, so it loads again."
+    short_form:
+      title: "Start from your colours"
+      hint: "Give a name, your main colour and a background colour. The plugin works out the shades, opens the result in the editor and saves nothing yet. Add a logo once it is saved."
+      primary: "Main colour"
+      primary_hint: "The top bar, the main button and links. A darker shade of it is used for links when the colour itself is too light to read."
+      background: "Background colour"
+      background_hint: "The background of the pages."
+      submit: "Open in the editor"
+      notice_drafted: "These values are worked out from your two colours. Nothing is saved yet: check the values and their contrast, then select \"Save and apply\"."
+      error_colours: "Choose two colours as six digit hex values, for example #1a67a3."
     trial:
       region: "Design system on trial"
       banner: "Trial: %{name}."

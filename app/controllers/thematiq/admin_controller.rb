@@ -94,6 +94,21 @@ module Thematiq
       @stored = !@store.custom_draft(@draft.id).nil?
     end
 
+    # "Start from your colours": a name and two colours give a draft that opens in the editor, unsaved.
+    def from_colours
+      overrides = OpenProject::Thematiq::ShortForm.derive(primary: params[:primary], background: params[:background])
+      unless overrides && @store.next_custom_id
+        flash[:error] = t(overrides ? "thematiq.transfer.errors.too_many" : "thematiq.short_form.error_colours")
+        return redirect_to action: :show, anchor: "thematiq-short-form"
+      end
+
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: params[:name].to_s.first(80), overrides:,
+                                                      id: @store.next_custom_id)
+      @stored = false
+      flash.now[:notice] = t("thematiq.short_form.notice_drafted")
+      render :edit
+    end
+
     # One form posts here with several named buttons. Rails binds a CSRF token to one form action,
     # so preview, reset and delete are buttons on the same action and not URLs of their own.
     def update_custom
