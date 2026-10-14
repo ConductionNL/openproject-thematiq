@@ -321,3 +321,83 @@ end %>
   </fieldset>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.scopes.admin.save") } %>
 <% end %>
+
+<% marker = @store.environment_marker %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-marker") { t("thematiq.marker.title") }
+end %>
+<%= form_with(url: admin_thematiq_marker_path, method: :post, data: { turbo: false }, id: "thematiq-marker-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.marker.hint", variable: OpenProject::Thematiq::Store::ENVIRONMENT_LABEL_KEY) %></p>
+  <% if marker && marker["from_environment"] %>
+    <p class="thematiq-editor__hint" data-test-selector="thematiq-marker-environment"><%= t("thematiq.marker.from_environment", variable: OpenProject::Thematiq::Store::ENVIRONMENT_LABEL_KEY) %></p>
+  <% end %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-marker-label"><%= t("thematiq.marker.label") %></label>
+    <input type="text" name="environment_label" id="thematiq-marker-label" class="FormControl-input FormControl-medium" maxlength="30"
+           value="<%= marker && !marker["from_environment"] ? marker["label"] : "" %>" aria-describedby="thematiq-marker-label-hint">
+    <p class="thematiq-editor__hint" id="thematiq-marker-label-hint"><%= t("thematiq.marker.label_hint") %></p>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-marker-colour"><%= t("thematiq.marker.colour") %></label>
+    <input type="color" name="environment_colour" id="thematiq-marker-colour" value="<%= marker && marker["colour"].to_s.match?(/\A#\h{6}\z/) ? marker["colour"] : OpenProject::Thematiq::Store::MARKER_COLOUR %>">
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.marker.save") } %>
+<% end %>
+
+<% deprecations = @store.deprecations %>
+<% key_label = ->(key) { OpenProject::Thematiq::Tokens::Vocabulary.key?(key) ? "#{t("thematiq.vocabulary.#{key}")} (#{key})" : "#{t("thematiq.tokens.#{key}.label")} (#{key})" } %>
+<% key_options = OpenProject::Thematiq::Editor::KINDS.keys.map { |key| [key_label.call(key), key] } %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-deprecations") { t("thematiq.deprecations.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.deprecations.hint") %></p>
+<% if deprecations.any? %>
+  <table class="thematiq-history" data-test-selector="thematiq-deprecations">
+    <thead><tr><th scope="col"><%= t("thematiq.deprecations.key") %></th><th scope="col"><%= t("thematiq.deprecations.severity") %></th>
+      <th scope="col"><%= t("thematiq.deprecations.replacement") %></th><th scope="col"><%= t("thematiq.deprecations.removal") %></th>
+      <th scope="col"><span class="sr-only"><%= t("thematiq.deprecations.remove") %></span></th></tr></thead>
+    <tbody>
+      <% deprecations.each do |entry| %>
+        <tr data-thematiq-deprecation="<%= entry["key"] %>">
+          <td><%= key_label.call(entry["key"]) %><% if entry["message"] %><br><span class="color-fg-muted"><%= entry["message"] %></span><% end %></td>
+          <td><%= t("thematiq.deprecations.severities.#{entry["severity"]}") %></td>
+          <td><%= entry["replacement"] ? key_label.call(entry["replacement"]) : "" %></td>
+          <td><%= entry["removal"] %><% if entry["due"] %> <strong><%= t("thematiq.deprecations.due") %></strong><% end %></td>
+          <td>
+            <%= form_with(url: admin_thematiq_deprecations_path, method: :post, data: { turbo: false }) do %>
+              <input type="hidden" name="remove" value="<%= entry["key"] %>">
+              <%= render(Primer::Beta::Button.new(type: :submit, size: :small, "aria-label": t("thematiq.deprecations.remove_label", key: entry["key"]))) { t("thematiq.deprecations.remove") } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+<%= form_with(url: admin_thematiq_deprecations_path, method: :post, data: { turbo: false }, id: "thematiq-deprecation-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-key"><%= t("thematiq.deprecations.key") %></label>
+    <select name="key" id="thematiq-deprecation-key" class="FormControl-select FormControl-medium"><%= options_for_select(key_options) %></select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-severity"><%= t("thematiq.deprecations.severity") %></label>
+    <select name="severity" id="thematiq-deprecation-severity" class="FormControl-select FormControl-medium">
+      <%= options_for_select(OpenProject::Thematiq::Store::SEVERITIES.map { |severity| [t("thematiq.deprecations.severities.#{severity}"), severity] }, "warning") %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-replacement"><%= t("thematiq.deprecations.replacement") %></label>
+    <select name="replacement" id="thematiq-deprecation-replacement" class="FormControl-select FormControl-medium">
+      <%= options_for_select([[t("thematiq.deprecations.no_replacement"), ""]] + key_options) %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-removal"><%= t("thematiq.deprecations.removal") %></label>
+    <input type="date" name="removal" id="thematiq-deprecation-removal" class="FormControl-input FormControl-medium" min="<%= Date.today.iso8601 %>">
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-message"><%= t("thematiq.deprecations.message") %></label>
+    <input type="text" name="message" id="thematiq-deprecation-message" class="FormControl-input FormControl-medium" maxlength="200">
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.deprecations.save") } %>
+<% end %>

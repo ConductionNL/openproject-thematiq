@@ -88,3 +88,4 @@
 .thematiq-signin__card { display: flex; flex-direction: column; gap: 10px; width: 260px; max-width: calc(100% - 32px); margin: 24px auto; padding: 20px; box-sizing: border-box; background: white; border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius-lg); }
 .thematiq-signin__title { font-size: 18px; font-weight: 700; }
 .thematiq-signin .thematiq-shell__input { max-width: none; }
+.thematiq-editor__deprecated { margin: 6px 0 0; padding: 4px 8px; font-size: 13px; border-left: 3px solid var(--borderColor-attention-emphasis, currentColor); }

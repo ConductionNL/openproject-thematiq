@@ -1,0 +1,6 @@
+/* The environment marker: a label at the top of every page, such as "Test". Its colours come from the element's own
+ * style attribute, which the plugin writes from checked values. It catches no clicks. */
+.thematiq-environment { position: fixed; z-index: 1001; top: 0; left: 50%; transform: translateX(-50%); padding: 2px 14px;
+  background: var(--tq-environment); color: var(--tq-environment-text); font-size: 12px; font-weight: 700; line-height: 18px;
+  letter-spacing: .04em; text-transform: uppercase; border-radius: 0 0 6px 6px; pointer-events: none; }
+@media (forced-colors: active) { .thematiq-environment { border: 1px solid CanvasText; } }

@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 108 |
+| in plugin | 110 |
 | being built | 0 |
-| to build, as is | 16 |
-| to build, adapted | 38 |
+| to build, as is | 15 |
+| to build, adapted | 37 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **54 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 36 S, 15 M and 3 L.
+1. **52 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 34 S, 15 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -247,8 +247,8 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `gov-app-store-install` | Install and update the theming from the platform's app store | `appinfo/info.xml` | in plugin | OpenProject has no plugin store. #74 prepares version 0.2.0 with a changelog; publishing the gem and an image is the owner's step |  |
 | `gov-open-source` | Use, inspect and change the theming software under an open source licence | `specs/claim-accuracy` | in plugin | `LICENSE` (EUPL-1.2) |  |
 | `gov-licence-clarity` | See the licence of every bundled font and asset stated in the product | `specs/claim-accuracy` | in plugin | #15: a licence per logo and font in the catalogue (`docs/logos-and-fonts.md`) |  |
-| `gov-environment-marker` | Show a visible difference between the test and the production environment, so nobody works in the wrong one | `specs/config-portability` | to build, as is |  | S |
-| `gov-token-deprecation` | Mark a token as deprecated with a severity, a replacement token and a removal date, so teams that consume the house style see it before it disappears | `specs/theming-audit` | to build, adapted | The catalogue has a `version`. Mark a role as deprecated there | S |
+| `gov-environment-marker` | Show a visible difference between the test and the production environment, so nobody works in the wrong one | `specs/config-portability` | in plugin | #79: a label on every page, the sign-in page included, from the admin page or `THEMATIQ_ENVIRONMENT_LABEL` |  |
+| `gov-token-deprecation` | Mark a token as deprecated with a severity, a replacement token and a removal date, so teams that consume the house style see it before it disappears | `specs/theming-audit` | in plugin | #79: a deprecation per token with severity, replacement and removal date; shown in the editor, listed at `/thematiq/api/v1/deprecations`, never acted on |  |
 | `gov-lock-per-space` | Lock the organisation theme on selected sites or spaces, so their owners cannot change the branding, while other spaces keep their freedom | `specs/per-group-theming` | to build, adapted | #67: projects choose only when the instance allows it, from a list. A lock per project is not built | S |
 | `gov-no-public-cdn` | Use the brand center and its branding governance without publishing brand assets on a public content delivery network | `specs/custom-fonts` | in plugin | #5: nothing in the plugin opens a connection (`test/no_network_test.rb`) |  |
 | `gov-central-brand-library` | Keep one house style in a central library that many sites or departments on the instance use, edited only by the brand team | `specs/admin-settings` | in plugin | #67: the instance's design systems are the library projects choose from, and only an instance admin authors them |  |

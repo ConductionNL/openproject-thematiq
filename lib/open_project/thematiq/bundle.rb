@@ -23,7 +23,8 @@ module OpenProject
       MAX_SCOPES = 5000
 
       # The settings a bundle carries. Anything else in the plugin's settings is not part of the setup.
-      SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps].freeze
+      SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
+                        environment_label environment_colour deprecations].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -53,6 +54,21 @@ module OpenProject
       # The JSON text of a bundle, for a download or a version.
       def self.dump(bundle)
         JSON.pretty_generate(bundle)
+      end
+
+      # A store that writes nowhere, for checking values by the store's own rules.
+      class ProbeBackend
+        def initialize
+          @data = {}
+        end
+
+        def read
+          @data
+        end
+
+        def write(data)
+          @data = data
+        end
       end
 
       # A checked bundle. settings are ready to store, scopes name projects by identifier.
@@ -119,6 +135,29 @@ module OpenProject
 
         apps = settings["top_bar_apps"]
         raise Refused, "top_bar_apps" unless apps.nil? || (apps.is_a?(String) && apps.length <= 500)
+
+        check_marker_and_deprecations(settings)
+      end
+
+      # The environment marker and the deprecations, checked by the store's own rules on a store of their own.
+      def self.check_marker_and_deprecations(settings)
+        probe = Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {})
+        label = settings["environment_label"]
+        unless label.nil? && settings["environment_colour"].nil?
+          raise Refused, "environment_marker" unless label.is_a?(String) && probe.save_environment_marker(label, settings["environment_colour"])
+        end
+        deprecations = settings["deprecations"]
+        return if deprecations.nil?
+        raise Refused, "deprecations" unless deprecations.is_a?(Hash) && deprecations.size <= Store::MAX_DEPRECATIONS
+
+        deprecations.each do |key, entry|
+          raise Refused, "deprecations" unless entry.is_a?(Hash)
+
+          # A version keeps a date that has passed since: that is a due deprecation, not a broken one.
+          code = probe.save_deprecation(key:, severity: entry["severity"], replacement: entry["replacement"],
+                                        removal: entry["removal"], message: entry["message"], today: Date.new(2000, 1, 1))
+          raise Refused, "deprecations" if code
+        end
       end
 
       def self.check_scopes(scopes, known, project_exists)
