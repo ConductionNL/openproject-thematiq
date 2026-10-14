@@ -113,6 +113,27 @@ The address is one optional plugin setting: the key `nextcloud_url` in `Setting.
 
 OpenProject opens these links in a new tab, because its link handling treats another host as external.
 
+## Sign-in page
+
+The design is the sign-in board of Nextcloud Zuiddrecht (`werkplek/NcLogin`), so both products open the same way. `Shell::SignIn` builds it without an override.
+
+| Item in the design | Mechanism | Status |
+|---|---|---|
+| No top bar | CSS hides the bar on the pages of the account controller (`body.controller-account`): sign in, lost password, registration and activation | Built |
+| The ground colour, everything in the middle | CSS on core's page frame | Built |
+| The logo above the card, 56 px | Hook `view_account_login_top`: the design system's plain logo, or the name of OpenProject without one | Built |
+| The emblem large and faint behind it | The same hook, for a design system with an emblem | Built |
+| The card: 420 px, the brand stripe on top, 32 px inside | CSS on core's `#login-form` | Built |
+| A line under the heading that says who signs in | The same hook renders it; a small script with the page's nonce moves it under core's heading. Only for a design system with an emblem, the mark of an organisation | Built |
+| The fields, the button, the links | Core's own form, restyled: 44 px fields, the button full width, the links centred under it | Built |
+| A line under the card | Hook `view_account_login_bottom` | Built |
+
+Differences from the design:
+
+- **The heading is core's**, "Sign in", where the design says "Sign in to the workplace". It is core's text in every language.
+- **The organisation's own sign-in button** in the design is a single sign-on provider. OpenProject shows its providers in that place when one is set up; this instance has none, so the password button is the only one, plain as in the design.
+- **"Create a new account"** is core's link when self-registration is on. The design has no such link.
+
 ## Project menu: item by item
 
 | Item in the design | Mechanism | Status |

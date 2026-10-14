@@ -14,6 +14,7 @@ module OpenProject
     #   Shell::AppRow         which apps and modules the top bar shows as icons
     #   Shell::AppSwitcher    the list under the nine-dot button, in place of core's
     #   Shell::Logo           the logo of the active design system, as a CSS rule
+    #   Shell::SignIn         the sign-in page as Nextcloud draws it, from two hooks and a stylesheet
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
     module Shell
@@ -50,6 +51,7 @@ module OpenProject
         require "open_project/thematiq/shell/nextcloud_apps"
         require "open_project/thematiq/shell/app_row"
         require "open_project/thematiq/shell/logo"
+        require "open_project/thematiq/shell/sign_in"
         require "open_project/thematiq/shell/top_bar"
         require "open_project/thematiq/shell/app_switcher"
 

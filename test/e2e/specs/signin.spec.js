@@ -16,18 +16,29 @@ test.describe("visitor", () => {
 
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("the sign-in page is themed", async ({ page }) => {
+  // The sign-in page as Nextcloud Zuiddrecht draws it (werkplek/NcLogin): no top bar, the logo above a card on the
+  // ground colour, core's own form in the card.
+  test("the sign-in page is themed and has no top bar", async ({ page }) => {
     await page.goto("/login");
     await expect(page.locator("style#openproject-thematiq")).toHaveCount(1);
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(bar));
-    await expect(page.locator(".op-app-header")).toHaveCSS("height", "68px");
+    await expect(page.locator(".op-app-header")).toBeHidden();
+    await expect(page.locator("#content-wrapper")).toHaveCSS("background-color", rgb(tokens.ground));
+    const card = page.locator("#login-form");
+    await expect(card).toBeVisible();
+    expect(Math.round((await card.boundingBox()).width)).toBe(420);
+    await expect(page.locator('[data-test-selector="thematiq-sign-in-brand"]')).toBeVisible();
+    // Core's form is untouched: its fields and its button.
+    await expect(card.getByLabel(/Username/)).toBeVisible();
+    await expect(card.getByLabel(/Password/)).toBeVisible();
+    await expect(card.getByRole("button", { name: "Sign in" })).toBeVisible();
     const family = await page.locator("body").evaluate((body) => getComputedStyle(body).fontFamily);
     expect(family.split(",")[0].replace(/["']/g, "").trim()).toBe(tokens["font-family"].split(",")[0].replace(/["']/g, "").trim());
   });
 
   // First full test, finding 20: core's triangle and the shell's chevron both showed next to "Sign in".
+  // The sign-in page has no bar now; a missing page has, with the button for a visitor.
   test("the sign-in button has one arrow", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto("/thematiq-e2e-no-such-page");
     const button = page.locator(".op-app-header--end > button.op-app-menu--item");
     await expect(button).toContainText("Sign in");
     await expect(button.locator(".Button-trailingVisual")).toBeHidden();

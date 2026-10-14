@@ -1,0 +1,17 @@
+<%# The sign-in page as Nextcloud Zuiddrecht draws it (werkplek/NcLogin): the logo above the card, a line under the
+    heading that says who signs in here, and the emblem large and faint behind it. See Shell::SignIn. %>
+<% sign_in = OpenProject::Thematiq::Shell::SignIn.view(OpenProject::Thematiq.active_token_set,
+                                                         root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
+<% if sign_in[:watermark] %>
+  <img class="thematiq-sign-in--watermark" src="<%= sign_in[:watermark] %>" alt="" aria-hidden="true">
+<% end %>
+<div class="thematiq-sign-in--brand" data-test-selector="thematiq-sign-in-brand">
+  <% if sign_in[:logo] %>
+    <img class="thematiq-sign-in--logo" src="<%= sign_in[:logo] %>" alt="<%= sign_in[:organisation] || Setting.app_title %>">
+  <% else %>
+    <span class="thematiq-sign-in--name"><%= Setting.app_title %></span>
+  <% end %>
+</div>
+<% if sign_in[:organisation] %>
+  <p class="thematiq-sign-in--lead" data-thematiq-sign-in-lead><%= t("thematiq.shell.sign_in.lead", organisation: sign_in[:organisation]) %></p>
+<% end %>
