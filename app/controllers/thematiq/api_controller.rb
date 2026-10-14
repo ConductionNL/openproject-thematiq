@@ -56,7 +56,7 @@ module Thematiq
       list = OpenProject::Thematiq::Store.new.deprecations.map do |entry|
         entry.merge("css_name" => css_name(entry["key"]), "replacement_css_name" => entry["replacement"] && css_name(entry["replacement"]))
       end
-      render json: { "version" => OpenProject::Thematiq::ReadApi::VERSION, "deprecations" => list }
+      render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION, "deprecations" => list }
     end
 
     private
