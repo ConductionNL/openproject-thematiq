@@ -1094,7 +1094,12 @@ begin
   menu_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
   menu_member.get "/my/account"
   member_panel = menu_member.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
-  check("a member's account menu has no Administration") { member_panel.include?("/my/account") && !member_panel.include?('/admin"') }
+  # Administration shows exactly when core would show it: the member holds a global role by now in this check.
+  menu_user = User.find_by(login: MEMBER_LOGIN)
+  may_admin = menu_user.allowed_globally?({ controller: "/admin", action: "index" })
+  check("a member's account menu has Administration only as core allows it") do
+    member_panel.include?("/my/account") && member_panel.include?('/admin"') == may_admin
+  end
   signed_out = session_for
   signed_out.get "/thematiq-check-no-such-page"
   check("signed out, core's sign-in menu renders") { !signed_out.response.body.include?('id="thematiq-account-button"') }
