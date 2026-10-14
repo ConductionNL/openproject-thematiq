@@ -96,6 +96,7 @@ en:
       restore_changes: "Restoring this version makes these changes:"
       restore_consequence: "Uploaded logos, icons and fonts are not part of a version: they stay as they are. The restore itself becomes a new entry, so it can be undone."
       restore_confirm: "Restore this version"
+      download: "Download the history as CSV"
       notice_restored: "The version of %{time} is restored."
       actions:
         apply: "Applied a design system"
@@ -115,6 +116,18 @@ en:
         environment: "Set from the environment"
         command_line: "Changed on the command line"
     bundle:
+      title: "The whole setup"
+      hint: "One file with the whole setup: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Use it to move the setup from a test to a production OpenProject. Uploaded logos, icons and fonts are not in it."
+      download: "Download the setup"
+      file: "Configuration file"
+      file_hint: "A file downloaded here or on another OpenProject. The next page shows what it changes, and nothing changes until you confirm."
+      upload: "Read the file"
+      import_title: "Import the setup"
+      import_changes: "This configuration file makes these changes:"
+      import_consequence: "Projects are matched by their identifier. Uploaded logos, icons and fonts stay as they are. The import is a change in the history, so it can be undone."
+      import_confirm: "Import this setup"
+      nothing_changes: "The file holds the setup as it is now. Importing it changes nothing."
+      notice_applied: "The setup from the file is in use."
       changes:
         default: "the default design system"
         inherit: "inherit"
