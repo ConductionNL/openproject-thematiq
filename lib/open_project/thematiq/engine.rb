@@ -16,7 +16,7 @@ module OpenProject
         menu :admin_menu,
              :thematiq_design,
              { controller: "/thematiq/admin", action: :show },
-             if: ->(_) { User.current.admin? },
+             if: ->(_) { User.current.admin? || User.current.allowed_globally?(:manage_design) },
              caption: ->(*) { I18n.t("thematiq.admin.menu") },
              icon: "paintbrush"
 
@@ -42,6 +42,17 @@ module OpenProject
         # A project admin may choose the design system of a project, from the list the instance admin allows,
         # once the instance admin lets projects choose. No role has it until an administrator gives it.
         # Mapped here and not in the register block: OpenProject's access control only loads once the app prepares.
+        # A brand manager who is not an administrator: the global permission "Manage the design" opens the whole
+        # Thematiq design page, and nothing else of the administration. No role has it until an administrator gives it.
+        unless OpenProject::AccessControl.permission(:manage_design)
+          OpenProject::AccessControl.map do |map|
+            map.permission :manage_design,
+                           { "thematiq/admin": ::Thematiq::AdminController.action_methods.map(&:to_sym), admin: %i[index] },
+                           permissible_on: :global,
+                           require: :loggedin
+          end
+        end
+
         unless OpenProject::AccessControl.permission(:choose_design_system)
           OpenProject::AccessControl.map do |map|
             map.project_module nil do
