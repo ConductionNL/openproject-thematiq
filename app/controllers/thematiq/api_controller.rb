@@ -4,7 +4,7 @@ module Thematiq
   # Read endpoints for other apps on this OpenProject: the catalogue for a picker of their own, one design system,
   # its style sheets in cascade order, and a contrast check. For anyone signed in; no administrator rights needed.
   # Nothing here writes. See docs/api.md.
-  class ApiController < ApplicationController
+  class APIController < ApplicationController
     before_action :require_login
     authorization_checked! :sets, :set, :stylesheet, :manifest, :contrast, :deprecations
 
@@ -13,8 +13,8 @@ module Thematiq
       store = OpenProject::Thematiq::Store.new
       active = store.active_token_set.id
       customs = store.custom_drafts.map(&:id)
-      render json: { "version" => OpenProject::Thematiq::ReadApi::VERSION,
-                     "sets" => store.all_sets.map { |set| OpenProject::Thematiq::ReadApi.summary(set, active_id: active, custom: customs.include?(set.id)) } }
+      render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION,
+                     "sets" => store.all_sets.map { |set| OpenProject::Thematiq::ReadAPI.summary(set, active_id: active, custom: customs.include?(set.id)) } }
     end
 
     # One design system in the set shape, as an export holds it.
@@ -41,14 +41,14 @@ module Thematiq
       token_set = find_set
       return head :not_found unless token_set
 
-      render json: { "version" => OpenProject::Thematiq::ReadApi::VERSION, "id" => token_set.id,
+      render json: { "version" => OpenProject::Thematiq::ReadAPI::VERSION, "id" => token_set.id,
                      "stylesheets" => [{ "url" => thematiq_api_stylesheet_url(id: token_set.id), "media" => "all",
                                          "replaces" => %w[openproject-thematiq openproject-thematiq-assets] }] }
     end
 
     # The contrast of two colours, the way the plugin measures it.
     def contrast
-      render json: OpenProject::Thematiq::ReadApi.contrast(params[:foreground], params[:background])
+      render json: OpenProject::Thematiq::ReadAPI.contrast(params[:foreground], params[:background])
     end
 
     # Every deprecated token: what to use instead and by when. due: the date has passed. No user data.
