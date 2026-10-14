@@ -207,7 +207,9 @@ module OpenProject
           "--h3-size" => %w[component-heading-3-font-size], "--h4-size" => %w[component-heading-4-font-size],
           "--h5-size" => %w[component-heading-5-font-size], "--h6-size" => %w[component-heading-6-font-size],
           # The body text's own font, where thematiq gives one apart from the font of the whole set.
-          "--body-font-family" => %w[body-font-family]
+          "--body-font-family" => %w[body-font-family],
+          # Motion. OpenProject has no variable for it, so these reach the plugin's own animations only.
+          "--thematiq-v-animation-quick" => %w[animation-quick], "--thematiq-v-animation-slow" => %w[animation-slow]
         }.freeze
 
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.

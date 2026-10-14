@@ -188,6 +188,37 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-marker"
     end
 
+    # The administrator's own CSS. Checked part by part; one part that does not fit refuses all of it, with reasons.
+    def update_custom_css
+      result = @store.save_custom_css(enabled: params[:custom_css_enabled] == "1", text: params[:custom_css].to_s)
+      if result.ok?
+        record_change("custom_css")
+        flash[:notice] = t(@store.custom_css_enabled? ? "thematiq.custom_css.notice_on" : "thematiq.custom_css.notice_off")
+        redirect_to action: :show, anchor: "thematiq-custom-css"
+      else
+        @custom_css_text = params[:custom_css].to_s.first(OpenProject::Thematiq::CustomCss::MAX_BYTES)
+        @custom_css_errors = result.errors
+        flash.now[:error] = t("thematiq.custom_css.error")
+        show
+        render :show, status: :unprocessable_entity
+      end
+    end
+
+    # An own token, --thematiq-org-<name>, or its removal.
+    def update_own_token
+      if params[:remove].present?
+        @store.delete_own_token(params[:remove].to_s)
+        record_change("own_token", params[:remove].to_s.first(40))
+        flash[:notice] = t("thematiq.own_tokens.notice_removed")
+      elsif (code = @store.save_own_token(name: params[:name], label: params[:label], kind: params[:kind], value: params[:value], dark: params[:dark]))
+        flash[:error] = t("thematiq.own_tokens.errors.#{code}")
+      else
+        record_change("own_token", params[:name].to_s.first(40))
+        flash[:notice] = t("thematiq.own_tokens.notice_saved", name: "--thematiq-org-#{params[:name].to_s.strip}")
+      end
+      redirect_to action: :show, anchor: "thematiq-own-tokens"
+    end
+
     # A deprecation of one token, or its removal. It changes no value: it is a notice for the people who use the tokens.
     def update_deprecation
       if params[:remove].present?
@@ -306,6 +337,28 @@ module Thematiq
       send_data OpenProject::Thematiq::Figma.export(token_set, format:),
                 filename: OpenProject::Thematiq::Figma.file_name(token_set, format),
                 type: "application/json", disposition: "attachment"
+    end
+
+    # Reads a CSS file of design tokens, the way thematiq writes a token set, as a new custom design system, and shows
+    # what was read. Hostile input: CssTokens reads declarations only and checks every value. It never replaces one.
+    def css_upload
+      file = params[:file]
+      text = file.respond_to?(:read) ? file.read(OpenProject::Thematiq::CssTokens::MAX_BYTES + 1).to_s : nil
+      result = OpenProject::Thematiq::CssTokens.read(text)
+      new_id = @store.next_custom_id
+      raise OpenProject::Thematiq::CssTokens::Refused, "too_many_designs" unless new_id
+
+      name = params[:name].to_s.strip.presence || t("thematiq.css_upload.default_name")
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: name.first(80), overrides: result.tokens, id: new_id,
+                                                      dark: result.dark, vocabulary: result.vocabulary, dark_vocabulary: result.dark_vocabulary)
+      raise OpenProject::Thematiq::CssTokens::Refused, "name" unless save_draft(@draft, new: true)
+
+      record_change("import", @draft.name)
+      @css_result = result
+      render :css_report
+    rescue OpenProject::Thematiq::CssTokens::Refused => e
+      flash[:error] = t("thematiq.css_upload.errors.#{CSS_ERRORS.include?(e.code) ? e.code : 'not_css'}")
+      redirect_to action: :show, anchor: "thematiq-css-upload"
     end
 
     # Reads an uploaded Figma token set as a new custom design system and shows what was read.
@@ -506,7 +559,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations].freeze
+                       deprecations custom_css own_tokens].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
@@ -539,6 +592,7 @@ module Thematiq
       Thematiq::Change.record(action, detail:, store: @store)
     end
 
+    CSS_ERRORS = %w[empty too_large not_css too_many nothing_usable too_many_designs name].freeze
     FIGMA_ERRORS = %w[empty too_large too_many_files invalid_json not_an_object too_deep too_many_tokens nothing_usable too_many].freeze
 
     def figma_refused(code)

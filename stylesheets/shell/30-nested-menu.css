@@ -172,7 +172,7 @@
 #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: -2px; }
 
 @media (prefers-reduced-motion: no-preference) {
-  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { transition: transform 0.15s; }
+  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { transition: transform var(--thematiq-v-animation-quick, 0.15s); }
 }
 
 @media (forced-colors: active) {

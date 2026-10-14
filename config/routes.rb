@@ -13,11 +13,15 @@ Rails.application.routes.draw do
   post "admin/thematiq/custom/files", to: "thematiq/admin#update_files", as: :admin_thematiq_custom_files
   get "admin/thematiq/export", to: "thematiq/admin#export", as: :admin_thematiq_export
   post "admin/thematiq/import", to: "thematiq/admin#import", as: :admin_thematiq_import
+  post "admin/thematiq/css", to: "thematiq/admin#css_upload", as: :admin_thematiq_css
   get "admin/thematiq/figma", to: "thematiq/admin#figma", as: :admin_thematiq_figma
   get "admin/thematiq/figma/download", to: "thematiq/admin#figma_download", as: :admin_thematiq_figma_download
   post "admin/thematiq/figma", to: "thematiq/admin#figma_upload"
   post "admin/thematiq/shell", to: "thematiq/admin#update_shell", as: :admin_thematiq_shell
   post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
+  post "admin/thematiq/custom-css", to: "thematiq/admin#update_custom_css", as: :admin_thematiq_custom_css
+  post "admin/thematiq/own-tokens", to: "thematiq/admin#update_own_token", as: :admin_thematiq_own_tokens
+  get "thematiq/api/v1/own-tokens", to: "thematiq/api#own_tokens", as: :thematiq_api_own_tokens, format: false
   post "admin/thematiq/marker", to: "thematiq/admin#update_environment_marker", as: :admin_thematiq_marker
   post "admin/thematiq/deprecations", to: "thematiq/admin#update_deprecation", as: :admin_thematiq_deprecations
   get "thematiq/api/v1/deprecations", to: "thematiq/api#deprecations", as: :thematiq_api_deprecations, format: false

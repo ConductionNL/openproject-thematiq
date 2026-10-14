@@ -1070,6 +1070,53 @@ begin
   else
     check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
   end
+
+  # 20. A CSS file of design tokens
+  css_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  css_member.post "/admin/thematiq/css", params: { file: upload.call(":root { --nldesign-color-primary: #aa0055; }") }
+  check("a non-admin cannot upload a CSS file") { [403, 422].include?(css_member.response.status) }
+  css_before = OpenProject::Thematiq::Store.new.custom_drafts.size
+  css_token = form_token(admin, "/admin/thematiq", "thematiq-css-upload")
+  admin.post "/admin/thematiq/css", params: { file: upload.call(":root { --nldesign-color-primary: #aa0055; --x: </style><script>alert(1)</script>; }"),
+                                              name: "Check CSS", authenticity_token: css_token }
+  check("a CSS file becomes a custom design system, and its report escapes what it names") do
+    admin.response.status == 200 && !admin.response.body.include?("<script>alert(1)</script>") &&
+      OpenProject::Thematiq::Store.new.custom_drafts.size == css_before + 1
+  end
+  OpenProject::Thematiq::Store.new.custom_drafts.select { |draft| draft.name == "Check CSS" }.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+
+  # 21. Your own CSS
+  own_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  own_member.post "/admin/thematiq/custom-css", params: { custom_css: "a { color: red; }", custom_css_enabled: "1" }
+  check("a non-admin cannot set CSS") { [403, 422].include?(own_member.response.status) && OpenProject::Thematiq::Store.new.served_custom_css.nil? }
+  own_token = form_token(admin, "/admin/thematiq", "thematiq-custom-css-form")
+  admin.post "/admin/thematiq/custom-css", params: { custom_css: "a { color: red; } </style><script>alert(1)</script>", custom_css_enabled: "1", authenticity_token: own_token }
+  check("markup refuses the CSS with 422 and escapes it on the page") do
+    admin.response.status == 422 && !admin.response.body.include?("<script>alert(1)</script>") && OpenProject::Thematiq::Store.new.served_custom_css.nil?
+  end
+  own_token = form_token(admin, "/admin/thematiq", "thematiq-custom-css-form")
+  admin.post "/admin/thematiq/custom-css", params: { custom_css: ".op-app-header { outline: 1px solid red; }", custom_css_enabled: "1", authenticity_token: own_token }
+  own_view = session_for
+  own_view.get "/login"
+  check("the CSS is served last, on the sign-in page too") do
+    body = own_view.response.body
+    body.include?('<style id="openproject-thematiq-custom"') && body.index('id="openproject-thematiq-custom"') > body.index('id="openproject-thematiq"')
+  end
+  OpenProject::Thematiq::Store.new.save_custom_css(enabled: false, text: "")
+
+  # 22. Own tokens
+  token_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  token_member.post "/admin/thematiq/own-tokens", params: { name: "x", kind: "color", value: "red" }
+  check("a non-admin cannot add an own token") { [403, 422].include?(token_member.response.status) && OpenProject::Thematiq::Store.new.own_tokens.empty? }
+  own_token_form = form_token(admin, "/admin/thematiq", "thematiq-own-token-form")
+  admin.post "/admin/thematiq/own-tokens", params: { name: "check-gap", label: "Gap", kind: "length", value: "12px", authenticity_token: own_token_form }
+  token_view = session_for
+  token_view.get "/login"
+  check("an own token is on every page") { token_view.response.body.include?("--thematiq-org-check-gap: 12px;") }
+  own_token_form = form_token(admin, "/admin/thematiq", "thematiq-own-token-form")
+  admin.post "/admin/thematiq/own-tokens", params: { name: "evil", kind: "length", value: "1px; } body { display:none", authenticity_token: own_token_form }
+  check("a hostile own token is refused") { OpenProject::Thematiq::Store.new.own_tokens.map { |token| token["name"] } == ["check-gap"] }
+  OpenProject::Thematiq::Store.new.delete_own_token("check-gap")
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

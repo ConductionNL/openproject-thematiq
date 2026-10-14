@@ -132,8 +132,8 @@ Generated from the code by `script/generate-docs.rb`. Do not edit by hand: `test
 | `component-heading-6-font-size` | `--nldesign-component-heading-6-font-size` | length | headings | drawn |
 | `component-heading-color` | `--nldesign-component-heading-color` | color | headings | carried |
 | `component-heading-font-family` | `--nldesign-component-heading-font-family` | font_family | headings | carried |
-| `animation-quick` | `--nldesign-animation-quick` | duration | motion | carried |
-| `animation-slow` | `--nldesign-animation-slow` | duration | motion | carried |
+| `animation-quick` | `--nldesign-animation-quick` | duration | motion | drawn |
+| `animation-slow` | `--nldesign-animation-slow` | duration | motion | drawn |
 | `color-header-background` | `--nldesign-color-header-background` | color | header | carried |
 | `color-header-text` | `--nldesign-color-header-text` | color | header | carried |
 | `color-nav-background` | `--nldesign-color-nav-background` | color | header | carried |
