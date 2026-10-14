@@ -67,3 +67,6 @@
   border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, .2); font-size: 14px; }
 .thematiq-trial__text { flex: 1 1 280px; margin: 0; }
 .thematiq-trial form { margin: 0; }
+/* The short form. */
+.thematiq-short-form { max-width: 480px; }
+.thematiq-short-form input[type="color"] { width: 64px; height: 40px; padding: 2px; }

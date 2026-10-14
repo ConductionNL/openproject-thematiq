@@ -192,6 +192,12 @@ Every change is kept in **History**, a link on **Thematiq design**: when, who, a
 
 You can keep up to 50 custom design systems.
 
+### Start from your colours
+
+1. On **Thematiq design**, under **Start from your colours**, give a name, your main colour and a background colour.
+2. Select **Open in the editor**. The plugin works out the shades of the main colour and a link colour that reads on white. Nothing is saved yet: the editor shows every value and its contrast.
+3. Change what you want and select **Save and apply**. Add a logo once it is saved, under **Logo, icons and fonts**.
+
 ### Download for Figma and upload from Figma
 
 1. On **Thematiq design**, select **Figma** next to a design system and choose a format: W3C design tokens, Tokens Studio, or Tokens Studio in its legacy spelling. Your browser saves a token file.
