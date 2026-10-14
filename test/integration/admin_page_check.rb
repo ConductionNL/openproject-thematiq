@@ -269,7 +269,7 @@ begin
     admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
       admin.response.media_type == "application/json"
   end
-  check("the export is the set shape") { (%w[id name tokens logo] - JSON.parse(exported).keys).empty? && (JSON.parse(exported).keys - %w[id name tokens logo dark]).empty? }
+  check("the export is the set shape") { (%w[id name tokens logo] - JSON.parse(exported).keys).empty? && (JSON.parse(exported).keys - %w[id name tokens logo dark vocabulary]).empty? }
   admin.get "/admin/thematiq/export", params: { id: "no-such-set" }
   check("export of an unknown design system gives 404") { admin.response.status == 404 }
   admin.get "/admin/thematiq/export", params: { id: "custom" }

@@ -84,6 +84,16 @@ class VocabularyTest < Minitest::Test
     assert_equal "bold", Validator.font_weight("Bold")
   end
 
+  # The catalogue from thematiq carries each set's own vocabulary. Every value passes, so no admin sees a refused value.
+  def test_the_bundled_catalogue_carries_vocabulary_and_every_value_passes
+    sets = OpenProject::Thematiq::Catalogue.bundled.sets
+
+    assert_operator sets.count { |token_set| token_set.vocabulary.any? }, :>, 60
+    sets.each { |token_set| assert_empty token_set.rejected, token_set.id }
+    raw = JSON.parse(File.read(OpenProject::Thematiq::Catalogue::FILE))["sets"].to_h { |set| [set["id"], set["vocabulary"] || {}] }
+    sets.each { |token_set| assert_equal (raw[token_set.id] || {}).keys.sort, token_set.vocabulary.keys.sort, token_set.id if raw.key?(token_set.id) }
+  end
+
   def test_a_set_keeps_its_vocabulary_and_drops_what_fails
     token_set = TokenSet.from_set({ "id" => "v", "name" => "V", "tokens" => {},
                                     "vocabulary" => { "color-error" => "#D52B1E", "color-info" => "red; } x {", "nope" => "#fff" } })

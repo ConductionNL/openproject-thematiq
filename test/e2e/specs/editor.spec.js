@@ -91,7 +91,8 @@ test.describe("editor", () => {
       const added = (await customIds(page)).filter((id) => !saved.customs.includes(id));
       expect(added).toHaveLength(1);
       const file = await exported(page, added[0]);
-      expect(file.vocabulary).toEqual({ "color-error": "#d52b1e", "color-error-rgb": "213, 43, 30" });
+      // The export holds the base design system's vocabulary too, with the two values typed here on top.
+      expect(file.vocabulary).toMatchObject({ "color-error": "#d52b1e", "color-error-rgb": "213, 43, 30" });
 
       // The stored value comes back in the editor, in an open group.
       await page.goto(`/admin/thematiq/custom?id=${added[0]}`);

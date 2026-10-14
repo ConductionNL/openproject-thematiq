@@ -12,9 +12,9 @@ module OpenProject
         HEX_COLOR = /\A#(?:\h{3}|\h{4}|\h{6}|\h{8})\z/
         COLOR_FUNCTION = /\A(rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(([0-9a-z.,%\/\s-]{1,60})\)\z/
         COLOR_ARGUMENT = /\A(?:-?(?:\d{1,4}(?:\.\d{1,4})?|\.\d{1,4})(?:%|deg|turn|rad|grad)?|none)\z/
-        LENGTH = /\A(?:0|(?:\d{1,3}(?:\.\d{1,3})?|\.\d{1,3})(?:px|rem|em|%))\z/
+        LENGTH = /\A(?:0|(?:\d{1,3}(?:\.\d{1,4})?|\.\d{1,4})(?:px|rem|em|%))\z/
         # A length with up to four digits, for the page widths of the vocabulary such as 1328px.
-        SIZE = /\A(?:0|(?:\d{1,4}(?:\.\d{1,3})?|\.\d{1,3})(?:px|rem|em|%))\z/
+        SIZE = /\A(?:0|(?:\d{1,4}(?:\.\d{1,4})?|\.\d{1,4})(?:px|rem|em|%))\z/
         # The kinds the vocabulary adds. Each is an allow-list of the whole text, like the three above.
         FONT_WEIGHT = /\A(?:[1-9]\d{0,2}|1000|normal|bold)\z/
         NUMBER = /\A(?:\d{1,4}(?:\.\d{1,4})?|\.\d{1,4})\z/
