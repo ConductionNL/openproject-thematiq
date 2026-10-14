@@ -445,7 +445,8 @@
 .thematiq-apps .thematiq-switcher--entry .thematiq-apps--icon { width: 40px; height: 40px; min-width: 40px; background: var(--thematiq-chip); color: var(--thematiq-text); }
 .thematiq-apps .thematiq-switcher--entry .thematiq-apps--icon svg { width: 20px; height: 20px; }
 .thematiq-apps .thematiq-apps--name { font-size: 13px; font-weight: 500; }
-.thematiq-apps .thematiq-switcher--line { display: none; }
+/* The design draws no second line under Nextcloud's apps. It stays in the link's name for screen readers. */
+.thematiq-apps .thematiq-switcher--line { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* Where you are: the accent's light fill, its ring filled. */
 .thematiq-switcher--entry.is-current { background: color-mix(in srgb, var(--thematiq-accent) 8%, var(--thematiq-surface)); }
 .thematiq-switcher--entry.is-current .thematiq-apps--icon { background: var(--thematiq-accent); color: var(--thematiq-surface); }
