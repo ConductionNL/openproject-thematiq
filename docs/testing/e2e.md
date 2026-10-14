@@ -20,6 +20,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `vocabulary.spec.js` | A design system with values of thematiq's full vocabulary, imported as a file, reaches Primer's variables and OpenProject's own elements; a key it leaves out keeps OpenProject's value |
 | `scopes.spec.js` | A project's design system styles its whole page, and leaving the project and coming back swaps the style tags (Turbo); a module's design system reaches the content only; projects may not choose by default |
 | `history.spec.js` | Each change is listed with who made it; restoring a version shows what it changes first, then brings it back |
+| `short-form.spec.js` | Two colours open in the editor, unsaved, and save as a custom design system; a colour that is not a hex value is refused |
 | `switch.spec.js` | The apply dialog lists what changes and applies nothing; Apply repaints the page without a reload; an unticked value is kept in a new custom design system; a trial is seen by the administrator only, then discarded or published |
 | `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 
