@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 128 |
+| in plugin | 131 |
 | being built | 0 |
 | to build, as is | 10 |
-| to build, adapted | 24 |
+| to build, adapted | 21 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **34 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 9 M and 2 L.
+1. **31 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 6 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -98,7 +98,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `app-trial-banner` | See a banner reminding you that you are looking at a trial theme, with a way back | `specs/theme-preview` | in plugin | #70: a banner at the foot of every page with Publish and Discard |  |
 | `app-trial-publish` | Publish a theme you have been trialling to everyone in one step | `specs/theme-preview` | in plugin | #70: "Publish to everyone" |  |
 | `app-trial-discard` | Discard a trial theme and return to what everyone else sees | `specs/theme-preview` | in plugin | #70: "Discard" |  |
-| `app-component-playground` | Look at buttons, inputs, note cards, list items and the login card in each of their states while you edit the tokens they read | `specs/theme-preview` | to build, adapted | Show Primer components instead of Nextcloud ones | M |
+| `app-component-playground` | Look at buttons, inputs, note cards, list items and the login card in each of their states while you edit the tokens they read | `specs/theme-preview` | in plugin | #92: OpenProject's Primer components in each state, in a chosen design system, on the content area of a page of its own |  |
 | `app-primary-lock` | Make the brand primary colour drive every component, or deliberately let components keep their own colours | `specs/component-tokens` | in plugin | #76: "The main button follows the primary colour", per custom design system. The typed values of Action are kept for when it is off |  |
 | `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | in plugin | #7: the admin page changes the design at runtime |  |
 | `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | in plugin | #86: a design system planned for a date and time; the first page after it makes the switch, with no background job, and the history names it |  |
@@ -126,7 +126,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-overrides-import-export` | Export your token edits as a file and import them again on another instance | `specs/token-import-export` | in plugin | #10 and the Figma formats of #36 |  |
 | `aut-custom-css` | Add your own free-form CSS rules for things tokens cannot express | `specs/custom-css-freeform` | in plugin | #83: "Your own CSS", off by default, served last on every page |  |
 | `aut-custom-css-sanitise` | Have free-form CSS checked on the server before it is saved, with unsafe rules refused | `specs/custom-css-freeform` | in plugin | #83: an allow-list parser: rules and @media only, no url(), no escapes, no markup; the CSS is written anew from checked parts and one bad part refuses all |  |
-| `aut-component-scoped` | Change the tokens of one component type (for example buttons) without changing the global palette | `specs/component-tokens` | to build, adapted | #59 draws thematiq's button component tokens on Primer's buttons. Other components have no tokens of their own yet. See question 4 | M |
+| `aut-component-scoped` | Change the tokens of one component type (for example buttons) without changing the global palette | `specs/component-tokens` | in plugin | #59, #92: a design system's component tokens change one kind of component, buttons or fields, apart from the palette |  |
 | `aut-dark-variant-auto` | Get a dark variant of your house style derived automatically | `specs/dark-mode` | in plugin | The catalogue carries the dark blocks thematiq derives (#27, #66). The plugin itself derives nothing: a custom design system keeps its base's dark values, and #68 takes dark values by hand |  |
 | `aut-semantic-aliases` | Define tokens as references to other tokens so one change flows through the semantic layer (thematiq has this in part) | `specs/custom-token-sets` | to build, adapted | #36 and #83 follow references in curly braces and `var()` when a file is read; a stored design system keeps values, not references | S |
 | `aut-multi-brand-themes` | Maintain several brands or themes in one token source and switch between them | `specs/theming-audit` | in plugin | #6, #13: one catalogue file holds every set |  |
@@ -183,7 +183,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-public-pages` | Style public share and link pages that visitors without an account see | `specs/css-architecture` | in plugin | `hooks.rb`: pages for visitors use the same layouts. The sign-in page is checked in a browser (`signin.spec.js`) |  |
 | `sur-email` | Send notification emails in the house style | `specs/email-theming` | in plugin | #91: e-mail in the house style, off until an admin turns it on: a band in the primary colour with the title and the logo, inline styles from validated values |  |
 | `sur-email-footer` | Add a compliance footer (organisation name, address, legal text) to every email | `specs/email-theming` | in plugin | #91: the organisation's own text and the legal links under every e-mail |  |
-| `sur-component-bridge` | Map community component tokens (Utrecht) onto the workspace's own components | `specs/component-tokens` | to build, adapted | #57 to #64 draw thematiq's component tokens where Primer has a variable for them. A full bridge per component is not built. See question 4 | M |
+| `sur-component-bridge` | Map community component tokens (Utrecht) onto the workspace's own components | `specs/component-tokens` | in plugin | #57 to #64, #92: thematiq's component tokens reach Primer's variables where Primer has one: buttons, text fields and selects, the outline button, the table, the navigation, headings. Others are carried |  |
 | `sur-nc-variable-mapping` | Map every Nextcloud colour variable to a design token, so no stock colour leaks through | `specs/nextcloud-variable-mapping` | in plugin | `lib/open_project/thematiq/variables/generator.rb` maps the roles and the vocabulary onto OpenProject's and Primer's variables, light and dark (#27, #57 to #66) |  |
 | `sur-error-contrast` | Keep error and status messages readable in every house style | `specs/css-architecture` | to build, as is | #57 draws the status colours of a set. Their contrast is not checked | S |
 | `sur-status-tokens` | Colour success, warning and error states from the house style's status tokens | `specs/css-architecture` | in plugin | #57: the status colours of the vocabulary reach Primer's danger, success and attention |  |

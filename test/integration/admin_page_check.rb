@@ -1200,6 +1200,19 @@ begin
   end
   OpenProject::Thematiq::Store.new.save_email_settings(styled: false, footer: "")
   OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  # 28. The playground
+  play_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  play_member.get "/admin/thematiq/playground"
+  check("a non-admin cannot open the playground") { play_member.response.status == 403 }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  admin.get "/admin/thematiq/playground", params: { set_id: "zuiddrecht" }
+  check("the playground draws the chosen design system in the content area only") do
+    body = admin.response.body
+    admin.response.status == 200 && body.include?('<style id="openproject-thematiq-content"') &&
+      head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
+  end
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

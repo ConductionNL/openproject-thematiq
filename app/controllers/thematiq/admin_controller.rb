@@ -498,6 +498,20 @@ module Thematiq
       render json: report, status: report["status"] == "ok" ? :ok : :service_unavailable
     end
 
+    # The playground (app-component-playground): OpenProject's own Primer components in each state, in the content area,
+    # drawn with a chosen design system. Only the content area changes; the top bar and the menu keep the one in use.
+    def playground
+      @playground_set = @store.find_set(params[:set_id].to_s) || @store.active_token_set
+      active = @store.active_token_set
+      thematiq = OpenProject::Thematiq
+      source = thematiq::Scopes::Source.new(kind: :module)
+      RequestStore.store[:thematiq_page_scope] = thematiq::PageScope::Result.new(
+        page_set: active, content_set: @playground_set, module_name: nil,
+        resolution: thematiq::Scopes::Resolution.new(page: [nil, thematiq::Scopes::INSTANCE],
+                                                    content: [@playground_set.id == active.id ? nil : @playground_set.id, source])
+      )
+    end
+
     # Evidence of contrast for an audit: every design system in use, light and dark. HTML to read or print, JSON to keep.
     def compliance
       @report = OpenProject::Thematiq::Compliance.report(design_systems_in_use, generated_at: Time.current.utc.iso8601)
