@@ -36,6 +36,8 @@ module Thematiq
     # result is a new custom design system, the chosen one with those values of the one in use now.
     # A request that asks for JSON gets the new style sheets, so the page repaints without a reload.
     def update
+      return refuse_environment if @store.environment_id
+
       token_set = @store.find_set(params[:set_id].to_s)
       return refuse_unknown_set unless token_set
 
@@ -67,6 +69,8 @@ module Thematiq
     end
 
     def trial_publish
+      return refuse_environment if @store.environment_id
+
       token_set = @store.find_set(OpenProject::Thematiq::Trial.id(session).to_s)
       OpenProject::Thematiq::Trial.stop(session)
       return refuse_unknown_set unless token_set && @store.activate(token_set.id)
@@ -329,6 +333,13 @@ module Thematiq
       end
     end
 
+    # For a monitoring system or an administrator: does the plugin work, and what is wrong if not. Admins only.
+    # 200 when all is well, 503 when something is degraded, so a probe needs nothing but the status.
+    def health
+      report = OpenProject::Thematiq::Health.report(store: @store, tables: table_states, core_changed: core_changes)
+      render json: report, status: report["status"] == "ok" ? :ok : :service_unavailable
+    end
+
     # The history as a CSV file, for an auditor. Every row, newest first; the setup itself stays in OpenProject.
     def history_export
       rows = Thematiq::Change.ready? ? Thematiq::Change.order(id: :desc).to_a : []
@@ -365,6 +376,22 @@ module Thematiq
     end
 
     private
+
+    def table_states
+      { "uploads" => Thematiq::Upload.ready?, "scopes" => Thematiq::Scope.ready?, "changes" => Thematiq::Change.ready? }
+    end
+
+    def core_changes
+      OpenProject::Thematiq::Shell::CoreGuard.changed_files
+    rescue StandardError
+      ["unknown"]
+    end
+
+    # The environment names the design system: the page cannot change it.
+    def refuse_environment
+      flash[:error] = t("thematiq.environment.error_apply", variable: OpenProject::Thematiq::Store::ENVIRONMENT_KEY)
+      redirect_to action: :show
+    end
 
     def read_bundle(text)
       OpenProject::Thematiq::Bundle.read(text.to_s.force_encoding(Encoding::UTF_8), catalogue: @store.catalogue,

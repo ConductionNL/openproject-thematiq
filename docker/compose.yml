@@ -16,6 +16,8 @@ services:
       OPENPROJECT_HOST__NAME: "localhost:${THEMATIQ_PORT:-8080}"
       OPENPROJECT_HTTPS: "false"
       OPENPROJECT_DEFAULT__LANGUAGE: "en"
+      # Names the design system as code; it wins over the admin page. Empty: the admin page decides.
+      THEMATIQ_DESIGN_SYSTEM: "${THEMATIQ_DESIGN_SYSTEM:-}"
     # OpenProject needs the same SECRET_KEY_BASE on every start. No secret is written in this file:
     # the first start makes a random one and keeps it in the "secret" volume.
     # The variable only reaches the main process. A command run with `docker compose exec` gets the image's

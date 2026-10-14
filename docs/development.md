@@ -67,6 +67,11 @@ Then run the `docker run` command again.
 | `lib/open_project/thematiq/editor.rb`, `lib/open_project/thematiq/editor/assets/editor.js` | The groups and contrast checks of the style editor, and the script of its live preview |
 | `lib/open_project/thematiq/uploads/`, `app/models/thematiq/upload.rb`, `db/migrate/` | Uploaded logos, icons and fonts: the content checks, the SVG rebuild and the table |
 | `app/controllers/thematiq/files_controller.rb` | The public endpoint that serves uploaded files |
+| `lib/open_project/thematiq/bundle.rb`, `app/models/thematiq/change.rb` | The whole setup as one document, and the history: one row per change with the setup after it |
+| `lib/open_project/thematiq/diff.rb`, `lib/open_project/thematiq/editor/assets/compare.js` | The apply dialog: what changes, the values kept, and the repaint without a reload |
+| `lib/open_project/thematiq/trial.rb` | A trial of a design system in an administrator's own session |
+| `lib/open_project/thematiq/short_form.rb` | "Start from your colours": the brand values from two colours |
+| `lib/open_project/thematiq/health.rb`, `lib/tasks/thematiq.rake` | The health report and the command line tasks |
 | `bin/check-syntax` | Compiles every Ruby file and template without a database |
 | `app/controllers/thematiq/`, `app/views/thematiq/admin/` | The admin page |
 | `lib/open_project/thematiq/shell/`, `app/views/thematiq/shell/` | The shared top bar, the project menu and the merged home page: helper overrides, the app switcher column, the logo rule |

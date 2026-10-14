@@ -18,6 +18,16 @@
   <% end %>
 <% end %>
 
+<% if @store.environment_id %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :lock, mb: 3, data: { test_selector: "thematiq-environment" })) do %>
+    <%= t("thematiq.environment.banner", variable: OpenProject::Thematiq::Store::ENVIRONMENT_KEY, name: active.name) %>
+  <% end %>
+<% elsif @store.environment_value %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, data: { test_selector: "thematiq-environment-unknown" })) do %>
+    <%= t("thematiq.environment.unknown", variable: OpenProject::Thematiq::Store::ENVIRONMENT_KEY, value: @store.environment_value) %>
+  <% end %>
+<% end %>
+
 <% if active.rejected.any? %>
   <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, data: { test_selector: "thematiq-rejected-banner" })) do %>
     <%= t("thematiq.admin.rejected_tokens", tokens: active.rejected.join(", ")) %>

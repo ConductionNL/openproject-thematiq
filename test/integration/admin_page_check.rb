@@ -966,6 +966,19 @@ begin
   throwaway = session_for("admin", ADMIN_PASSWORD)
   throwaway.post "/admin/thematiq/bundle", params: { bundle: setup_file, confirmed: "1" }
   check("an import without a CSRF token is refused") { throwaway.response.status == 422 }
+
+  # 14. The health report
+  health_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  health_member.get "/admin/thematiq/health"
+  check("a non-admin cannot read the health report") { health_member.response.status == 403 }
+  anonymous.get "/admin/thematiq/health"
+  check("anonymous cannot read the health report") { [302, 401, 403].include?(anonymous.response.status) }
+  admin.get "/admin/thematiq/health"
+  health = JSON.parse(admin.response.body) rescue {}
+  check("the health report is ok, as JSON") do
+    admin.response.status == 200 && admin.response.media_type == "application/json" && health["status"] == "ok" &&
+      health["version"] == OpenProject::Thematiq::VERSION && health["tables"].values.all?
+  end
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

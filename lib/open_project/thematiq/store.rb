@@ -28,9 +28,27 @@ module OpenProject
 
       attr_reader :catalogue
 
-      def initialize(backend: SettingsBackend.new, catalogue: Catalogue.bundled)
+      # The design system an operator names in the environment. It wins over the choice on the admin page,
+      # so a deployment can set the house style as code (gov-config-as-code).
+      ENVIRONMENT_KEY = "THEMATIQ_DESIGN_SYSTEM"
+
+      def initialize(backend: SettingsBackend.new, catalogue: Catalogue.bundled, env: ENV)
         @backend = backend
         @catalogue = catalogue
+        @env = env
+      end
+
+      # What the environment says, as it says it. nil when the variable is not set or empty.
+      def environment_value
+        value = @env[ENVIRONMENT_KEY].to_s.strip
+        value.empty? ? nil : value[0, 64]
+      end
+
+      # The id of the environment's design system, when it names one there is. An unknown id is ignored, and the
+      # health report says so.
+      def environment_id
+        value = environment_value
+        value && find_set(value) ? value : nil
       end
 
       # The id of the chosen set. nil on a fresh install.
@@ -42,7 +60,7 @@ module OpenProject
       # What the pages are styled with: the active custom design system, else the chosen set of the
       # catalogue, else the default.
       def active_token_set
-        custom_set(active_custom_id) || catalogue.find(active_id) || catalogue.default
+        (environment_id && find_set(environment_id)) || custom_set(active_custom_id) || catalogue.find(active_id) || catalogue.default
       end
 
       # Makes a design system the active one: a set of the catalogue or a custom design system.
