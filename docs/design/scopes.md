@@ -1,6 +1,27 @@
 # Design: a design system per project and per module
 
-**Status: a proposal to read. No code has been written for it.**
+**Status: built. The owner decided the open questions: the whole page of a project follows its design system, the top bar and the logo included; subprojects inherit from the start; the order below holds; a project admin picks from an allowed list with a new permission, off by default; the choices are in a table of the plugin's own. A module's design system reaches the content area only, as proposed below.**
+
+## What is built
+
+| Part | Where |
+|---|---|
+| The table `thematiq_scopes`: `project_id` (empty for a module choice of the whole instance), `module_name` (`""` for every module), `design_system_id`. Unique on project and module; a deleted project takes its rows | `db/migrate/20261014090000_create_thematiq_scopes.rb`, `app/models/thematiq/scope.rb` |
+| The order of winning, the modules and their menu items, without Rails | `lib/open_project/thematiq/scopes.rb` |
+| The lookup of the page being drawn, once per request: the design system of the whole page and of its content | `lib/open_project/thematiq/page_scope.rb`, called by the head hooks |
+| The content layer: the same variables written on `main#content-wrapper` | `Variables::Generator.new(set, content: true)` |
+| Turbo: every style tag of the plugin carries `data-turbo-track="reload"`, so a page with other style tags loads whole. Moving out of a project and back gives one style tag in its colours, checked in a browser | `app/views/thematiq/hooks/` |
+| Instance admin: let projects choose (off by default), the list they choose from (none ticked: all), a design system per module | **Projects and modules** on the admin page |
+| Project: the project's own design system, one per module in it, and a line that says where the current one comes from | **Project settings**, **Design**, for an instance admin, and for a member with **Choose design system** once projects may choose |
+| The permission **Choose design system**, given to no role | Mapped in `engine.rb` |
+
+The instance's own choice stays in the plugin's settings, as before: no row for it, nothing to migrate.
+
+A page outside a project, the global meetings list for example, gets the instance's design system for the whole page and a module's for its content.
+
+Which design system applies is one query per request (all rows, a few at most per project) and is kept for the request. The CSS of each design system is built once and kept, up to 32 at a time. A cross-request cache of the lookup is not built: measure first.
+
+The page reads the module from `current_menu_item`, in `lib/redmine/menu_manager/menu_controller.rb`. `core_guard.rb` checks that file; when it changes, module choices stop applying and `script/check-core.rb` says so.
 
 Today one design system styles the whole of OpenProject. thematiq can style one app differently from the rest. In OpenProject that becomes two things: a project can have its own design system, and a module can have its own.
 

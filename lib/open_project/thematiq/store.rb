@@ -60,6 +60,51 @@ module OpenProject
         token_set
       end
 
+      # A design system by id: a custom one or one of the catalogue. nil for an unknown or empty id.
+      def find_set(id)
+        return nil unless id.is_a?(String) && !id.empty?
+
+        custom_set(id) || catalogue.find(id)
+      end
+
+      # Every design system there is, custom ones first.
+      def all_sets
+        custom_drafts.map(&:token_set) + catalogue.sets
+      end
+
+      # --- scopes: what the instance allows projects, see docs/design/scopes.md ---
+      #
+      # The choices themselves are rows in the plugin's table (Thematiq::Scope). Here are the instance's rules:
+      # whether projects may choose at all (off by default), and from which design systems.
+
+      PROJECTS_MAY_CHOOSE_KEY = "projects_may_choose"
+      PROJECT_CHOICES_KEY = "project_choices"
+
+      def projects_may_choose?
+        data[PROJECTS_MAY_CHOOSE_KEY] == true
+      end
+
+      # The ids an instance admin allowed projects to choose from. Empty means every design system.
+      def project_choices
+        stored = data[PROJECT_CHOICES_KEY]
+        stored.is_a?(Array) ? stored.grep(String).select { |id| find_set(id) } : []
+      end
+
+      # What a project admin may pick from.
+      def sets_for_projects
+        allowed = project_choices
+        allowed.empty? ? all_sets : all_sets.select { |token_set| allowed.include?(token_set.id) }
+      end
+
+      # Stores the rules. Only ids of design systems there are count. Returns false and stores nothing otherwise.
+      def save_project_rules(allow:, choices:)
+        ids = Array(choices).map(&:to_s).reject(&:empty?).uniq
+        return false if ids.size > 200 || ids.any? { |id| find_set(id).nil? }
+
+        write(PROJECTS_MAY_CHOOSE_KEY => allow == true, PROJECT_CHOICES_KEY => ids)
+        true
+      end
+
       # --- custom design systems: a base design system plus overrides, any number up to MAX_CUSTOMS ---
 
       MAX_CUSTOMS = 50

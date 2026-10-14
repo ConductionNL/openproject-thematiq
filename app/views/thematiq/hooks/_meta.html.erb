@@ -1,10 +1,11 @@
 <%# For the layouts that do not call the head hook. See lib/open_project/thematiq/hooks.rb. %>
-<style id="openproject-thematiq-early">
+<% OpenProject::Thematiq.scope_page(project: local_assigns[:project], controller: local_assigns[:controller]) %>
+<style id="openproject-thematiq-early" data-turbo-track="reload">
 <%= raw OpenProject::Thematiq.early_stylesheet %>
 </style>
 <% early_asset_css = OpenProject::Thematiq.asset_stylesheet(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
 <% if early_asset_css.present? %>
-<style id="openproject-thematiq-early-assets">
+<style id="openproject-thematiq-early-assets" data-turbo-track="reload">
 <%= raw early_asset_css %>
 </style>
 <% end %>

@@ -63,7 +63,11 @@ module OpenProject
             "5b1ccfe25018e01d67e3d6349c59567141a5c88f38f0fc714e3dc1b7566bed2e",
           # Home overrides My::PageController#show with a redirect to Home.
           "modules/my_page/app/controllers/my/page_controller.rb" =>
-            "717755d22d73894f5e6184f0dc61ac3ddd527d1285302e7009303b1438db098d"
+            "717755d22d73894f5e6184f0dc61ac3ddd527d1285302e7009303b1438db098d",
+          # Scopes read the module of a page from current_menu_item. When it moves, a module's design system stops
+          # applying (the lookup rescues and the page keeps its project's or the instance's), and this check says why.
+          "lib/redmine/menu_manager/menu_controller.rb" =>
+            "d44bf6153135f83c807d2831b841def1e0a5c1728d32113e697fa715751fccf5"
         }.freeze
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
@@ -91,6 +95,10 @@ module OpenProject
             "app/components/homescreen/blocks_grid_component.rb",
             "config/initializers/homescreen.rb",
             "modules/my_page/app/controllers/my/page_controller.rb"
+          ],
+          scopes: [
+            "lib/redmine/menu_manager/menu_controller.rb",
+            "app/views/layouts/base.html.erb"
           ]
         }.freeze
 

@@ -221,11 +221,17 @@ module OpenProject
           "--fontStack-sansSerif" => :"font-family"
         }.freeze
 
+        # The content area of a page: OpenProject's main element. A design system chosen for a module reaches it only.
+        CONTENT = "#content-wrapper"
+
         # early: true gives the variant for the top of the head, before OpenProject's stylesheets.
         # It moves everything that would otherwise depend on source order onto the body element.
-        def initialize(token_set, early: false)
+        # content: true gives the variant for the content area of a page: the same variables, written on the
+        # content element, so they reach the content and nothing around it. It has no menu block.
+        def initialize(token_set, early: false, content: false)
           @token_set = token_set
           @early = early
+          @content = content
         end
 
         def css
@@ -238,7 +244,7 @@ module OpenProject
             block(LIGHT_SCOPE, without_drawn(declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS), VOCABULARY_COLORS) +
                                light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS))
           ]
-          blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"]
+          blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"] && !@content
           blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
           blocks.join("\n")
         end
@@ -368,7 +374,13 @@ module OpenProject
         end
 
         def block(selector, lines)
-          "#{selector} {\n#{lines.join("\n")}\n}"
+          "#{scoped(selector)} {\n#{lines.join("\n")}\n}"
+        end
+
+        def scoped(selector)
+          return selector unless @content
+
+          selector == ":root" ? CONTENT : "#{selector} #{CONTENT}"
         end
       end
     end

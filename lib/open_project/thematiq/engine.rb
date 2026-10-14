@@ -19,6 +19,16 @@ module OpenProject
              if: ->(_) { User.current.admin? },
              caption: ->(*) { I18n.t("thematiq.admin.menu") },
              icon: "paintbrush"
+
+        menu :project_menu,
+             :settings_thematiq_design,
+             { controller: "/thematiq/project_design", action: :show },
+             parent: :settings,
+             caption: ->(*) { I18n.t("thematiq.scopes.project.menu") },
+             if: ->(project) {
+               (User.current.admin? || OpenProject::Thematiq::Store.new.projects_may_choose?) &&
+                 User.current.allowed_in_project?(:choose_design_system, project)
+             }
       end
 
       # Serves the logos and fonts in public/ as plain static files, under /thematiq/.
@@ -29,7 +39,22 @@ module OpenProject
       end
 
       config.to_prepare do
+        # A project admin may choose the design system of a project, from the list the instance admin allows,
+        # once the instance admin lets projects choose. No role has it until an administrator gives it.
+        # Mapped here and not in the register block: OpenProject's access control only loads once the app prepares.
+        unless OpenProject::AccessControl.permission(:choose_design_system)
+          OpenProject::AccessControl.map do |map|
+            map.project_module nil do
+              map.permission :choose_design_system,
+                             { "thematiq/project_design": %i[show update] },
+                             permissible_on: :project,
+                             require: :member
+            end
+          end
+        end
+
         require "open_project/thematiq/store"
+        require "open_project/thematiq/page_scope"
         require "open_project/thematiq/hooks"
         require "open_project/thematiq/shell"
         OpenProject::Thematiq::Shell.install!

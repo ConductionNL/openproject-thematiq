@@ -30,14 +30,36 @@ module OpenProject
     require "open_project/thematiq/assets"
     require "open_project/thematiq/variables/generator"
     require "open_project/thematiq/stylesheet"
+    require "open_project/thematiq/scopes"
 
-    # The token set the pages are styled with right now.
+    # The token set the page being drawn is styled with: the page's own when the head hooks worked it out
+    # (PageScope, a design system per project), else the instance's.
     # It never raises. A design plugin must not be the reason a page fails, least of all an error page
     # that is shown because the database is away. Then the default design system is used.
     def self.active_token_set
-      Store.new.active_token_set
+      current_page_scope&.page_set || Store.new.active_token_set
     rescue StandardError
       Catalogue.bundled.default
+    end
+
+    # The design systems of the page being drawn, when the head hooks worked them out. Outside Rails, nil.
+    def self.current_page_scope
+      defined?(PageScope) && defined?(RequestStore) ? PageScope.current : nil
+    end
+
+    # Works out the design systems of the page being drawn, once per request. The head hooks call it first.
+    def self.scope_page(project:, controller:)
+      PageScope.for(project:, controller:)
+    rescue StandardError
+      nil
+    end
+
+    # The variable layer for the content area, when a module's design system differs from the page's. Else nil.
+    def self.content_stylesheet
+      set = current_page_scope&.content_only_set
+      set ? Stylesheet.content_css(set) : nil
+    rescue StandardError
+      nil
     end
 
     # The CSS the head hook inlines on every page that uses the base layout.
@@ -54,7 +76,9 @@ module OpenProject
     # root is the path OpenProject is mounted under, empty when it runs at the top of its host.
     # The logo rule is the shell's: OpenProject::Thematiq::Shell::Logo.
     def self.asset_stylesheet(root: "")
-      Assets.bundled.font_face_css(active_token_set, root:)
+      css = Assets.bundled.font_face_css(active_token_set, root:)
+      content = current_page_scope&.content_only_set
+      content ? [css, Assets.bundled.font_face_css(content, root:)].reject(&:blank?).join("\n") : css
     end
 
     # The favicon and touch icon of the active design system, as attributes for link elements.
