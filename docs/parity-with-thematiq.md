@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 122 |
+| in plugin | 126 |
 | being built | 0 |
-| to build, as is | 11 |
-| to build, adapted | 29 |
+| to build, as is | 10 |
+| to build, adapted | 26 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **40 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 28 S, 10 M and 2 L.
+1. **36 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 24 S, 10 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -159,9 +159,9 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `ast-logo-sync` | Set the workspace logo to your organisation's logo when you pick its house style | `specs/token-set-dropdown` | in plugin | #15: a logo ships for 15 sets and shows when the set is picked |  |
-| `ast-background-sync` | Set the login background to match the house style | `specs/token-set-dropdown` | to build, adapted | OpenProject's sign-in layout (`only_logo.html.erb`) has no background image. Draw one with CSS | S |
+| `ast-background-sync` | Set the login background to match the house style | `specs/token-set-dropdown` | in plugin | #87: the sign-in background goes with its design system; the catalogue ships none, since thematiq's are addresses, not files |  |
 | `ast-upload-logo` | Upload a logo of your own | Nextcloud core Theming page | in plugin | #32: logo, logo for the coloured top bar and mobile logo |  |
-| `ast-upload-background` | Upload a login background image of your own | Nextcloud core Theming page | to build, adapted | With `ast-background-sync` | S |
+| `ast-upload-background` | Upload a login background image of your own | Nextcloud core Theming page | in plugin | #87: a sign-in background per custom design system, checked like every upload |  |
 | `ast-favicon` | Set the browser tab icon (favicon) to your organisation's | Nextcloud core Theming page | in plugin | #32: favicon and touch icon |  |
 | `ast-icon-library` | Reuse a library of government icons by name from any app on the instance | `specs/icon-assets` | to build, adapted | Serve the icons from a plugin route. Unclear which OpenProject plugin would use them | M |
 | `ast-org-logos` | Reuse bundled logos of government organisations by name | `specs/icon-assets` | in plugin | `data/catalogue/logos/`, only logos marked redistributable |  |
@@ -189,13 +189,13 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-status-tokens` | Colour success, warning and error states from the house style's status tokens | `specs/css-architecture` | in plugin | #57: the status colours of the vocabulary reach Primer's danger, success and attention |  |
 | `sur-mobile-desktop-clients` | Carry the brand into the desktop and mobile sync clients (thematiq has this in part) | Nextcloud core theming capability | to build, adapted | Not checked whether OpenProject's mobile app reads any theme value | M |
 | `sur-custom-domain` | Serve the branded workspace on the organisation's own domain name | Nextcloud core | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (host name setting) |  |
-| `sur-footer-links` | Add legal links (privacy statement, imprint, accessibility statement) to the footer and login page | Nextcloud core Theming page | to build, adapted | OpenProject has `consent_info` and `registration_footer`, no imprint or privacy link settings. Add links through a hook | S |
+| `sur-footer-links` | Add legal links (privacy statement, imprint, accessibility statement) to the footer and login page | Nextcloud core Theming page | in plugin | #87: a privacy statement, an imprint and an accessibility statement as links at the end of every page and on the sign-in page |  |
 | `sur-web-app-name` | Change the product name, slogan and web address shown to users | Nextcloud core Theming page | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`Setting.app_title`). Since #29 the top bar shows app tiles instead of the name |  |
 | `sur-selection-colour` | Have selected and highlighted text take the brand colour in a readable, translucent form | `specs/token-editor-ui` | to build, as is |  | S |
 | `sur-generated-documents` | Have documents the system generates (letters, PDF exports, reports) carry the house style: logo, cover, footer and fonts (thematiq has this in part) | `specs/document-house-style` | to build, adapted | OpenProject's PDF exports read `CustomStyle` only, which the plugin never touches. A draft request for an extension point is in `docs/upstream/pdf-export-extension-point.md`, not sent | M |
 | `sur-assistant-logo` | Show the organisation's logo as an approved mark inside the AI assistant, so users can see the assistant is the one their organisation sanctioned (thematiq has this in part) | `specs/assistant-approved-mark` | no counterpart | An AI assistant panel. The OpenProject 17.9.1 image has none in its controllers, views or modules |  |
 | `sur-per-app-brand` | Give a collaboration or social app of the suite its own brand name, large and small logo and theme colour from a central brand center | `specs/per-app-theming` | to build, adapted | #67 gives each project and module its own design system, its logo included. A brand name per project is not built. See question 5 | S |
-| `x-brand-stripe` | Draw an optional stripe of three colours under the top bar and on the login page (newer than thematiq's list) | `specs/brand-stripe` | to build, as is | The vocabulary carries the stripe's values (#54). Nothing draws them | S |
+| `x-brand-stripe` | Draw an optional stripe of three colours under the top bar and on the login page (newer than thematiq's list) | `specs/brand-stripe` | in plugin | #87: the three colours in their ratios under the top bar, when a design system gives them |  |
 | `x-workplace-layout` | Draw the workplace layout: a top bar with the person's name and role, content as cards (newer than thematiq's list) | `specs/workplace-layout` | to build, as is | #12, #29, #61: the top bar; #33: Home and My page as one page. Cards on a quiet surface are not built | S |
 
 ### Scoping a theme

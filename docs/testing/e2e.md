@@ -33,6 +33,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `governance.spec.js` | The environment marker on every page, the sign-in page too; a deprecated token in the editor and the read endpoint |
 | `history.spec.js` | Each change is listed with who made it; restoring a version shows what it changes first, then brings it back |
 | `short-form.spec.js` | Two colours open in the editor, unsaved, and save as a custom design system; a colour that is not a hex value is refused |
+| `surfaces.spec.js` | A brand stripe under the top bar; the legal links on every page and the sign-in page; an uploaded sign-in background |
 | `switch.spec.js` | The apply dialog lists what changes and applies nothing; Apply repaints the page without a reload; an unticked value is kept in a new custom design system; a trial is seen by the administrator only, then discarded or published |
 | `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 

@@ -228,6 +228,18 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-schedule"
     end
 
+    # The footer's legal links.
+    def update_footer_links
+      given = OpenProject::Thematiq::Store::FOOTER_LINKS.to_h { |kind| [kind, params.dig(:footer_links, kind).to_s] }
+      if @store.save_footer_links(given)
+        record_change("footer_links")
+        flash[:notice] = t("thematiq.footer.notice_saved")
+      else
+        flash[:error] = t("thematiq.footer.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-footer"
+    end
+
     # An own token, --thematiq-org-<name>, or its removal.
     def update_own_token
       if params[:remove].present?
@@ -613,7 +625,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"

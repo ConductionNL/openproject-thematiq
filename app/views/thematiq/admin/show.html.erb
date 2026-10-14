@@ -585,3 +585,19 @@ end %>
   </div>
   <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.schedule.save") } %>
 <% end %>
+
+<% links = @store.footer_links %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-footer") { t("thematiq.footer.title") }
+end %>
+<%= form_with(url: admin_thematiq_footer_path, method: :post, data: { turbo: false }, id: "thematiq-footer-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.footer.hint") %></p>
+  <% OpenProject::Thematiq::Store::FOOTER_LINKS.each do |kind| %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-footer-<%= kind %>"><%= t("thematiq.footer.links.#{kind}") %></label>
+      <input type="url" name="footer_links[<%= kind %>]" id="thematiq-footer-<%= kind %>" class="FormControl-input FormControl-medium" maxlength="500"
+             value="<%= links[kind] %>" placeholder="https://www.example.org/<%= kind %>">
+    </div>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.footer.save") } %>
+<% end %>

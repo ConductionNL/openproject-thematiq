@@ -111,6 +111,17 @@ en:
         property: "A property the plugin does not accept"
         value: "A value the plugin does not accept, such as url() or an unclosed quote"
         too_many_rules: "More than 1,000 rules"
+    footer:
+      title: "Legal links"
+      hint: "A privacy statement, an imprint and an accessibility statement, as links at the end of every page and on the sign-in page. They open in a new tab. Leave a field empty for no link. The footer takes the design system's footer colours."
+      region: "Legal information"
+      save: "Save links"
+      links:
+        privacy: "Privacy statement"
+        imprint: "Imprint"
+        accessibility: "Accessibility statement"
+      notice_saved: "The links are saved."
+      error_invalid: "Each link must be an http or https address of at most 500 characters. Nothing was saved."
     schedule:
       title: "Planned switch"
       hint: "Plan a design system for a date and time, such as a campaign or a holiday look. The first page after that time makes the switch, for everyone, and the history names it. To go back afterwards, plan the design system of now for a later time."
@@ -323,6 +334,7 @@ en:
         scheduled_switch: "Made a planned switch"
         schedule: "Planned or cancelled a switch"
         lock: "Locked or unlocked a project's design system"
+        footer_links: "Changed the legal links"
     bundle:
       title: "The whole setup"
       hint: "One file with the whole setup: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Use it to move the setup from a test to a production OpenProject. Uploaded logos, icons and fonts are not in it."
@@ -374,6 +386,7 @@ en:
         own_tokens: "The own tokens in the configuration file cannot be read. Nothing was changed."
         locks: "The locked projects in the configuration file cannot be read. Nothing was changed."
         planned_switches: "The planned switches in the configuration file cannot be read. Nothing was changed."
+        footer_links: "The legal links in the configuration file cannot be read. Nothing was changed."
     editor:
       title: "Custom design system"
       description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."
@@ -701,6 +714,7 @@ en:
         logo_mobile: { label: "mobile logo", hint: "screens narrower than 850 px" }
         favicon: { label: "favicon", hint: "browser tab" }
         touch_icon: { label: "touch icon", hint: "home screen of a phone or tablet" }
+        login_background: { label: "sign-in background", hint: "a photo behind the sign-in page" }
         font: { label: "font", hint: "text that names its family" }
       weights:
         w100: "Thin, 100"

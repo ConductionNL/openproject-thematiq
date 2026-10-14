@@ -1172,6 +1172,20 @@ begin
   end
   store_for_lock.lock_project(parent_project.identifier, false)
   store_for_lock.save_project_rules(allow: false, choices: [])
+
+  # 26. Legal links in the footer
+  footer_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  footer_member.post "/admin/thematiq/footer", params: { footer_links: { privacy: "https://evil.example" } }
+  check("a non-admin cannot set the legal links") { [403, 422].include?(footer_member.response.status) && OpenProject::Thematiq::Store.new.footer_links.empty? }
+  footer_token = form_token(admin, "/admin/thematiq", "thematiq-footer-form")
+  admin.post "/admin/thematiq/footer", params: { footer_links: { privacy: "javascript:alert(1)" }, authenticity_token: footer_token }
+  check("a link that is not a web address is refused") { OpenProject::Thematiq::Store.new.footer_links.empty? }
+  footer_token = form_token(admin, "/admin/thematiq", "thematiq-footer-form")
+  admin.post "/admin/thematiq/footer", params: { footer_links: { imprint: "https://example.org/imprint" }, authenticity_token: footer_token }
+  footer_view = session_for
+  footer_view.get "/login"
+  check("the legal links show on the sign-in page") { footer_view.response.body.include?('href="https://example.org/imprint"') }
+  OpenProject::Thematiq::Store.new.save_footer_links({})
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

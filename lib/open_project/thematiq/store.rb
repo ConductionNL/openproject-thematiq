@@ -132,6 +132,38 @@ module OpenProject
         attr_accessor :on_switch
       end
 
+      # --- the footer with legal links: privacy statement, imprint, accessibility statement ---
+
+      FOOTER_LINKS = %w[privacy imprint accessibility].freeze
+
+      # kind => address, for the links that are set. Only http and https addresses, checked again on the way out.
+      def footer_links
+        stored = data["footer_links"]
+        return {} unless stored.is_a?(Hash)
+
+        FOOTER_LINKS.each_with_object({}) do |kind, result|
+          address = Shell::NextcloudApps.normalize(stored[kind])
+          result[kind] = address if address && stored[kind].to_s.length <= 500
+        end
+      end
+
+      # Stores the three addresses; an empty one is removed. false: one is not an http or https address.
+      def save_footer_links(given)
+        given = given.respond_to?(:to_h) ? given.to_h : {}
+        cleaned = {}
+        FOOTER_LINKS.each do |kind|
+          text = given[kind].to_s.strip
+          next if text.empty?
+
+          address = Shell::NextcloudApps.normalize(text)
+          return false if address.nil? || text.length > 500
+
+          cleaned[kind] = address
+        end
+        write("footer_links" => cleaned)
+        true
+      end
+
       # --- locks: a project's design system that its project admins cannot change ---
 
       def locked_projects

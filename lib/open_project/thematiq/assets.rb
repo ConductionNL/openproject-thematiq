@@ -102,6 +102,13 @@ module OpenProject
         upload(uploads, "logo_mobile")&.url(root:)
       end
 
+      # The rule for the sign-in page's background, or "" without an upload. The body of the sign-in pages carries the
+      # class controller-account, so the rule only reaches those. The address is built from a 64 hex character token.
+      def login_background_css(token_set, root: "", uploads: self.class.uploads_for(token_set))
+        url = upload(uploads, "login_background")&.url(root:)
+        url ? "body.controller-account { background: url(#{url}) center / cover no-repeat fixed; }" : ""
+      end
+
       # --- icons ---
 
       # The link elements for the page head: the favicon and the touch icon, when they were uploaded.
