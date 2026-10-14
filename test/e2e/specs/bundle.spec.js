@@ -24,7 +24,7 @@ test.describe("configuration file", () => {
     await expect(page.locator('[data-test-selector="thematiq-bundle-changes"]')).toContainText("The design system in use goes from Gemeente Amsterdam to Gemeente Zuiddrecht.");
     expect(await activeSetId(page)).toBe("amsterdam");
 
-    await page.goBack();
+    await page.goto(PICKER);
     await form.locator('input[type="file"]').setInputFiles({ name: "setup.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(bundle)) });
     await form.getByRole("button", { name: "Read the file" }).click();
     await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.getByRole("button", { name: "Import this setup" }).click()]);
