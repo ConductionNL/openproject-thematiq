@@ -1059,6 +1059,17 @@ begin
   check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
+
+  # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
+  scraper = session_for
+  scraper.get "/thematiq/metrics"
+  if OpenProject::Thematiq::Metrics.token
+    check("metrics without the token answer 401") { scraper.response.status == 401 }
+    scraper.get "/thematiq/metrics", headers: { "Authorization" => "Bearer #{OpenProject::Thematiq::Metrics.token}" }
+    check("metrics with the token answer the text format") { scraper.response.status == 200 && scraper.response.body.include?("thematiq_up ") }
+  else
+    check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
+  end
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

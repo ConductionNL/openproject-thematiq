@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 111 |
+| in plugin | 112 |
 | being built | 0 |
 | to build, as is | 15 |
-| to build, adapted | 36 |
+| to build, adapted | 35 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **51 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 33 S, 15 M and 3 L.
+1. **50 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 33 S, 14 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -274,7 +274,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `int-capability-api` | Let clients and other apps read the active house style through the platform capabilities API | `specs/theming-capability` | in plugin | #77: OpenProject has no capabilities document; `GET /thematiq/api/shell-tokens` answers thematiq's shape, version 1, without a session |  |
 | `int-token-set-api` | Let other apps list the house style catalogue through an API | `specs/app-token-set-selection` | in plugin | #77: the list and one design system in the set shape |  |
 | `int-stylesheet-manifest` | Let a page fetch the stylesheets a house style needs, in cascade order, to swap it in place | `specs/css-architecture` | in plugin | #77: `GET /thematiq/api/v1/sets/<id>/manifest` and the style sheet it names |  |
-| `int-metrics` | Monitor theming through Prometheus metrics (active set, overrides, syncs) | `specs/prometheus-metrics` | to build, adapted | The Prometheus client is in OpenProject's Gemfile. Not checked how a plugin adds a metric | M |
+| `int-metrics` | Monitor theming through Prometheus metrics (active set, overrides, syncs) | `specs/prometheus-metrics` | in plugin | #81: `/thematiq/metrics` in Prometheus' text format, off until the operator sets `THEMATIQ_METRICS_TOKEN`; a scraper sends it as a bearer token |  |
 | `int-health` | Check that the theming app is healthy from a monitoring system | `specs/prometheus-metrics` | in plugin | #73: `GET /admin/thematiq/health` for administrators, 200 or 503 with the problems, and `rake thematiq:health` |  |
 | `int-tokens-for-other-apps` | Let other apps style themselves with the same CSS variables, with no build step | `specs/css-architecture` | in plugin | `lib/open_project/thematiq/variables/generator.rb`: the `--thematiq-*` aliases |  |
 | `int-no-js-overhead` | Apply the theme as pure CSS with no JavaScript cost on ordinary pages | `specs/css-architecture` | in plugin | `app/views/thematiq/hooks/_head.html.erb` inlines CSS, no script |  |
