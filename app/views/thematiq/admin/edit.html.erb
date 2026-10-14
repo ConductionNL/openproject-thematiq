@@ -43,6 +43,16 @@
       <p class="thematiq-editor__hint" id="thematiq-based-on-hint"><%= t("thematiq.editor.based_on_hint") %></p>
     </div>
 
+    <%# thematiq's primary lock: the main button follows the primary colour, or keeps a colour of its own. %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__toggle" for="thematiq-lock-primary">
+        <input type="checkbox" name="lock_primary" value="1" id="thematiq-lock-primary" data-thematiq-lock-primary
+               aria-describedby="thematiq-lock-primary-hint" <%= "checked" if @draft.lock_primary? %>>
+        <%= t("thematiq.editor.lock_primary.label") %>
+      </label>
+      <p class="thematiq-editor__hint" id="thematiq-lock-primary-hint"><%= t("thematiq.editor.lock_primary.hint") %></p>
+    </div>
+
     <div class="thematiq-editor__tokens">
       <h3 class="thematiq-editor__legend"><%= t("thematiq.editor.tokens") %></h3>
       <p class="thematiq-editor__hint"><%= t("thematiq.editor.tokens_hint") %></p>
@@ -195,6 +205,8 @@
     </div>
     <%= thematiq_shell_preview(preview_set) %>
     <p class="thematiq-editor__hint"><%= t("thematiq.editor.preview_hint") %></p>
+    <h4 class="thematiq-editor__label"><%= t("thematiq.editor.signin_title") %></h4>
+    <%= thematiq_signin_preview(preview_set) %>
     <% used = @stored && Thematiq::Scope.ready? ? Thematiq::Scope.where(design_system_id: @draft.id).to_a : [] %>
     <% if used.any? %>
       <% projects = Project.where(id: used.filter_map(&:project_id)).index_by(&:id) %>

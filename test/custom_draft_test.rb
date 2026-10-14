@@ -391,4 +391,24 @@ class CustomDraftTest < Minitest::Test
     assert_equal "#123456", d.dark_field_value("primary")
     assert_equal "", d.dark_field_value("link")
   end
+  # --- the primary lock ---
+
+  def test_the_lock_puts_the_main_button_on_the_primary_colour_and_keeps_the_typed_action
+    d = CustomDraft.new(base:, name: "x", overrides: { "primary" => "#aa0055", "action" => "#00aa55" }, lock_primary: true)
+
+    assert_equal "#aa0055", d.token_set["action"]
+    assert_equal d.token_set["primary-deep"], d.token_set["action-deep"]
+    assert_equal "#00aa55", d.overrides["action"], "the typed value is kept for when the lock is off"
+    assert d.definition["lock_primary"]
+    refute CustomDraft.new(base:, name: "x", overrides: {}).definition.key?("lock_primary")
+    assert_equal "#00aa55", CustomDraft.new(base:, name: "x", overrides: { "action" => "#00aa55" }).token_set["action"]
+  end
+
+  def test_the_lock_survives_the_store_and_only_true_turns_it_on
+    s = store
+    assert s.save_custom(CustomDraft.new(base: s.catalogue.default, name: "Locked", overrides: { "primary" => "#aa0055" }, lock_primary: true))
+    assert s.custom_draft.lock_primary?
+    assert_equal "#aa0055", s.custom_set["action"]
+    refute CustomDraft.new(base:, name: "x", overrides: {}, lock_primary: "1").lock_primary?
+  end
 end

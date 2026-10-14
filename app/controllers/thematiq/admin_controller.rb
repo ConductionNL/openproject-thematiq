@@ -625,7 +625,8 @@ module Thematiq
                                              logo: stored&.definition&.dig("logo"),
                                              dark:, dark_errors: true,
                                              # The editor has dark fields for colours only. Other dark values an import brought stay.
-                                             dark_vocabulary: kept_dark_vocabulary(stored).merge(dark))
+                                             dark_vocabulary: kept_dark_vocabulary(stored).merge(dark),
+                                             lock_primary: params[:lock_primary] == "1")
     end
 
     # The dark fields: one per colour, roles and vocabulary in one list. Reset clears the dark value with the light one.

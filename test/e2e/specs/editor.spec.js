@@ -176,8 +176,8 @@ test.describe("editor", () => {
     const instance = (await exported(page, activeId)).tokens.primary;
     await page.goto("/admin/thematiq/custom?from=cunningham");
     await page.locator("#thematiq-token-primary").fill("#ffee00");
-    const bar = page.locator(".thematiq-shell__bar");
-    const main = page.locator(".thematiq-shell__main");
+    const bar = page.locator('[data-test-selector="thematiq-shell-preview"] .thematiq-shell__bar');
+    const main = page.locator('[data-test-selector="thematiq-shell-preview"] .thematiq-shell__main');
     const value = (locator) => locator.evaluate((el) => getComputedStyle(el).getPropertyValue("--tqp-primary").trim());
     await expect.poll(() => value(bar)).toBe("#ffee00");
 
@@ -188,5 +188,36 @@ test.describe("editor", () => {
 
     await page.getByLabel("Show the preview as the design system of").selectOption("page");
     await expect.poll(() => value(bar)).toBe("#ffee00");
+  });
+  // thematiq's primary lock: the main button follows the primary colour. And the sign-in page has a picture of its own.
+  test("the primary lock puts the main button on the primary colour, and the sign-in picture follows", async ({ page }) => {
+    const saved = await snapshot(page);
+    try {
+      await page.goto("/admin/thematiq/custom?from=cunningham");
+      const signin = page.locator('[data-test-selector="thematiq-signin-preview"]');
+      const value = (name) => signin.evaluate((el, property) => el.style.getPropertyValue(property), name);
+      await page.locator("#thematiq-token-primary").fill("#aa0055");
+      await page.locator("#thematiq-token-action").fill("#00aa55");
+      await expect.poll(() => value("--tqp-primary")).toBe("#aa0055");
+      await expect.poll(() => value("--tqp-action")).toBe("#00aa55");
+
+      await page.getByLabel("The main button follows the primary colour").check();
+      await expect.poll(() => value("--tqp-action")).toBe("#aa0055");
+      await expect.poll(() => preview(page, "action")).toBe("#aa0055");
+      await expect(page.locator("#thematiq-token-action")).toHaveValue("#00aa55");
+
+      await page.locator("#thematiq-name").fill(`E2E primary lock ${Date.now()}`);
+      await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.getByRole("button", { name: "Save and apply" }).click()]);
+      const added = (await customIds(page)).filter((id) => !saved.customs.includes(id));
+      expect(added).toHaveLength(1);
+      const file = await exported(page, added[0]);
+      expect(file.tokens.action).toBe("#aa0055");
+
+      await page.goto(`/admin/thematiq/custom?id=${added[0]}`);
+      await expect(page.getByLabel("The main button follows the primary colour")).toBeChecked();
+      await expect(page.locator("#thematiq-token-action")).toHaveValue("#00aa55");
+    } finally {
+      await restore(page, saved);
+    }
   });
 });

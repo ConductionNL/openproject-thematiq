@@ -26,7 +26,10 @@ module OpenProject
       # dark_errors: true for the editor's dark fields. Then a dark value that fails is an error under "dark.<key>",
       # like a light one under its key. Without it such a value is left out, as before the fields existed.
       # Nothing is derived from a light value.
-      def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil, vocabulary: nil, dark_vocabulary: nil, dark_errors: false)
+      # lock_primary: the main button follows the primary colour (thematiq's primary lock). Then action and action-deep
+      # take primary and primary-deep, whatever they hold, and the stored overrides of the two are kept for when it is off.
+      def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil, vocabulary: nil, dark_vocabulary: nil, dark_errors: false,
+                     lock_primary: false)
         @base = base
         @id = id.is_a?(String) && ID_PATTERN.match?(id) ? id : ID
         @logo = logo.is_a?(Hash) ? logo : {}
@@ -34,6 +37,7 @@ module OpenProject
         @raw = (vocabulary.is_a?(Hash) ? vocabulary.select { |key, _| Tokens::Vocabulary.key?(key) } : {})
                .merge(overrides.is_a?(Hash) ? overrides : {})
         @errors = []
+        @lock_primary = lock_primary == true
         @raw_dark = {}
         @dark_errors = dark_errors
         @dark = clean_dark(dark)
@@ -47,6 +51,12 @@ module OpenProject
       def name
         Tokens::Validator.label(@raw_name, max: 80)
       end
+
+      def lock_primary?
+        @lock_primary
+      end
+
+      LOCKED = { "action" => "primary", "action-deep" => "primary-deep" }.freeze
 
       # The valid overrides of the roles: token key to cleaned value. A value equal to the base is not an override.
       attr_reader :overrides
@@ -106,7 +116,7 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens,
+        Tokens::TokenSet.new(id:, name: name || base.name, tokens: locked(overrides), base: base.tokens,
                              dark: { "tokens" => base.dark_tokens.merge(dark), "vocabulary" => base.dark_vocabulary.merge(dark_vocabulary) },
                              vocabulary: base.vocabulary.merge(vocabulary),
                              logo_file: logo_file || base.logo_file,
@@ -121,6 +131,7 @@ module OpenProject
         definition["dark"] = dark.dup if dark.any?
         definition["vocabulary"] = vocabulary.dup if vocabulary.any?
         definition["dark_vocabulary"] = dark_vocabulary.dup if dark_vocabulary.any?
+        definition["lock_primary"] = true if lock_primary?
         definition
       end
 
@@ -140,6 +151,13 @@ module OpenProject
       attr_reader :dark_vocabulary
 
       private
+
+      # The overrides with the main button on the primary colour, when the lock is on.
+      def locked(values)
+        return values unless lock_primary?
+
+        values.merge(LOCKED.to_h { |key, source| [key, values[source] || base[source]] }.compact)
+      end
 
       def clean_dark(raw)
         return {}.freeze unless raw.is_a?(Hash)

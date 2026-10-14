@@ -81,3 +81,10 @@
 .thematiq-editor__opacity:focus-visible { outline: 2px solid var(--focus-outlineColor, currentColor); outline-offset: 2px; }
 .thematiq-editor__scope { margin: 0 0 12px; }
 .thematiq-editor__used { margin: 4px 0 0; padding-left: 20px; font-size: 13px; }
+/* The picture of the sign-in page: the same properties as the shell picture. */
+.thematiq-signin { overflow: hidden; font-size: 14px; line-height: 20px; border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius-lg); font-family: var(--tqp-font-family); color: var(--tqp-ink); }
+.thematiq-signin__page { background: var(--tqp-ground); }
+.thematiq-signin .thematiq-shell__bar { height: 48px; }
+.thematiq-signin__card { display: flex; flex-direction: column; gap: 10px; width: 260px; max-width: calc(100% - 32px); margin: 24px auto; padding: 20px; box-sizing: border-box; background: white; border: 1px solid var(--tqp-line); border-radius: var(--tqp-radius-lg); }
+.thematiq-signin__title { font-size: 18px; font-weight: 700; }
+.thematiq-signin .thematiq-shell__input { max-width: none; }

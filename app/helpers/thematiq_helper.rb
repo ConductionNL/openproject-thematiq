@@ -74,6 +74,27 @@ module ThematiqHelper
     end
   end
 
+  # A small picture of the sign-in page: the top bar, and the card with two fields and the main button.
+  # The same custom properties as the shell picture, so the editor's script draws it while you type.
+  def thematiq_signin_preview(token_set)
+    sample = ->(key) { t("thematiq.editor.sample.#{key}") }
+    tag.div(class: "thematiq-signin", style: OpenProject::Thematiq::Preview.new(token_set).shell_variables, aria: { hidden: true },
+            data: { test_selector: "thematiq-signin-preview", thematiq_preview: true }) do
+      tag.div(class: "thematiq-signin__page") do
+        safe_join([
+          tag.div(class: "thematiq-shell__bar") { tag.span(sample.call(:app), class: "thematiq-shell__app") },
+          tag.div(class: "thematiq-signin__card") do
+            safe_join([tag.span(sample.call(:sign_in), class: "thematiq-signin__title"),
+                       tag.span(sample.call(:username), class: "thematiq-shell__input"),
+                       tag.span(sample.call(:password), class: "thematiq-shell__input"),
+                       tag.span(sample.call(:sign_in), class: "thematiq-shell__button thematiq-shell__button--action"),
+                       tag.span(sample.call(:forgot), class: "thematiq-shell__link")])
+          end
+        ])
+      end
+    end
+  end
+
   # One contrast check next to a colour field: what is measured, the ratio and the verdict in words.
   # The script of the editor rewrites the ratio and the verdict while you type.
   def thematiq_contrast_line(check, token_set)

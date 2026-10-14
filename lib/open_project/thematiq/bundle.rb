@@ -100,9 +100,10 @@ module OpenProject
           draft = CustomDraft.new(base:, name: definition["name"], overrides: definition["overrides"], id:, logo: definition["logo"],
                                   dark: definition["dark"], vocabulary: definition["vocabulary"],
                                   dark_vocabulary: definition["dark_vocabulary"], dark_errors: true)
+          raise Refused, "customs" unless [nil, true, false].include?(definition["lock_primary"])
           raise Refused, "custom_invalid" unless draft.valid?
         end
-        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary") }
+        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary", "lock_primary") }
       end
 
       def self.check_settings(settings, known)
