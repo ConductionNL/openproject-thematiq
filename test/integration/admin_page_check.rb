@@ -1048,14 +1048,14 @@ begin
   manager_session.get "/admin/thematiq"
   check("with the permission a member opens the design page") { manager_session.response.status == 200 && manager_session.response.body.include?("thematiq-picker-form") }
   check("the menu of the administration offers it") { manager_session.response.body.include?("Thematiq design") }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
   manager_session.get "/admin/thematiq/compare", params: { set_id: "zuiddrecht" }
   manager_token = CGI.unescapeHTML(manager_session.response.body[/<form[^>]*id="thematiq-compare-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
-  OpenProject::Thematiq::Store.new.activate("cunningham")
   manager_session.post "/admin/thematiq", params: { set_id: "zuiddrecht", authenticity_token: manager_token }
   check("a brand manager applies a design system, and the history names them") do
     OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" && Thematiq::Change.order(:id).last.user_id == member.id
   end
-  manager_session.get "/admin/users"
+  manager_session.get "/users"
   check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
