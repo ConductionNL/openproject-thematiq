@@ -48,3 +48,7 @@
 .thematiq-top-bar__modes, .thematiq-top-bar__places { border: 0; margin: 12px 0 0; padding: 0; min-width: 0; }
 .thematiq-top-bar__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px 16px; margin: 8px 0 0; padding: 0; list-style: none; }
 .thematiq-top-bar__place .FormControl-select { width: 100%; }
+/* The history: one row per change. */
+.thematiq-history { width: 100%; max-width: 960px; border-collapse: collapse; margin: 0 0 16px; font-size: 14px; }
+.thematiq-history th, .thematiq-history td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--thematiq-line); vertical-align: top; }
+.thematiq-bundle-changes { margin: 8px 0 16px; padding-left: 20px; }

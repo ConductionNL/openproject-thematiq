@@ -231,6 +231,19 @@ module OpenProject
         picked.join(", ")
       end
 
+      # --- the whole setup, for the history and the configuration file (Bundle) ---
+
+      # The plugin's settings as they are stored.
+      def settings_snapshot
+        data
+      end
+
+      # Replaces the setup's part of the settings with a checked bundle's. Keys a bundle does not carry stay.
+      def replace_setup(settings)
+        kept = data.except(*Bundle::SETTING_KEYS, "custom", "use_custom")
+        @backend.write(kept.merge(settings.slice(*Bundle::SETTING_KEYS)))
+      end
+
       # --- settings left by the version that fetched from thematiq ---
 
       LEGACY_KEYS = %w[base_url token_set fetched_at checked_at last_error last_error_detail].freeze

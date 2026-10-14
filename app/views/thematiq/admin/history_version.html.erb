@@ -1,0 +1,33 @@
+<% title = t("thematiq.history.version_title", time: format_time(@change.created_at)) %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       { href: admin_thematiq_history_path, text: t("thematiq.history.title") },
+       title]
+    )
+  end
+%>
+
+<%# A dry run: what restoring this version changes. Nothing is written until the button below. %>
+<div class="thematiq-confirm" data-test-selector="thematiq-restore">
+  <% if @checked.nil? %>
+    <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3)) { t("thematiq.bundle.errors.#{@refusal}", default: t("thematiq.bundle.errors.invalid_json")) } %>
+  <% elsif @changes_list.empty? %>
+    <p data-test-selector="thematiq-restore-nothing"><%= t("thematiq.history.nothing_changes") %></p>
+  <% else %>
+    <p><strong><%= t("thematiq.history.restore_changes") %></strong></p>
+    <%= render partial: "thematiq/admin/bundle_changes", locals: { changes: @changes_list, names: @names } %>
+    <p><%= t("thematiq.history.restore_consequence") %></p>
+    <%= form_with(url: admin_thematiq_history_version_path(id: @change.id), method: :post, data: { turbo: false }, id: "thematiq-restore-form") do %>
+      <div class="thematiq-editor__actions">
+        <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary)) { t("thematiq.history.restore_confirm") } %>
+        <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_history_path)) { t("thematiq.admin.cancel") } %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

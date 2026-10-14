@@ -1,0 +1,55 @@
+<% html_title t(:label_administration), t("thematiq.admin.title"), t("thematiq.history.title") %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.history.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       t("thematiq.history.title")]
+    )
+    header.with_description { t("thematiq.history.description", count: Thematiq::Change::KEEP_VERSIONS) }
+  end
+%>
+
+<% unless @ready %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3)) { t("thematiq.history.not_ready") } %>
+<% end %>
+
+<% if @changes.empty? %>
+  <p class="color-fg-muted" data-test-selector="thematiq-history-empty"><%= t("thematiq.history.empty") %></p>
+<% else %>
+  <table class="thematiq-history" data-test-selector="thematiq-history">
+    <caption class="sr-only"><%= t("thematiq.history.title") %></caption>
+    <thead>
+      <tr>
+        <th scope="col"><%= t("thematiq.history.when") %></th>
+        <th scope="col"><%= t("thematiq.history.who") %></th>
+        <th scope="col"><%= t("thematiq.history.what") %></th>
+        <th scope="col"><span class="sr-only"><%= t("thematiq.history.restore") %></span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @changes.each do |change| %>
+        <tr data-thematiq-change="<%= change.id %>">
+          <td><%= format_time(change.created_at) %></td>
+          <td><%= change.user_name.presence || t("thematiq.history.system") %></td>
+          <td>
+            <%= t("thematiq.history.actions.#{change.action}", default: change.action) %>
+            <% if change.detail.present? %><span class="color-fg-muted">: <%= change.detail %></span><% end %>
+          </td>
+          <td>
+            <% if change.restorable? %>
+              <%= link_to t("thematiq.history.restore"), admin_thematiq_history_version_path(id: change.id),
+                          "aria-label": t("thematiq.history.restore_label", time: format_time(change.created_at)) %>
+            <% else %>
+              <span class="color-fg-muted"><%= t("thematiq.history.cleared") %></span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+
+<p><%= link_to t("thematiq.editor.back"), admin_thematiq_path %></p>
