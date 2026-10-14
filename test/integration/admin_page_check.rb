@@ -829,6 +829,51 @@ begin
   sub_id = sub_project.id
   sub_project.destroy
   check("a deleted project takes its rows with it") { Thematiq::Scope.where(project_id: sub_id).none? }
+
+  # 11. The history: who changed what, and a version restored after a dry run
+  # A session of its own: the member's first session has been signed out by the checks above.
+  history_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  anonymous.get "/admin/thematiq/history"
+  check("anonymous is sent to the login page from the history") { anonymous.response.status == 302 && anonymous.response.location.include?("/login") }
+  history_member.get "/admin/thematiq/history"
+  check("a non-admin gets 403 on the history") { history_member.response.status == 403 }
+  check("the history table is there") { Thematiq::Change.ready? }
+  before_count = Thematiq::Change.count
+  Setting.plugin_openproject_thematiq = { "active_id" => "cunningham" }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  Thematiq::Change.record("apply", user: User.find_by(login: "admin"), detail: "Cunningham")
+  version = Thematiq::Change.order(:id).last
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  Thematiq::Change.record("apply", user: User.find_by(login: "admin"), detail: "Zuiddrecht")
+  check("each change leaves a row with who made it and the setup after it") do
+    Thematiq::Change.count == before_count + 2 && version.user_name.present? && version.restorable? &&
+      JSON.parse(version.bundle).dig("settings", "active_id") == "cunningham"
+  end
+  check("a row cannot be changed or deleted") { !version.update(action: "restore") && !version.destroy && Thematiq::Change.exists?(version.id) }
+  admin.get "/admin/thematiq/history"
+  check("the history lists the rows") { admin.response.status == 200 && admin.response.body.include?(%(data-thematiq-change="#{version.id}")) }
+  history_member.get "/admin/thematiq/history/#{version.id}"
+  check("a non-admin cannot see a version") { history_member.response.status == 403 }
+  admin.get "/admin/thematiq/history/#{version.id}"
+  check("the dry run names the change and writes nothing") do
+    admin.response.status == 200 && admin.response.body.include?("The design system in use goes from") &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht"
+  end
+  restore_token = CGI.unescapeHTML(admin.response.body[/<form[^>]*id="thematiq-restore-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq/history/#{version.id}"
+  check("a restore without a CSRF token is refused") { throwaway.response.status == 422 && OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" }
+  history_member.post "/admin/thematiq/history/#{version.id}"
+  check("a non-admin cannot restore") { [403, 422].include?(history_member.response.status) && OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" }
+  admin.post "/admin/thematiq/history/#{version.id}", params: { authenticity_token: restore_token }
+  check("a restore brings the version back and leaves a row of its own") do
+    admin.response.status == 302 && OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham" &&
+      Thematiq::Change.order(:id).last.action == "restore"
+  end
+  admin.get "/admin/thematiq/history/0"
+  check("an unknown version gives 404") { admin.response.status == 404 }
+  admin.get "/admin/thematiq/history/../../etc"
+  check("a version id that is not a number gives 404") { admin.response.status == 404 }
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
