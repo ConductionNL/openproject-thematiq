@@ -1,0 +1,8 @@
+<%# A new work package in core's own create dialog, from every create action of a project. See Shell::CreateDialog. %>
+<% create_dialog = OpenProject::Thematiq::Shell::CreateDialog %>
+<% if create_dialog.render?(User.current) %>
+  <%= nonced_javascript_tag do %>
+window.thematiqCreateDialog = <%= raw json_escape(create_dialog.kit(root: OpenProject::Configuration["rails_relative_url_root"], translate: ->(key) { t(key) }).to_json) %>;
+<%= raw create_dialog.script %>
+  <% end %>
+<% end %>
