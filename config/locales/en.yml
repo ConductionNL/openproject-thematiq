@@ -188,6 +188,10 @@ en:
       no_match: "No value matches."
       pick_colour: "Pick a colour for %{token}"
       opacity: "Opacity of %{token}"
+      signin_title: "Preview of the sign-in page"
+      lock_primary:
+        label: "The main button follows the primary colour"
+        hint: "On: the main button takes Primary and Primary, deep, whatever Action holds. Off: the main button keeps a colour of its own. Your values for Action stay kept either way."
       dark:
         label: "Dark theme"
         field_label: "%{token} in the dark theme"
@@ -331,6 +335,10 @@ en:
         row_two: "Send the invitations"
         footnote: "Sample content"
         notice: "A notice with the accent colour"
+        sign_in: "Sign in"
+        username: "Username"
+        password: "Password"
+        forgot: "Forgot your password?"
     contrast:
       low: "Low contrast, under 4.5 to 1: %{pairs}."
       pairs:

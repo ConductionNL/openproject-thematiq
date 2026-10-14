@@ -4,7 +4,7 @@ This page maps what thematiq does against what this plugin does, so the work to 
 
 First read on 12 October 2026. Brought up to date on 14 October 2026 from:
 
-- This repository: the 67 pull requests merged into `development` (#1 to #67), and the open pull requests #68 to #74 of the lane that wrote this update. A row they build says "being built" and names the pull request.
+- This repository: the pull requests merged into `development`, #1 to #75, and since then each pull request updates the rows it builds. A row in an open pull request says "being built" and names it.
 - thematiq `development`, for the reverse table only. thematiq's capability list was not read again: it is the one of 26 September (`openspec/parity/capabilities.json`).
 - OpenProject 17.9.1 and the end-to-end suite of this repository, run on a live instance.
 
@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 76 |
-| being built | 19 |
-| to build, as is | 23 |
-| to build, adapted | 44 |
+| in plugin | 97 |
+| being built | 0 |
+| to build, as is | 22 |
+| to build, adapted | 43 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,8 +49,8 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **67 of 165 rows still have to be built, and 19 are in open pull requests.** The rows to build are sized 48 S, 16 M and 3 L.
-2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is in open pull requests** (#68 to #71), apart from a preview of the sign-in page and the primary lock. **Wave 4 is partly in open pull requests** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
+1. **65 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 46 S, 16 M and 3 L.
+2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
 5. **Only 3 rows have no counterpart.** 4 of the "in plugin" rows are things OpenProject core already does, just as Nextcloud core does them for thematiq.
@@ -89,20 +89,20 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `app-one-click` | Re-brand the whole workspace, its apps and the login page in one action | `specs/css-architecture` | in plugin | #7: select and Apply. With #70 Apply first shows what changes |  |
-| `app-diff-dialog` | See exactly which colour values will change before you apply a new house style | `specs/token-set-apply-dialog` | being built | #70: the apply dialog lists every value that changes, light and dark, and applies nothing until Apply |  |
-| `app-choose-what-changes` | Tick which individual values to take over when switching house style, and keep the rest | `specs/token-set-apply-dialog` | being built | #70: untick a value to keep its value of now. The result is a new custom design system |  |
-| `app-no-reload` | Switch house style and see it repaint the page you are on without reloading | `specs/theming-sync` | being built | #70: Apply in the dialog swaps the plugin's style tags in place, Turbo and Angular pages alike. Other open tabs follow on their next page |  |
+| `app-diff-dialog` | See exactly which colour values will change before you apply a new house style | `specs/token-set-apply-dialog` | in plugin | #70: the apply dialog lists every value that changes, light and dark, and applies nothing until Apply |  |
+| `app-choose-what-changes` | Tick which individual values to take over when switching house style, and keep the rest | `specs/token-set-apply-dialog` | in plugin | #70: untick a value to keep its value of now. The result is a new custom design system |  |
+| `app-no-reload` | Switch house style and see it repaint the page you are on without reloading | `specs/theming-sync` | in plugin | #70: Apply in the dialog swaps the plugin's style tags in place, Turbo and Angular pages alike. Other open tabs follow on their next page |  |
 | `app-live-preview-shell` | Preview the house style on a mock of the real app shell (header, navigation, buttons) inside the settings page | `specs/admin-settings` | in plugin | #8, #35: the editor's preview of the shell follows typing. #70: the dialog draws the shell now and after, following the boxes. #68: the preview as a project's or a module's design system |  |
-| `app-login-preview` | Preview how the login page will look before publishing | `specs/admin-settings` | to build, as is | The sign-in page is styled since #16. The admin pages have no picture of it | S |
-| `app-trial-session` | Try a house style in your own session only, while everyone else keeps the current one | `specs/theme-preview` | being built | #70: a trial in the administrator's own session, on every page, for a day at most. Nobody else sees it |  |
-| `app-trial-banner` | See a banner reminding you that you are looking at a trial theme, with a way back | `specs/theme-preview` | being built | #70: a banner at the foot of every page with Publish and Discard |  |
-| `app-trial-publish` | Publish a theme you have been trialling to everyone in one step | `specs/theme-preview` | being built | #70: "Publish to everyone" |  |
-| `app-trial-discard` | Discard a trial theme and return to what everyone else sees | `specs/theme-preview` | being built | #70: "Discard" |  |
+| `app-login-preview` | Preview how the login page will look before publishing | `specs/admin-settings` | in plugin | #76: a picture of the sign-in page in the editor, drawn live, and in the apply dialog |  |
+| `app-trial-session` | Try a house style in your own session only, while everyone else keeps the current one | `specs/theme-preview` | in plugin | #70: a trial in the administrator's own session, on every page, for a day at most. Nobody else sees it |  |
+| `app-trial-banner` | See a banner reminding you that you are looking at a trial theme, with a way back | `specs/theme-preview` | in plugin | #70: a banner at the foot of every page with Publish and Discard |  |
+| `app-trial-publish` | Publish a theme you have been trialling to everyone in one step | `specs/theme-preview` | in plugin | #70: "Publish to everyone" |  |
+| `app-trial-discard` | Discard a trial theme and return to what everyone else sees | `specs/theme-preview` | in plugin | #70: "Discard" |  |
 | `app-component-playground` | Look at buttons, inputs, note cards, list items and the login card in each of their states while you edit the tokens they read | `specs/theme-preview` | to build, adapted | Show Primer components instead of Nextcloud ones | M |
-| `app-primary-lock` | Make the brand primary colour drive every component, or deliberately let components keep their own colours | `specs/component-tokens` | to build, adapted | One switch: the `action` role follows `primary`, or keeps its own value | S |
+| `app-primary-lock` | Make the brand primary colour drive every component, or deliberately let components keep their own colours | `specs/component-tokens` | in plugin | #76: "The main button follows the primary colour", per custom design system. The typed values of Action are kept for when it is off |  |
 | `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | in plugin | #7: the admin page changes the design at runtime |  |
 | `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | to build, adapted | An OpenProject background job instead of a Nextcloud one. `test/no_network_test.rb` refuses a background job of the plugin today (#5), so that test changes | M |
-| `app-rollback-history` | Roll back to an earlier version of the theme from a version history | `specs/theming-audit` | being built | #69: every change keeps the whole setup as a version; a restore first shows what it changes |  |
+| `app-rollback-history` | Roll back to an earlier version of the theme from a version history | `specs/theming-audit` | in plugin | #69: every change keeps the whole setup as a version; a restore first shows what it changes |  |
 | `app-reset-core` | Reset Nextcloud's own theming values back to stock in one action | `specs/theming-sync` | to build, adapted | Reset OpenProject's own design values (`CustomStyle`, `DesignColor`). See question 6 | S |
 | `app-simple-theme-switch` | Let people who are not token specialists switch between brand themes without learning the token editor | `specs/token-set-dropdown` | in plugin | #7: the picker |  |
 | `app-branding-package` | Ship the tokens, templates and the theme stylesheet as one branding package that applies itself when a site is connected | `specs/theme-as-code` | to build, adapted | #72 and #73 give the configuration file and a task that imports it. Applying one at boot from a file or a variable is not built | S |
@@ -131,10 +131,10 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-semantic-aliases` | Define tokens as references to other tokens so one change flows through the semantic layer (thematiq has this in part) | `specs/custom-token-sets` | to build, as is | #36 resolves references in curly braces when a Figma file is read, so the stored set holds values, not references | S |
 | `aut-multi-brand-themes` | Maintain several brands or themes in one token source and switch between them | `specs/theming-audit` | in plugin | #6, #13: one catalogue file holds every set |  |
 | `aut-git-sync` | Store and version the token source in a Git repository with pull requests | `specs/theme-as-code` | in plugin | `data/catalogue/shell-catalogue.json` lives in the repository |  |
-| `aut-colour-only-ui` | Set a brand with nothing more than a primary colour, a background colour and a logo in a simple form | `specs/simple-brand-form` | being built | #71: "Start from your colours": a name, a main and a background colour open in the editor, unsaved; a logo is added once it is saved |  |
+| `aut-colour-only-ui` | Set a brand with nothing more than a primary colour, a background colour and a logo in a simple form | `specs/simple-brand-form` | in plugin | #71: "Start from your colours": a name, a main and a background colour open in the editor, unsaved; a logo is added once it is saved |  |
 | `aut-motion-tokens` | Define motion, duration and easing as tokens of the house style | `specs/dark-mode` | to build, adapted | The vocabulary carries `animation-quick` and `animation-slow` (#54). OpenProject has no motion variables to draw them on | S |
 | `aut-broken-reference-list` | See one list of every broken token reference in the house style before publishing it | `specs/custom-token-sets` | in plugin | #36: the upload report names every reference it could not follow, and why |  |
-| `aut-light-dark-values` | Give a colour token separate light and dark values in the house style editor | `specs/dark-mode` | being built | #68: a dark field under every colour, roles and vocabulary alike. Empty keeps the base's dark value, else OpenProject's own |  |
+| `aut-light-dark-values` | Give a colour token separate light and dark values in the house style editor | `specs/dark-mode` | in plugin | #68: a dark field under every colour, roles and vocabulary alike. Empty keeps the base's dark value, else OpenProject's own |  |
 | `aut-add-token` | Add a new design token from the house style editor without changing the theme code | `specs/theming-audit` | to build, adapted | The vocabulary widened the set to 185 values (#54), but an administrator cannot add one. See question 4 | M |
 | `aut-alpha-hex` | Set colour tokens with transparency using 8-digit hex values | `specs/dark-mode` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` accepts 4 and 8 digit hex. #68 adds an opacity control per colour |  |
 | `aut-component-preview` | See your own components rendered with the house style tokens while you build them, before publishing | `specs/own-component-preview` | to build, adapted | With `app-component-playground` | S |
@@ -237,14 +237,14 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 |---|---|---|---|---|---|
 | `gov-admin-only` | Allow only administrators to change the theme | `specs/admin-settings` | in plugin | `app/controllers/thematiq/admin_controller.rb` |  |
 | `gov-delegated-role` | Delegate theme editing to a brand manager who is not a full administrator | `lib/Settings/Admin.php` | to build, adapted | A global permission in OpenProject's roles instead of Nextcloud's delegated settings | S |
-| `gov-audit-log` | See who changed which theming setting, from what to what, and when | `specs/prometheus-metrics` | being built | #69: one row per change with who and when, in a table of the plugin's own; #72 downloads it as CSV |  |
-| `gov-audit-export` | Export the theming audit log for an auditor | `specs/prometheus-metrics` | being built | #72: the history as CSV, with cells that look like a formula quoted |  |
-| `gov-audit-append-only` | Rely on the audit log not being editable after the fact | `specs/prometheus-metrics` | being built | #69: the model refuses an update or a delete. Only the setup of rows older than the newest 50 is cleared |  |
-| `gov-otap-bundle` | Promote the complete theme configuration from test to acceptance to production as one file | `specs/config-portability` | being built | #72: the whole setup as one file, projects by identifier; reading it shows what it changes first |  |
-| `gov-otap-cli` | Export and import that configuration bundle from the command line for scripted deployments | `specs/config-portability` | being built | #73: `rake thematiq:bundle:export` and `thematiq:bundle:import`, with `DRY_RUN=1` |  |
+| `gov-audit-log` | See who changed which theming setting, from what to what, and when | `specs/prometheus-metrics` | in plugin | #69: one row per change with who and when, in a table of the plugin's own; #72 downloads it as CSV |  |
+| `gov-audit-export` | Export the theming audit log for an auditor | `specs/prometheus-metrics` | in plugin | #72: the history as CSV, with cells that look like a formula quoted |  |
+| `gov-audit-append-only` | Rely on the audit log not being editable after the fact | `specs/prometheus-metrics` | in plugin | #69: the model refuses an update or a delete. Only the setup of rows older than the newest 50 is cleared |  |
+| `gov-otap-bundle` | Promote the complete theme configuration from test to acceptance to production as one file | `specs/config-portability` | in plugin | #72: the whole setup as one file, projects by identifier; reading it shows what it changes first |  |
+| `gov-otap-cli` | Export and import that configuration bundle from the command line for scripted deployments | `specs/config-portability` | in plugin | #73: `rake thematiq:bundle:export` and `thematiq:bundle:import`, with `DRY_RUN=1` |  |
 | `gov-federated-share` | Share the theme configuration with other instances through federated configuration sharing (thematiq has this in part) | `specs/federated-config-sharing` | to build, adapted | Import the configuration file of #72 by hand. A live share needs a connection, which #5 removed. See question 1 | S |
-| `gov-config-as-code` | Declare the theme in deployment configuration (for example Helm values) so it is versioned with the infrastructure | `specs/theme-as-code` | being built | #73: `THEMATIQ_DESIGN_SYSTEM` names the design system and wins over the admin page |  |
-| `gov-app-store-install` | Install and update the theming from the platform's app store | `appinfo/info.xml` | being built | OpenProject has no plugin store. #74 prepares version 0.2.0 with a changelog; publishing the gem and an image is the owner's step |  |
+| `gov-config-as-code` | Declare the theme in deployment configuration (for example Helm values) so it is versioned with the infrastructure | `specs/theme-as-code` | in plugin | #73: `THEMATIQ_DESIGN_SYSTEM` names the design system and wins over the admin page |  |
+| `gov-app-store-install` | Install and update the theming from the platform's app store | `appinfo/info.xml` | in plugin | OpenProject has no plugin store. #74 prepares version 0.2.0 with a changelog; publishing the gem and an image is the owner's step |  |
 | `gov-open-source` | Use, inspect and change the theming software under an open source licence | `specs/claim-accuracy` | in plugin | `LICENSE` (EUPL-1.2) |  |
 | `gov-licence-clarity` | See the licence of every bundled font and asset stated in the product | `specs/claim-accuracy` | in plugin | #15: a licence per logo and font in the catalogue (`docs/logos-and-fonts.md`) |  |
 | `gov-environment-marker` | Show a visible difference between the test and the production environment, so nobody works in the wrong one | `specs/config-portability` | to build, as is |  | S |
@@ -275,10 +275,10 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `int-token-set-api` | Let other apps list the house style catalogue through an API | `specs/app-token-set-selection` | to build, as is | With `sco-app-token-catalogue` | S |
 | `int-stylesheet-manifest` | Let a page fetch the stylesheets a house style needs, in cascade order, to swap it in place | `specs/css-architecture` | to build, adapted | The plugin writes one inline style. Serve the CSS of a set from an endpoint | S |
 | `int-metrics` | Monitor theming through Prometheus metrics (active set, overrides, syncs) | `specs/prometheus-metrics` | to build, adapted | The Prometheus client is in OpenProject's Gemfile. Not checked how a plugin adds a metric | M |
-| `int-health` | Check that the theming app is healthy from a monitoring system | `specs/prometheus-metrics` | being built | #73: `GET /admin/thematiq/health` for administrators, 200 or 503 with the problems, and `rake thematiq:health` |  |
+| `int-health` | Check that the theming app is healthy from a monitoring system | `specs/prometheus-metrics` | in plugin | #73: `GET /admin/thematiq/health` for administrators, 200 or 503 with the problems, and `rake thematiq:health` |  |
 | `int-tokens-for-other-apps` | Let other apps style themselves with the same CSS variables, with no build step | `specs/css-architecture` | in plugin | `lib/open_project/thematiq/variables/generator.rb`: the `--thematiq-*` aliases |  |
 | `int-no-js-overhead` | Apply the theme as pure CSS with no JavaScript cost on ordinary pages | `specs/css-architecture` | in plugin | `app/views/thematiq/hooks/_head.html.erb` inlines CSS, no script |  |
-| `int-cli-set-theme` | Set the active theme from the command line | `specs/theme-cli` | being built | #73: `rake thematiq:apply[id]` |  |
+| `int-cli-set-theme` | Set the active theme from the command line | `specs/theme-cli` | in plugin | #73: `rake thematiq:apply[id]` |  |
 | `int-docs-site` | Read end-user and admin documentation for every theming feature | `specs/docs-content` | in plugin | `docs/` in the repository. Markdown, no site |  |
 | `int-sovereign-bundle` | Ship as part of a sovereign workplace bundle with one brand across all its components (thematiq has this in part) | `specs/token-sets` | in plugin | This is what the plugin is for (`README.md`) |  |
 | `x-shell-tokens-api` | Let another product read the active house style as 18 values and a logo (newer than thematiq's list) | `docs/features/shell-tokens-api.md` | to build, adapted | #5 removed the client and every connection: network only for what an admin turns on. A set moves by file instead (#10). See question 1 | S |
@@ -352,7 +352,7 @@ Each wave can be built and released without the next one. Sizes count the rows o
 | 7. Keep both products in step | A nightly regenerated catalogue, upstream notices, a gallery, a shared light or dark choice, OpenProject's own design values. | 11 | 8 S, 2 M, 1 L | Questions 1, 2 and 6. Do not start this wave before they are answered. |
 | T. thematiq catches up | The reverse table: touch icon, mobile logo, the set file, the canon check, the app switcher column, the pixel-diff check, the picker search | 7 | 5 S, 2 M | Runs beside any wave. The set file comes first: it is what lets a set move between the products without a link. |
 
-**Status on 14 October 2026.** Wave 0: done, apart from PDF export styling (`sur-generated-documents`, blocked by OpenProject) and the cards of `x-workplace-layout`. Wave 1: done, apart from `cat-stock-option`, `cat-completeness-badge`, `cat-design-system-docs`, `typ-marianne-gated`, `ast-icon-contrast`, `sur-error-contrast` and `sur-selection-colour`; `aut-light-dark-values` is in #68. Wave 2: in open pull requests #68 to #71, apart from `app-login-preview` and `app-primary-lock`. Wave 3: 9 of 17 rows are in, the Figma upload and the font uploads among them; free CSS, own tokens and the NL Design System converter are not. Wave 4: 9 of 26 rows are in open pull requests #69 and #72 to #74 (audit, configuration file, command line, environment, health, release); the compliance report, metrics, read endpoints and a delegated role are not started. Wave 5: 2 of 9 rows are in (#67, a design system per project); groups, locks and a planned switch are not. Waves 6 and 7: not started.
+**Status on 14 October 2026.** Wave 0: done, apart from PDF export styling (`sur-generated-documents`, blocked by OpenProject) and the cards of `x-workplace-layout`. Wave 1: done, apart from `cat-stock-option`, `cat-completeness-badge`, `cat-design-system-docs`, `typ-marianne-gated`, `ast-icon-contrast`, `sur-error-contrast` and `sur-selection-colour`; `aut-light-dark-values` is in #68. Wave 2: done (#68 to #71, #76). Wave 3: 9 of 17 rows are in, the Figma upload and the font uploads among them; free CSS, own tokens and the NL Design System converter are not. Wave 4: 9 of 26 rows are in (#69, #72 to #74) (audit, configuration file, command line, environment, health, release); the compliance report, metrics, read endpoints and a delegated role are not started. Wave 5: 2 of 9 rows are in (#67, a design system per project); groups, locks and a planned switch are not. Waves 6 and 7: not started.
 
 **Wave 0, finish what is started:** `cat-rijkshuisstijl`, `cat-municipal-sets`, `cat-bigcity-systems`, `cat-vng`, `cat-lasuite`, `cat-searchable-picker`, `cat-swatch-preview`, `cat-community-sets`, `cat-starter-templates`, `cat-provincial-sets`, `app-one-click`, `app-live-preview-shell`, `app-runtime-no-deploy`, `app-simple-theme-switch`, `aut-upload-validate`, `aut-custom-list-delete`, `aut-custom-export`, `aut-token-editor`, `aut-token-reset`, `aut-overrides-persist`, `aut-overrides-import-export`, `aut-multi-brand-themes`, `aut-git-sync`, `typ-air-gapped`, `ast-logo-sync`, `ast-upload-logo`, `ast-favicon`, `ast-org-logos`, `ast-dark-logo`, `acc-high-contrast-set`, `gov-licence-clarity`, `syn-upstream-generated`, `sur-generated-documents`, `gov-no-public-cdn`, `x-workplace-layout`
 
