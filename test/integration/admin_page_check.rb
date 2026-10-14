@@ -538,7 +538,8 @@ begin
     %w[logo logo-inverse logo-mobile favicon touch-icon font].all? { |kind| body.include?(%(id="thematiq-file-#{kind}-form")) }
   end
   check("each field states its limits") { body.include?("At most 512 KB") && body.include?("2000 by 1000 px") && body.include?("12 files per design system") }
-  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 6 }
+  # Seven since the sign-in background joined the six (#87).
+  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 7 }
 
   body = send_file.call("logo", UploadSamples.svg("clean-logo"), "logo.txt")
   logo = of_kind.call("logo")
@@ -568,9 +569,10 @@ begin
   check("the replaced file's address is gone") { anonymous.response.status == 404 }
 
   send_file.call("logo_inverse", UploadSamples.png(300, 80), "inverse.png")
-  check("the logo for the coloured bar wins in the top bar") do
+  # The set is based on Cunningham, whose header colour is white: the bar is light, so the plain logo wins there.
+  check("the logo for the light bar wins in the top bar") do
     admin.get "/admin/thematiq"
-    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
+    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo').url}"); }))
   end
   send_file.call("logo_mobile", UploadSamples.webp(64, 64), "mobile.webp")
   check("the mobile logo gets its rule on the element narrow screens show") do
@@ -592,7 +594,7 @@ begin
   check("the page head links the uploaded touch icon") { touch && page.include?(%(href="#{touch.url}")) && page.include?('rel="apple-touch-icon"') }
   admin.get "/this-page-does-not-exist-#{SecureRandom.hex(4)}"
   check("an error page links the uploaded icons and logo as well") do
-    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo_inverse").url)
+    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo").url)
   end
 
   body = send_file.call("font", UploadSamples.woff2, "check.woff2", { font_family: "Check Sans", font_weight: "400", font_style: "normal" })
@@ -1065,7 +1067,8 @@ begin
   bar_view.get "/projects"
   check("the top bar has the brand block and no row of tiles") do
     body = bar_view.response.body
-    bar_view.response.status == 200 && body.include?('data-test-selector="thematiq-brand"') && !body.include?("thematiq-app-row--item")
+    # The class also names rules of the inlined stylesheet, so the check looks for the element.
+    bar_view.response.status == 200 && body.include?('data-test-selector="thematiq-brand"') && !body.include?('<ul class="thematiq-app-row"')
   end
 
   # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
