@@ -90,7 +90,7 @@ module OpenProject
 
         base = catalogue.find(stored["based_on"]) || catalogue.default
         draft = CustomDraft.new(base:, name: stored["name"], overrides: stored["overrides"], id:, logo: stored["logo"],
-                                dark: stored["dark"], vocabulary: stored["vocabulary"])
+                                dark: stored["dark"], vocabulary: stored["vocabulary"], dark_vocabulary: stored["dark_vocabulary"])
         draft.name ? draft : nil
       end
 

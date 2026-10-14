@@ -121,6 +121,7 @@ module OpenProject
         end
         own = { "generator" => "openproject-thematiq #{OpenProject::Thematiq::VERSION}", "format" => 1 }
         own["dark"] = token_set.dark_tokens.dup if token_set.dark?
+        own["darkVocabulary"] = token_set.dark_vocabulary.dup if token_set.dark_vocabulary.any?
         document["$extensions"] = { EXTENSION => { "setId" => token_set.id, "cssOnly" => css_only }, PLUGIN_EXTENSION => own }
         document
       end
@@ -219,8 +220,8 @@ module OpenProject
         document = { LIGHT_SET => studio_set(token_set.tokens, legacy:, vocabulary: token_set.vocabulary) }
         themes = [{ "id" => "light", "name" => "Light", "group" => token_set.name, "selectedTokenSets" => { LIGHT_SET => "enabled" } }]
         order = [LIGHT_SET]
-        if token_set.dark?
-          document[DARK_SET] = studio_set(token_set.dark_tokens, legacy:)
+        if token_set.dark? || token_set.dark_vocabulary.any?
+          document[DARK_SET] = studio_set(token_set.dark_tokens, legacy:, vocabulary: token_set.dark_vocabulary)
           themes << { "id" => "dark", "name" => "Dark", "group" => token_set.name,
                       "selectedTokenSets" => { LIGHT_SET => "enabled", DARK_SET => "enabled" } }
           order << DARK_SET

@@ -21,7 +21,9 @@ module OpenProject
       # the dark colours of the base. The editor has no fields for them yet.
       # overrides may hold roles and vocabulary keys alike: the two sets of names never overlap.
       # vocabulary: vocabulary values given apart, as an import or a stored definition holds them.
-      def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil, vocabulary: nil)
+      # dark_vocabulary: vocabulary values for the dark theme that an imported file brought along. They go on top of
+      # the dark vocabulary of the base. The editor has no fields for them.
+      def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil, vocabulary: nil, dark_vocabulary: nil)
         @base = base
         @id = id.is_a?(String) && ID_PATTERN.match?(id) ? id : ID
         @logo = logo.is_a?(Hash) ? logo : {}
@@ -30,6 +32,7 @@ module OpenProject
                .merge(overrides.is_a?(Hash) ? overrides : {})
         @errors = []
         @dark = clean_dark(dark)
+        @dark_vocabulary = clean_dark_vocabulary(dark_vocabulary)
         @overrides = clean(Tokens::TokenSet::ALL_KINDS)
         @vocabulary = clean(Tokens::Vocabulary::KINDS)
         @errors << "name" unless self.name
@@ -75,7 +78,8 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens, dark: base.dark_tokens.merge(dark),
+        Tokens::TokenSet.new(id:, name: name || base.name, tokens: overrides, base: base.tokens,
+                             dark: { "tokens" => base.dark_tokens.merge(dark), "vocabulary" => base.dark_vocabulary.merge(dark_vocabulary) },
                              vocabulary: base.vocabulary.merge(vocabulary),
                              logo_file: logo_file || base.logo_file,
                              logo_inverse_file: logo_file ? logo_inverse_file : base.logo_inverse_file,
@@ -88,6 +92,7 @@ module OpenProject
         definition["logo"] = { "file" => logo_file, "inverse_file" => logo_inverse_file } if logo_file
         definition["dark"] = dark.dup if dark.any?
         definition["vocabulary"] = vocabulary.dup if vocabulary.any?
+        definition["dark_vocabulary"] = dark_vocabulary.dup if dark_vocabulary.any?
         definition
       end
 
@@ -103,6 +108,9 @@ module OpenProject
       # The valid dark colours this draft brought along. A value that fails is left out.
       attr_reader :dark
 
+      # The valid dark vocabulary values this draft brought along, that differ from the base's.
+      attr_reader :dark_vocabulary
+
       private
 
       def clean_dark(raw)
@@ -112,6 +120,16 @@ module OpenProject
           given = raw[key]
           value = given.is_a?(String) && given.length <= MAX_INPUT ? Tokens::Validator.color(given) : nil
           result[key] = value if value && value != base.dark_tokens[key]
+        end.freeze
+      end
+
+      def clean_dark_vocabulary(raw)
+        return {}.freeze unless raw.is_a?(Hash)
+
+        Tokens::Vocabulary::KINDS.each_with_object({}) do |(key, kind), result|
+          given = raw[key]
+          value = given.is_a?(String) && given.length <= MAX_INPUT ? Tokens::Validator.public_send(kind, given) : nil
+          result[key] = value if value && value != base.dark_vocabulary[key]
         end.freeze
       end
 

@@ -253,22 +253,22 @@ module OpenProject
         end
 
         # One line per variable of the map that the set fills a key for, from the first key it fills.
-        def vocabulary_declarations(map)
-          vocabulary_values(map).map { |variable, value| "  #{variable}: #{value};" }
+        def vocabulary_declarations(map, source = @token_set.vocabulary)
+          vocabulary_values(map, source).map { |variable, value| "  #{variable}: #{value};" }
         end
 
         # variable => value, for the variables of the map the set fills a usable key for.
-        def vocabulary_values(map)
+        def vocabulary_values(map, source = @token_set.vocabulary)
           map.each_with_object({}) do |(variable, keys), result|
-            value = keys.lazy.filter_map { |key| vocabulary_value(key) }.first
+            value = keys.lazy.filter_map { |key| vocabulary_value(key, source) }.first
             result[variable] = value if value
           end
         end
 
         # The value of one key as a variable takes it. Three channels become rgb(). A focus colour that is
         # see-through, or that the plugin cannot measure, does not count.
-        def vocabulary_value(key)
-          value = @token_set.vocabulary[key]
+        def vocabulary_value(key, source = @token_set.vocabulary)
+          value = source[key]
           return nil unless value
           return "rgb(#{value})" if key == "color-focus-rgb"
           return nil if key == "color-focus" && Contrast.rgba(value)&.last != 1.0
@@ -281,8 +281,8 @@ module OpenProject
         end
 
         # The role lines without the variables the vocabulary fills, so each variable is written once.
-        def without_drawn(lines, map)
-          drawn = vocabulary_values(map).keys
+        def without_drawn(lines, map, source = @token_set.vocabulary)
+          drawn = vocabulary_values(map, source).keys
           lines.reject { |line| drawn.include?(line[/\A\s*(--[A-Za-z0-9-]+):/, 1]) }
         end
 
@@ -352,8 +352,11 @@ module OpenProject
                     end
             "  #{variable}: #{value};" if value
           end
-          colours + bar_tint_declarations(dark["primary"] && [dark["primary"], Contrast.on(dark, "primary")]) +
-            dark_selected_declarations(dark)
+          # The dark variant's own vocabulary, where the light value is drawn. It replaces the role's line.
+          vocabulary = @token_set.dark_vocabulary
+          without_drawn(colours, VOCABULARY_COLORS, vocabulary) +
+            bar_tint_declarations(dark["primary"] && [dark["primary"], Contrast.on(dark, "primary")]) +
+            dark_selected_declarations(dark) + vocabulary_declarations(VOCABULARY_COLORS, vocabulary)
         end
 
         # The selected menu item in the dark theme: its text from the contrast rule, written last so it decides.

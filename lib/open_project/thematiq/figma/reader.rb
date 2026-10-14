@@ -35,7 +35,8 @@ module OpenProject
         # tokens and dark: role => validated value. vocabulary: vocabulary key => validated value.
         # imported: [{ role, path, value, theme }], with "vocabulary" => true for a vocabulary key.
         # skipped: [{ path, reason }], at most MAX_REPORTED, with the full number in skipped_count.
-        Result = Struct.new(:name, :tokens, :dark, :vocabulary, :imported, :skipped, :skipped_count, :shape, keyword_init: true)
+        Result = Struct.new(:name, :tokens, :dark, :vocabulary, :dark_vocabulary, :imported, :skipped, :skipped_count, :shape,
+                            keyword_init: true)
 
         # The types a role of each kind takes: the W3C names and the ones of Tokens Studio.
         TYPES = {
@@ -71,7 +72,18 @@ module OpenProject
           light_tree, dark_tree, reference_only, dark_reference_only = studio ? studio_trees(document) : [document, nil, [], []]
 
           tokens, imported, vocabulary = roles(light_tree, reference_only:, loose: !studio, theme: "light", css_only: css_only(document))
-          dark, dark_imported = dark_tree ? roles(dark_tree, reference_only: dark_reference_only, loose: false, theme: "dark", color_only: true) : [{}, []]
+          dark, dark_imported, dark_vocabulary = if dark_tree
+                                                   roles(dark_tree, reference_only: dark_reference_only, loose: false, theme: "dark", color_only: true)
+                                                 else
+                                                   [{}, [], {}]
+                                                 end
+          own_dark_vocabulary(document).each do |key, value|
+            next if dark_vocabulary.key?(key)
+
+            dark_vocabulary[key] = value
+            dark_imported << { "role" => key, "path" => "$extensions.#{PLUGIN_EXTENSION}.darkVocabulary.#{key}", "value" => value,
+                               "theme" => "dark", "vocabulary" => true }
+          end
           own_dark(document).each do |role, value|
             next if dark.key?(role)
 
@@ -80,7 +92,7 @@ module OpenProject
           end
           raise Refused, "nothing_usable" if tokens.empty?
 
-          Result.new(name: name_of(document), tokens:, dark:, vocabulary:, imported: imported + dark_imported, skipped: @skipped,
+          Result.new(name: name_of(document), tokens:, dark:, vocabulary:, dark_vocabulary:, imported: imported + dark_imported, skipped: @skipped,
                      skipped_count: @skipped_count, shape: studio ? "tokens-studio" : "dtcg")
         end
 
@@ -277,14 +289,14 @@ module OpenProject
               break
             end
           end
-          vocabulary = color_only ? {} : vocabulary_of(by_css, imported, used)
+          vocabulary = vocabulary_of(by_css, imported, used, theme)
           by_css.each_value { |entry| skip(entry[:path], "no_role") unless used.include?(entry[:path]) }
           [tokens, imported, vocabulary]
         end
 
         # A token under one of thematiq's vocabulary names becomes that key, through the validator of its kind.
         # A token can feed a role and a key at once: thematiq's error colour is also where the accent falls back to.
-        def vocabulary_of(by_css, imported, used)
+        def vocabulary_of(by_css, imported, used, theme)
           vocabulary = {}
           by_css.each do |css, entry|
             key = Tokens::Vocabulary.key_of(css)
@@ -295,7 +307,7 @@ module OpenProject
               skip(entry[:path], value.to_s) unless used.include?(entry[:path])
             else
               vocabulary[key] = value
-              imported << { "role" => key, "path" => entry[:path], "value" => value, "theme" => "light", "vocabulary" => true }
+              imported << { "role" => key, "path" => entry[:path], "value" => value, "theme" => theme, "vocabulary" => true }
             end
             used << entry[:path]
           end
@@ -467,6 +479,20 @@ module OpenProject
           return {} unless map.is_a?(Hash)
 
           map.first(MAX_TOKENS).select { |css, value| css.is_a?(String) && CSS_NAME.match?(css) && value.is_a?(String) }.to_h
+        end
+
+        # The dark vocabulary the plugin's own W3C file carries. Each value goes through the validator of its kind.
+        def own_dark_vocabulary(document)
+          extension = document["$extensions"].is_a?(Hash) ? document["$extensions"][PLUGIN_EXTENSION] : nil
+          given = extension.is_a?(Hash) ? extension["darkVocabulary"] : nil
+          return {} unless given.is_a?(Hash)
+
+          Tokens::Vocabulary::KINDS.each_with_object({}) do |(key, kind), result|
+            next unless given.key?(key)
+
+            value = given[key].is_a?(String) && given[key].length <= 400 ? Tokens::Validator.public_send(kind, given[key]) : nil
+            value ? result[key] = value : skip("$extensions.#{PLUGIN_EXTENSION}.darkVocabulary.#{key}", "value_refused")
+          end
         end
 
         # The dark colours the plugin's own W3C file carries. Each goes through the colour validator.

@@ -16,7 +16,7 @@
 
 [data-color-mode] {
   --control-medium-size: 2.5rem;         /* canon button and input: 40 px high (Primer: 32) */
-  --thematiq-table-head: var(--bgColor-muted);
+  --thematiq-table-head: var(--thematiq-v-table-head, var(--bgColor-muted));
 }
 
 body[data-color-mode="light"][data-light-theme="light"] {
