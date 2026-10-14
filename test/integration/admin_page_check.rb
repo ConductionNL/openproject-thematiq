@@ -1213,6 +1213,17 @@ begin
       head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
       OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
   end
+
+  # 29. The icon library
+  icon_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  icon_member.get "/thematiq/api/v1/icons", headers: { "Accept" => "application/json" }
+  icon_list = JSON.parse(icon_member.response.body) rescue {}
+  check("a member reads the icon library") { icon_member.response.status == 200 && icon_list["sets"].to_h.key?("rvo") }
+  icon_view = session_for
+  icon_view.get "/thematiq/icons/rvo/#{icon_list.dig('sets', 'rvo', 'names')&.first}.svg"
+  check("an icon is a static file without a session") { icon_view.response.status == 200 && icon_view.response.media_type == "image/svg+xml" }
+  icon_view.get "/thematiq/icons/../../config/database.yml"
+  check("the icon path does not leave its folder") { icon_view.response.status != 200 || !icon_view.response.body.include?("adapter") }
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

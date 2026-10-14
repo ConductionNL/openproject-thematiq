@@ -79,3 +79,4 @@
 /* The playground. */
 .thematiq-playground__row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
 .thematiq-playground__row--fields { align-items: flex-start; }
+.thematiq-icons__sample img { width: 24px; height: 24px; margin-right: 6px; vertical-align: middle; }

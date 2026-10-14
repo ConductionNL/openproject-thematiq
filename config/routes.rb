@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
   post "admin/thematiq/custom-css", to: "thematiq/admin#update_custom_css", as: :admin_thematiq_custom_css
   post "admin/thematiq/own-tokens", to: "thematiq/admin#update_own_token", as: :admin_thematiq_own_tokens
+  get "thematiq/api/v1/icons", to: "thematiq/api#icons", as: :thematiq_api_icons, format: false
   get "thematiq/api/v1/own-tokens", to: "thematiq/api#own_tokens", as: :thematiq_api_own_tokens, format: false
   post "admin/thematiq/schedule", to: "thematiq/admin#update_schedule", as: :admin_thematiq_schedule
   post "admin/thematiq/email", to: "thematiq/admin#update_email", as: :admin_thematiq_email

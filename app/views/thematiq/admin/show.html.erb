@@ -620,3 +620,26 @@ end %>
   </div>
   <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.email.save") } %>
 <% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-icons") { t("thematiq.icons.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.icons.hint") %></p>
+<table class="thematiq-history" data-test-selector="thematiq-icon-sets">
+  <thead><tr><th scope="col"><%= t("thematiq.icons.set") %></th><th scope="col"><%= t("thematiq.icons.count") %></th>
+    <th scope="col"><%= t("thematiq.icons.licence") %></th><th scope="col"><%= t("thematiq.icons.sample") %></th></tr></thead>
+  <tbody>
+    <% OpenProject::Thematiq::Icons.sets.each do |set, entry| %>
+      <tr>
+        <td><code><%= set %></code><br><span class="color-fg-muted"><%= entry["source"] %></span></td>
+        <td><%= entry["count"] %></td>
+        <td><%= entry["licence"] %></td>
+        <td class="thematiq-icons__sample">
+          <% entry["names"].first(8).each do |name| %>
+            <img src="<%= OpenProject::Thematiq::Icons.url(set, name, root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>" alt="<%= name %>" width="24" height="24" loading="lazy">
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

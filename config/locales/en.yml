@@ -254,6 +254,13 @@ en:
         removal: "The removal date must be a date from today on."
         message: "The note may hold up to 200 characters, without markup."
         too_many: "You can keep up to 200 deprecations."
+    icons:
+      title: "Icon library"
+      hint: "Government icon sets from thematiq, rebuilt by the plugin's SVG check. Any app on this OpenProject uses an icon by name at /thematiq/icons/<set>/<name>.svg; the list is at /thematiq/api/v1/icons."
+      set: "Set"
+      count: "Icons"
+      licence: "Licence"
+      sample: "Sample"
     playground:
       link: "Playground: OpenProject's components in a design system"
       title: "Playground"

@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 131 |
+| in plugin | 132 |
 | being built | 0 |
 | to build, as is | 10 |
-| to build, adapted | 21 |
+| to build, adapted | 20 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **31 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 6 M and 2 L.
+1. **30 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 5 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -163,7 +163,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `ast-upload-logo` | Upload a logo of your own | Nextcloud core Theming page | in plugin | #32: logo, logo for the coloured top bar and mobile logo |  |
 | `ast-upload-background` | Upload a login background image of your own | Nextcloud core Theming page | in plugin | #87: a sign-in background per custom design system, checked like every upload |  |
 | `ast-favicon` | Set the browser tab icon (favicon) to your organisation's | Nextcloud core Theming page | in plugin | #32: favicon and touch icon |  |
-| `ast-icon-library` | Reuse a library of government icons by name from any app on the instance | `specs/icon-assets` | to build, adapted | Serve the icons from a plugin route. Unclear which OpenProject plugin would use them | M |
+| `ast-icon-library` | Reuse a library of government icons by name from any app on the instance | `specs/icon-assets` | in plugin | #93: thematiq's four government icon sets, 2,526 icons rebuilt by the plugin's SVG check, served by name at `/thematiq/icons/<set>/<name>.svg` and listed at `/thematiq/api/v1/icons` |  |
 | `ast-org-logos` | Reuse bundled logos of government organisations by name | `specs/icon-assets` | in plugin | `data/catalogue/logos/`, only logos marked redistributable |  |
 | `ast-icon-pack` | Have the icon style follow the design system you chose (for example a municipal icon pack) (thematiq has this in part) | `specs/icon-packs` | to build, adapted | A swap per region with CSS masks. `docs/shell-structure.md` (#11) found a full swap needs a fork | L |
 | `ast-icon-pack-indicator` | See which icon pack is active on the settings page | `specs/icon-packs` | to build, as is | After `ast-icon-pack` | S |

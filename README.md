@@ -188,6 +188,10 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 
 **Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
 
+### Government icons
+
+The plugin ships thematiq's government icon sets (RVO, OpenGemeenten, Den Haag, DSFR; 2,526 icons, each rebuilt by the plugin's SVG check), with their licences. Any app on the instance uses an icon by name at `/thematiq/icons/<set>/<name>.svg`; `/thematiq/api/v1/icons` lists them. **Icon library** on Thematiq design shows the sets.
+
 ### E-mail in the house style
 
 Under **E-mail**, tick **Send e-mail in the house style**: every e-mail OpenProject sends gets a band in the primary colour with the app's title and the logo at the top, and your organisation's text and the legal links at the end. Mail clients drop style sheets, so all of it is inline. OpenProject's own header and footer texts stay. It is off until you turn it on.
