@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 126 |
+| in plugin | 128 |
 | being built | 0 |
 | to build, as is | 10 |
-| to build, adapted | 26 |
+| to build, adapted | 24 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **36 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 24 S, 10 M and 2 L.
+1. **34 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 9 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -181,8 +181,8 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-menu-labels` | Show text labels instead of icons only in the app menu | `specs/menu-labels` | no counterpart | Nextcloud's icon-only app menu. OpenProject's menus always show text |  |
 | `sur-hide-slogan` | Hide the Nextcloud slogan on the login page | `specs/hide-slogan` | no counterpart | The slogan line on Nextcloud's login page. OpenProject's sign-in page has none |  |
 | `sur-public-pages` | Style public share and link pages that visitors without an account see | `specs/css-architecture` | in plugin | `hooks.rb`: pages for visitors use the same layouts. The sign-in page is checked in a browser (`signin.spec.js`) |  |
-| `sur-email` | Send notification emails in the house style | `specs/email-theming` | to build, adapted | OpenProject's mail layout (`app/views/layouts/mailer.html.erb`) and its hooks, with inline colours | M |
-| `sur-email-footer` | Add a compliance footer (organisation name, address, legal text) to every email | `specs/email-theming` | to build, adapted | OpenProject already has a footer text setting (`emails_footer`). Fill it, or add a block through the mail hook | S |
+| `sur-email` | Send notification emails in the house style | `specs/email-theming` | in plugin | #91: e-mail in the house style, off until an admin turns it on: a band in the primary colour with the title and the logo, inline styles from validated values |  |
+| `sur-email-footer` | Add a compliance footer (organisation name, address, legal text) to every email | `specs/email-theming` | in plugin | #91: the organisation's own text and the legal links under every e-mail |  |
 | `sur-component-bridge` | Map community component tokens (Utrecht) onto the workspace's own components | `specs/component-tokens` | to build, adapted | #57 to #64 draw thematiq's component tokens where Primer has a variable for them. A full bridge per component is not built. See question 4 | M |
 | `sur-nc-variable-mapping` | Map every Nextcloud colour variable to a design token, so no stock colour leaks through | `specs/nextcloud-variable-mapping` | in plugin | `lib/open_project/thematiq/variables/generator.rb` maps the roles and the vocabulary onto OpenProject's and Primer's variables, light and dark (#27, #57 to #66) |  |
 | `sur-error-contrast` | Keep error and status messages readable in every house style | `specs/css-architecture` | to build, as is | #57 draws the status colours of a set. Their contrast is not checked | S |

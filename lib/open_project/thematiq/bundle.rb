@@ -26,7 +26,7 @@ module OpenProject
       # The settings a bundle carries. Anything else in the plugin's settings is not part of the setup.
       SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
                         environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens
-                        planned_switches locked_projects footer_links].freeze
+                        planned_switches locked_projects footer_links email_styled email_footer].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -142,6 +142,9 @@ module OpenProject
         check_marker_and_deprecations(settings)
         raise Refused, "custom_css" unless [nil, true, false].include?(settings["custom_css_enabled"])
         check_own_tokens(settings["own_tokens"])
+        raise Refused, "email" unless [nil, true, false].include?(settings["email_styled"])
+        raise Refused, "email" unless settings["email_footer"].nil? ||
+                                      Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {}).save_email_settings(styled: false, footer: settings["email_footer"])
         links = settings["footer_links"]
         raise Refused, "footer_links" unless links.nil? || (links.is_a?(Hash) && (links.keys - Store::FOOTER_LINKS).empty? &&
                                                           Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {}).save_footer_links(links))
