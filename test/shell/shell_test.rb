@@ -48,7 +48,7 @@ class ShellTest < Minitest::Test
 
     assert_equal [
       %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
-      %(.op-app-header .thematiq-brand--has-emblem .op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); }),
+      %(.op-app-header .op-app-menu .op-logo.thematiq-brand--has-emblem .op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); }),
       %(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
       %(.op-app-header .op-logo--icon.op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); })
     ], css
@@ -104,7 +104,7 @@ class ShellTest < Minitest::Test
       css = Shell::Logo.css(token_set)
 
       css.lines.each do |line|
-        assert_match(%r{\A(?:(?:body\[data-color-mode="dark"\]\[data-dark-theme="dark"\] )?\.op-app-header \.op-logo \.op-logo--link(?::not\(\.op-logo--link_high_contrast\)|\.op-logo--link_high_contrast)|\.op-app-header \.thematiq-brand--has-emblem \.op-logo--link|\.op-app-header \.op-logo--icon\.op-logo--link) \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \}\n?\z}, line, token_set.id)
+        assert_match(%r{\A(?:(?:body\[data-color-mode="dark"\]\[data-dark-theme="dark"\] )?\.op-app-header \.op-logo \.op-logo--link(?::not\(\.op-logo--link_high_contrast\)|\.op-logo--link_high_contrast)|\.op-app-header \.op-app-menu \.op-logo\.thematiq-brand--has-emblem \.op-logo--link|\.op-app-header \.op-logo--icon\.op-logo--link) \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \}\n?\z}, line, token_set.id)
       end
     end
   end

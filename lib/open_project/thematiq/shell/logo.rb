@@ -59,7 +59,8 @@ module OpenProject
         # The brand block of the dossiq bar draws the design system's emblem next to its name. A bundled logo
         # can have one beside it, named after it: zuiddrecht.svg has zuiddrecht-emblem.svg. An uploaded logo
         # replaces the bundled one as a whole, so it has none.
-        EMBLEM_SELECTOR = ".op-app-header .thematiq-brand--has-emblem .op-logo--link"
+        # One class more than the bar's rule, so the emblem wins over the logo in every theme.
+        EMBLEM_SELECTOR = ".op-app-header .op-app-menu .op-logo.thematiq-brand--has-emblem .op-logo--link"
 
         def self.emblem_url(token_set, root: "")
           return nil if Assets.uploads_for(token_set).any? { |record| %w[logo logo_inverse].include?(record.kind) }

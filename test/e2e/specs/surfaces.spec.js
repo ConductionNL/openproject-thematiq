@@ -16,15 +16,18 @@ test.describe("surfaces", () => {
   test.beforeEach(async ({ page }) => { saved = await snapshot(page); });
   test.afterEach(async ({ page }) => { await restore(page, saved); });
 
-  test("a brand stripe draws under the top bar", async ({ page }) => {
+  // The dossiq bar of the design has no stripe under it. The variable is on the page for the surfaces that draw it.
+  test("a brand stripe is on the page and not under the top bar", async ({ page }) => {
     const id = await importSet(page, { id: "e2e-stripe", name: `E2E stripe ${Date.now()}`, tokens: { primary: "#2f6b4a" },
                                        vocabulary: { "brand-stripe-color-1": "#2f6b4a", "brand-stripe-color-2": "#f5b82e", "brand-stripe-color-3": "#2f6b4a",
                                                      "brand-stripe-height": "6px" } });
     await applySet(page, id);
     await page.goto("/projects");
+    const stripe = await page.locator("body").evaluate((el) => getComputedStyle(el).getPropertyValue("--thematiq-v-brand-stripe"));
+    expect(stripe).toContain("linear-gradient");
+    expect(stripe.toLowerCase()).toContain("#f5b82e");
     const image = await page.locator(".op-app-header").evaluate((el) => getComputedStyle(el).backgroundImage);
-    expect(image).toContain("linear-gradient");
-    expect(image).toContain("rgb(245, 184, 46)");
+    expect(image).toBe("none");
   });
 
   test("the legal links show at the end of every page and on the sign-in page", async ({ page, browser }) => {
