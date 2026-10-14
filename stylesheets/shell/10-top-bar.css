@@ -311,12 +311,12 @@
     mask: var(--shell-icon-search) center / contain no-repeat;
   }
 
-  /* ---------- App switcher: a popover with two columns instead of a side sheet ---------- */
+  /* ---------- App switcher: a popover with entries in three columns instead of a side sheet ---------- */
 
   .op-app-header .op-app-menu dialog.Overlay.op-app-menu--item {
     position: fixed;
     inset: 72px auto auto calc(var(--main-menu-width, 264px) + 16px);
-    width: 640px;
+    width: 800px;
     max-width: calc(100vw - var(--main-menu-width, 264px) - 32px);
     height: auto;
     max-height: calc(100vh - 88px);
@@ -347,8 +347,6 @@
   }
   .op-app-header .op-app-menu dialog .Overlay-body > .thematiq-apps { grid-column: 1; grid-row: 1 / span 40; }
   .op-app-header .op-app-menu dialog .Overlay-body:has(> .thematiq-apps) > :not(.thematiq-apps) { grid-column: 2; }
-  /* Without a Nextcloud address there is one column, so the popover is half as wide. */
-  .op-app-header .op-app-menu dialog.Overlay.op-app-menu--item:not(:has(.thematiq-apps)) { width: 340px; }
 }
 
 /* ---------- App switcher content, at every width ---------- */
@@ -424,7 +422,9 @@
 #thematiq-switcher .Overlay-title { font-size: 16px; font-weight: 700; line-height: 24px; }
 #thematiq-switcher .Overlay-description { margin: 0; font-size: 13px; font-weight: 400; color: var(--thematiq-muted); }
 .op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-body { display: block; padding: 14px 20px 0; }
-.thematiq-switcher--columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+/* Groups stack (Nextcloud, then OpenProject); the entries of each group flow in up to three columns. */
+.thematiq-switcher--columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.thematiq-switcher--column .thematiq-apps--list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 12px; }
 .thematiq-switcher--column.thematiq-apps { margin-bottom: 0; }
 .thematiq-switcher--text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; line-height: 1.25; }
 .thematiq-switcher--line { font-size: 12px; font-weight: 400; color: var(--thematiq-muted); }
@@ -446,9 +446,6 @@
 .thematiq-switcher--manage:hover, .thematiq-switcher--manage:focus-visible { text-decoration: underline; }
 /* Pressed: the list is open. */
 .op-app-header .op-app-menu > .op-app-header--primer-button[aria-expanded="true"] { background: var(--shell-hover); }
-@media screen and (min-width: 1012px) {
-  .op-app-header .op-app-menu dialog#thematiq-switcher:not(:has(.thematiq-apps)) { width: 340px; }
-}
 
 /* OpenProject's introduction tour puts its close button 10 px from the top right corner, where the account
  * name of this taller bar is. Below the bar it covers nothing (first full test, finding 8).
