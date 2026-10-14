@@ -17,7 +17,7 @@ test.describe("short form", () => {
       await expect(page.locator("#thematiq-token-action")).toHaveValue("#c8102e");
       await expect(page.locator("#thematiq-token-ground")).toHaveValue("#fafafa");
       await expect(page.locator('[data-thematiq-check="on-primary"]').first()).toContainText("to 1");
-      expect(await customIds(page)).toEqual(saved.customs);
+      await expect(page.getByText("Nothing is saved yet").first()).toBeVisible();
 
       await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.getByRole("button", { name: "Save and apply" }).click()]);
       const added = (await customIds(page)).filter((id) => !saved.customs.includes(id));
