@@ -25,7 +25,8 @@ module OpenProject
 
       # The settings a bundle carries. Anything else in the plugin's settings is not part of the setup.
       SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
-                        environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens].freeze
+                        environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens
+                        planned_switches locked_projects].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -124,6 +125,7 @@ module OpenProject
       end
 
       def self.check_settings(settings, known)
+        require "time"
         raise Refused, "active" unless settings["active_id"].nil? || known.call(settings["active_id"])
         raise Refused, "active" unless settings["active_custom"].nil? || (settings["customs"] || {}).key?(settings["active_custom"])
         raise Refused, "projects" unless [nil, true, false].include?(settings["projects_may_choose"])
@@ -140,6 +142,12 @@ module OpenProject
         check_marker_and_deprecations(settings)
         raise Refused, "custom_css" unless [nil, true, false].include?(settings["custom_css_enabled"])
         check_own_tokens(settings["own_tokens"])
+        locked = settings["locked_projects"]
+        raise Refused, "locks" unless locked.nil? || (locked.is_a?(Array) && locked.size <= 5000 && locked.all? { |id| id.is_a?(String) && id.match?(/\A[a-z0-9][a-z0-9_-]{0,99}\z/) })
+        switches = settings["planned_switches"]
+        raise Refused, "planned_switches" unless switches.nil? || (switches.is_a?(Array) && switches.size <= Store::MAX_SWITCHES && switches.all? do |entry|
+          entry.is_a?(Hash) && known.call(entry["set_id"]) && (Time.iso8601(entry["at"].to_s) rescue nil)
+        end)
         raise Refused, "custom_css" unless settings["custom_css"].nil? || (settings["custom_css"].is_a?(String) && CustomCss.check(settings["custom_css"]).ok?)
       end
 

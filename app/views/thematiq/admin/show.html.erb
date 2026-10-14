@@ -554,3 +554,34 @@ end %>
   </div>
   <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.library.upload") } %>
 <% end %>
+
+<% switches = @store.planned_switches %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-schedule") { t("thematiq.schedule.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.schedule.hint") %></p>
+<% if switches.any? %>
+  <ul data-test-selector="thematiq-schedule">
+    <% switches.each_with_index do |entry, index| %>
+      <li>
+        <%= t("thematiq.schedule.entry", name: entry["name"], time: format_time(entry["at"])) %>
+        <%= form_with(url: admin_thematiq_schedule_path, method: :post, data: { turbo: false }, class: "thematiq-inline-form") do %>
+          <input type="hidden" name="cancel" value="<%= index %>">
+          <%= render(Primer::Beta::Button.new(type: :submit, size: :small, "aria-label": t("thematiq.schedule.cancel_label", name: entry["name"]))) { t("thematiq.schedule.cancel") } %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+<%= form_with(url: admin_thematiq_schedule_path, method: :post, data: { turbo: false }, id: "thematiq-schedule-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-schedule-set"><%= t("thematiq.schedule.set") %></label>
+    <select name="set_id" id="thematiq-schedule-set" class="FormControl-select FormControl-medium"><%= options_for_select(every_option) %></select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-schedule-at"><%= t("thematiq.schedule.at") %></label>
+    <input type="datetime-local" name="at" id="thematiq-schedule-at" class="FormControl-input FormControl-medium" required aria-describedby="thematiq-schedule-at-hint">
+    <p class="thematiq-editor__hint" id="thematiq-schedule-at-hint"><%= t("thematiq.schedule.at_hint", zone: Time.zone.name) %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.schedule.save") } %>
+<% end %>
