@@ -118,6 +118,8 @@ module OpenProject
           component-button-color component-button-border-color component-button-hover-background-color
           component-button-hover-border-color component-button-active-background-color component-button-disabled-background-color
           component-button-disabled-border-color color-error-hover component-button-error-color
+          component-table-header-background-color component-table-header-color component-table-border-color
+          component-table-row-hover-background-color component-content-surface-background-color component-table-header-font-weight
         ].freeze
 
         module_function

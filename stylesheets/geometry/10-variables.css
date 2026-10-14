@@ -20,5 +20,5 @@
 }
 
 body[data-color-mode="light"][data-light-theme="light"] {
-  --thematiq-table-head: #fafbfc;        /* canon table header row: background #fafbfc. The token set has no token for it */
+  --thematiq-table-head: var(--thematiq-v-table-head, #fafbfc); /* canon table header row: #fafbfc, unless the set fills component-table-header-background-color */
 }

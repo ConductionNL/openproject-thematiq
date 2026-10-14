@@ -170,14 +170,25 @@ module OpenProject
           "--button-danger-borderColor-hover" => %w[color-error-hover],
           "--button-danger-bgColor-active" => %w[color-error-hover],
           "--button-danger-fgColor-hover" => %w[component-button-error-color],
-          "--button-danger-fgColor-active" => %w[component-button-error-color]
+          "--button-danger-fgColor-active" => %w[component-button-error-color],
+          # The table: its header row, its lines and the row under the pointer. The header and the lines are the
+          # geometry layer's own (stylesheets/geometry/60-table.css), which reads these with its canon as fallback.
+          # The row under the pointer is OpenProject's own variable for the work package table.
+          "--thematiq-v-table-head" => %w[component-table-header-background-color],
+          "--thematiq-v-table-head-ink" => %w[component-table-header-color],
+          "--thematiq-v-table-line" => %w[component-table-border-color],
+          "--box-list-item-bg-hover-color" => %w[component-table-row-hover-background-color],
+          # The workspace behind the content: OpenProject's page background.
+          "--body-background" => %w[component-content-surface-background-color]
         }.freeze
 
         # Corners. Primer defines these on :root, beside the radius the roles already write.
         # thematiq's "rounded" corner (28px) has no Primer step of its own, so it is carried.
         VOCABULARY_SHAPE = {
           "--borderRadius-small" => %w[border-radius-small],
-          "--borderRadius-full" => %w[border-radius-pill]
+          "--borderRadius-full" => %w[border-radius-pill],
+          # The weight of the table header's text, in every theme. The geometry layer falls back to the canon's 600.
+          "--thematiq-v-table-head-weight" => %w[component-table-header-font-weight]
         }.freeze
 
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
