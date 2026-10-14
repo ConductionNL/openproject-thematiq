@@ -106,6 +106,15 @@ class UploadsLocaleTest < Minitest::Test
     codes.each { |code| assert_kind_of String, lookup("thematiq.css_upload.errors.#{code}"), code }
   end
 
+  def test_every_error_of_the_nlds_converter_has_a_message
+    controller = File.read(File.join(ROOT, "app/controllers/thematiq/admin_controller.rb"))
+    codes = controller[/NLDS_ERRORS = %w\[(.*?)\]/m, 1].split
+    raised = %w[css_tokens nlds_converter].flat_map { |file| File.read(File.join(ROOT, "lib/open_project/thematiq/#{file}.rb")).scan(/Refused, "([a-z_]+)"/).flatten }.uniq
+
+    assert_empty raised - codes
+    codes.each { |code| assert_kind_of String, lookup("thematiq.nlds.errors.#{code}"), code }
+  end
+
   def test_every_key_the_files_partial_picks_between_exists
     partial = File.read(File.join(ROOT, "app/views/thematiq/admin/_files.html.erb"))
     keys = partial.scan(/"(thematiq\.uploads\.[a-z_.]+)"/).flatten.uniq.reject { |key| key.end_with?(".") }

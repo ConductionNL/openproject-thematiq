@@ -361,6 +361,27 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-css-upload"
     end
 
+    # Converts an NL Design System theme by thematiq's table into a new custom design system, and shows the report.
+    def nlds_upload
+      file = params[:file]
+      text = file.respond_to?(:read) ? file.read(OpenProject::Thematiq::CssTokens::MAX_BYTES + 1).to_s.force_encoding(Encoding::UTF_8) : nil
+      result = OpenProject::Thematiq::NldsConverter.convert(text, prefix: params[:prefix].to_s.first(31))
+      new_id = @store.next_custom_id
+      raise OpenProject::Thematiq::CssTokens::Refused, "too_many_designs" unless new_id
+
+      name = params[:name].to_s.strip.presence || t("thematiq.nlds.default_name")
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: name.first(80), overrides: result.tokens, id: new_id,
+                                                      vocabulary: result.vocabulary)
+      raise OpenProject::Thematiq::CssTokens::Refused, "name" unless save_draft(@draft, new: true)
+
+      record_change("import", @draft.name)
+      @nlds_result = result
+      render :nlds_report
+    rescue OpenProject::Thematiq::CssTokens::Refused => e
+      flash[:error] = t("thematiq.nlds.errors.#{NLDS_ERRORS.include?(e.code) ? e.code : 'not_css'}")
+      redirect_to action: :show, anchor: "thematiq-nlds-upload"
+    end
+
     # Reads an uploaded Figma token set as a new custom design system and shows what was read.
     # The files are hostile input: Figma::Reader checks all of it. It never replaces a design system.
     def figma_upload
@@ -593,6 +614,7 @@ module Thematiq
     end
 
     CSS_ERRORS = %w[empty too_large not_css too_many nothing_usable too_many_designs name].freeze
+    NLDS_ERRORS = %w[empty too_large not_css too_many too_deep nothing_usable too_many_designs name prefix].freeze
     FIGMA_ERRORS = %w[empty too_large too_many_files invalid_json not_an_object too_deep too_many_tokens nothing_usable too_many].freeze
 
     def figma_refused(code)

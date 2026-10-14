@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 118 |
+| in plugin | 119 |
 | being built | 0 |
 | to build, as is | 12 |
-| to build, adapted | 32 |
+| to build, adapted | 31 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **44 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 30 S, 11 M and 3 L.
+1. **43 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 30 S, 11 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -117,7 +117,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-upload-security` | Be protected from uploaded styles that could run script or load outside resources (unsafe content is refused with reasons) | `specs/custom-token-sets` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` |  |
 | `aut-custom-list-delete` | List, activate and delete the house styles you uploaded | `specs/custom-token-sets` | in plugin | #25: up to 50 custom design systems, listed, applied and deleted after a question (#44) |  |
 | `aut-custom-export` | Download a house style you uploaded, to reuse or share it | `specs/custom-token-sets` | in plugin | #10: Export per design system |  |
-| `aut-convert-nlds-theme` | Convert an existing NL Design System theme from its upstream token format into a working set | `specs/theming-sync` | to build, adapted | The converter is JavaScript in thematiq (`scripts/convert-nlds-theme.mjs`). Port it or run it at build time | L |
+| `aut-convert-nlds-theme` | Convert an existing NL Design System theme from its upstream token format into a working set | `specs/theming-sync` | in plugin | #84: thematiq's converter ported to Ruby on thematiq's own table (vendored); built theme CSS, W3C tokens or Style Dictionary. Adapted: no palette ramp search and no contrast repair, component tokens not carried |  |
 | `aut-token-editor` | Edit individual colour tokens in the browser with a colour picker | `specs/token-set-apply-dialog` | in plugin | #8, #35: a field and a colour picker per value |  |
 | `aut-token-editor-tabs` | Browse the editable tokens grouped in tabs (for example primary, background, text, status) | `specs/token-editor-ui` | in plugin | #35: the four groups of thematiq's tabs, and fourteen closed groups of the vocabulary (#56) |  |
 | `aut-token-reset` | Reset one edited token to its house style value without touching the others | `specs/token-editor-ui` | in plugin | #8, #35: Reset per value, per group and all |  |
