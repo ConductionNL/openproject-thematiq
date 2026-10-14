@@ -261,6 +261,10 @@ A task that changes the setup leaves a row in the history.
 
 Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design system, for example `zuiddrecht`. It wins over the admin page, which then says so and turns Apply off. An id that is not there is ignored, and the admin page and the health report say so. `docker/compose.yml` passes the variable through: `THEMATIQ_DESIGN_SYSTEM=zuiddrecht docker compose -f docker/compose.yml up -d`.
 
+### A branding package that applies itself
+
+Set `THEMATIQ_BUNDLE_FILE` to the path of a configuration file inside the container, mounted from your deployment. When OpenProject starts, the plugin makes it the setup, once per version of the file: an unchanged file is not applied again, so later changes on the admin page stay until the file changes. A file that does not read is refused whole and the log says why; OpenProject starts anyway. Each application is a row in the history.
+
 ### Metrics
 
 Set `THEMATIQ_METRICS_TOKEN` to a secret of 24 characters or more, and `GET /thematiq/metrics` answers Prometheus' text format to a scraper that sends `Authorization: Bearer <token>`: whether the plugin is healthy, the design system in use, the counts of custom design systems, scopes and history rows. Without the variable the address answers 404. It opens no connection itself: the scraper comes to it.
