@@ -20,6 +20,10 @@ module OpenProject
       # it comes from OpenProject's menu and permission helpers.
       render_on :module_menu_dialog_content_before, partial: "thematiq/shell/app_switcher_nextcloud"
 
+      # E-mail in the house style, when an admin turned it on: a band before the content and a block after it.
+      render_on :view_layouts_mailer_html_before_content, partial: "thematiq/hooks/mail_header"
+      render_on :view_layouts_mailer_html_after_content, partial: "thematiq/hooks/mail_footer"
+
       # The end of the body: the script of the two-layer project menu.
       render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/body_bottom"
     end
