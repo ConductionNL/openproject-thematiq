@@ -13,6 +13,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `own-tokens.spec.js` | An own token reaches every page and the read endpoint |
 | `picker.spec.js` | The bundled design systems are listed, the search narrows, Apply changes the colour of the top bar for everyone |
 | `compliance.spec.js` | The contrast report lists the design system in use and downloads as JSON |
+| `component-preview.spec.js` | Pasted CSS reads the design system's variables in a sandboxed frame that runs no script; CSS that reaches outward is refused |
 | `css-upload.spec.js` | A CSS file of design tokens becomes a custom design system, with what was left out named; a file without tokens is refused |
 | `custom-css.spec.js` | Your own CSS reaches every page once it is on; a part with `url()` refuses the whole submission |
 | `editor.spec.js` | The live preview follows typing in each group, the colour picker and Reset work, a bad colour blocks saving; a value of the full vocabulary is found by search, checked, saved and exported |

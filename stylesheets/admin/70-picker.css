@@ -80,3 +80,4 @@
 .thematiq-playground__row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
 .thematiq-playground__row--fields { align-items: flex-start; }
 .thematiq-icons__sample img { width: 24px; height: 24px; margin-right: 6px; vertical-align: middle; }
+.thematiq-component-preview { width: 100%; max-width: 960px; height: 320px; margin-top: 12px; border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius); background: white; }

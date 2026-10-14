@@ -186,7 +186,7 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 
 ### Try a design system on OpenProject's components
 
-**Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
+**Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. Under **Your own component**, paste HTML and CSS you are building: your CSS reads the design system's variables, such as `var(--thematiq-primary)`, in a frame that runs no script; nothing is stored. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
 
 ### Government icons
 

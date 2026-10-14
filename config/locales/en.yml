@@ -294,6 +294,12 @@ en:
       list: "A list"
       list_header: "Work packages"
       list_row: "Row %{number}"
+      own_title: "Your own component"
+      own_hint: "Paste the HTML and CSS of a component you are building and see it in this design system: your CSS reads its variables, such as var(--thematiq-primary) or var(--thematiq-radius). It is drawn in a frame that runs no script and reaches nothing outside; the CSS goes through the same check as your own CSS. Nothing is stored."
+      own_html: "HTML"
+      own_css: "CSS"
+      own_show: "Show my component"
+      own_frame: "Your component in the design system"
     compliance:
       link: "Contrast report for an audit"
       title: "Contrast report"

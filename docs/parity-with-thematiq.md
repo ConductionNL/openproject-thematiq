@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 132 |
+| in plugin | 133 |
 | being built | 0 |
 | to build, as is | 10 |
-| to build, adapted | 20 |
+| to build, adapted | 19 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **30 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 23 S, 5 M and 2 L.
+1. **29 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 22 S, 5 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -137,7 +137,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `aut-light-dark-values` | Give a colour token separate light and dark values in the house style editor | `specs/dark-mode` | in plugin | #68: a dark field under every colour, roles and vocabulary alike. Empty keeps the base's dark value, else OpenProject's own |  |
 | `aut-add-token` | Add a new design token from the house style editor without changing the theme code | `specs/theming-audit` | in plugin | #83: own tokens as `--thematiq-org-<name>`, light and dark, listed at `/thematiq/api/v1/own-tokens` |  |
 | `aut-alpha-hex` | Set colour tokens with transparency using 8-digit hex values | `specs/dark-mode` | in plugin | `lib/open_project/thematiq/tokens/validator.rb` accepts 4 and 8 digit hex. #68 adds an opacity control per colour |  |
-| `aut-component-preview` | See your own components rendered with the house style tokens while you build them, before publishing | `specs/own-component-preview` | to build, adapted | With `app-component-playground` | S |
+| `aut-component-preview` | See your own components rendered with the house style tokens while you build them, before publishing | `specs/own-component-preview` | in plugin | #94: pasted HTML and CSS drawn in a design system, in a frame that runs no script and has an origin of its own; the CSS passes the own-CSS check; nothing is stored |  |
 | `x-action-colour` | Give the main button a colour of its own, apart from the brand colour (newer than thematiq's list) | `changes/action-colour-token` | in plugin | `lib/open_project/thematiq/variables/generator.rb`: the `action` and `action-deep` roles |  |
 
 ### Fonts and typography

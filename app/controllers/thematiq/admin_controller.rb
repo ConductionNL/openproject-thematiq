@@ -512,6 +512,23 @@ module Thematiq
       )
     end
 
+    # Your own component in a design system (aut-component-preview): HTML and CSS you paste, drawn in a sandboxed frame
+    # with the design system's style sheet. Nothing is stored. The frame runs no script and has an origin of its own;
+    # the CSS goes through CustomCss first, so a url() or an import cannot fetch anything.
+    def component_preview
+      @playground_set = @store.find_set(params[:set_id].to_s) || @store.active_token_set
+      @preview_html = params[:html].to_s.first(20_000)
+      css = OpenProject::Thematiq::CustomCss.check(params[:css].to_s)
+      @preview_css_errors = css.errors
+      root = OpenProject::Configuration["rails_relative_url_root"].to_s
+      own = css.ok? ? css.css : ""
+      sheet = [OpenProject::Thematiq::Stylesheet.css(@playground_set), OpenProject::Thematiq::Assets.bundled.font_face_css(@playground_set, root:), own].join("\n")
+      @srcdoc = "<!doctype html><html><head><meta charset=\"utf-8\"><style>#{sheet.gsub(%r{</style}i, '')}</style></head>" \
+                "<body data-color-mode=\"light\" data-light-theme=\"light\" style=\"padding: 16px\">#{@preview_html}</body></html>"
+      playground
+      render :playground
+    end
+
     # Evidence of contrast for an audit: every design system in use, light and dark. HTML to read or print, JSON to keep.
     def compliance
       @report = OpenProject::Thematiq::Compliance.report(design_systems_in_use, generated_at: Time.current.utc.iso8601)
