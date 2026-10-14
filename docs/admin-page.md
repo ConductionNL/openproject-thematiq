@@ -14,7 +14,11 @@ The page lists every design system in the plugin. Each one has a small picture: 
 
 1. Find the design system. Type part of its name in **Search design systems** and select **Search**. **Show all** brings the full list back.
 2. Select it. The list is one group of radio buttons, so the arrow keys move through it.
-3. Select **Apply**.
+3. Select **Apply**. The apply dialog opens: the shell now and after, and a table of every value that differs, light and dark, with its value now and after. Nothing is applied yet.
+4. Untick a value to keep its value of now. The picture of after follows the boxes. A value that is OpenProject's own now cannot be kept, and says so.
+5. Select **Apply**. The page puts the new style sheets in its own style tags and repaints without a reload; without JavaScript the form posts and the page loads again. When values were kept, the result is a new custom design system named "<name>, with values kept".
+
+Or select **Try it yourself first**. The design system is then yours alone, on every page, in this session: a banner at the foot of each page names it and offers **Publish to everyone** and **Discard**. Nobody else sees it. A trial ends after a day, and only counts while you are an administrator.
 
 The line "Active now" names the design system in use. The list marks it "Active", and marks Cunningham "Default".
 
@@ -130,3 +134,13 @@ docker exec -e THEMATIQ_CHECK_PASSWORD='<admin password>' -e THEMATIQ_CHECK_HOST
 ```
 
 `bash -lc` matters on the compose instance: the login shell reads the secret from its volume. Without it `rails runner` stops with "INSECURE SECRET_KEY_BASE DETECTED".
+
+## History
+
+**History**, linked under "Active now", lists every change to the design: when, who, what. Each row is kept in the plugin's table `thematiq_changes` together with the whole setup after the change: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and every choice per project and module.
+
+1. Select **Restore** next to a change.
+2. The page lists what restoring it changes, in words. Nothing is written yet. A version that no longer reads, for example because it names a project that was deleted, is refused whole and says why.
+3. Select **Restore this version**.
+
+The restore is a row of its own, so the setup from before it can be restored too. The rows cannot be changed or deleted from OpenProject. The setup is kept for the newest 50 changes; older rows keep who, what and when. Uploaded logos, icons and fonts are not part of a version and stay as they are.
