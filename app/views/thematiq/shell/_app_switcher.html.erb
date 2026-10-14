@@ -1,8 +1,13 @@
 <%# The list under the nine-dot button. See Shell::AppSwitcher. The columns come from core's items and the fixed Nextcloud list. %>
 <div class="thematiq-switcher--columns" data-columns="<%= columns.size %>">
   <% columns.each do |column| %>
+    <%# A group title only helps when there is more than one group; a single group is named for screen readers only. %>
+    <% if columns.size > 1 %>
     <section class="thematiq-switcher--column <%= "thematiq-apps" if column[:id] == "nextcloud" %>" aria-labelledby="thematiq-switcher-<%= column[:id] %>">
       <h2 class="thematiq-apps--title" id="thematiq-switcher-<%= column[:id] %>"><%= column[:title] %></h2>
+    <% else %>
+    <section class="thematiq-switcher--column" aria-label="<%= column[:title] %>">
+    <% end %>
       <ul class="thematiq-apps--list">
         <% column[:entries].each do |entry| %>
           <li>

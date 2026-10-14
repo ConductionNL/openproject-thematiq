@@ -50,10 +50,8 @@ module OpenProject
 
         def thematiq_switcher_dialog(items)
           columns = thematiq_switcher_columns(items)
-          in_bar = respond_to?(:thematiq_app_row_entries, true) ? thematiq_app_row_entries.size : 0
           dialog = Primer::Alpha::Dialog.new(id: DIALOG_ID, classes: "op-app-menu--item thematiq-switcher",
                                              title: t("thematiq.shell.app_switcher.title"),
-                                             subtitle: in_bar.positive? ? t("thematiq.shell.app_switcher.in_bar", count: in_bar) : nil,
                                              size: :small, position: :left)
           render(dialog) do |d|
             d.with_show_button(icon: CORE_ICON, scheme: :invisible, classes: "op-app-header--primer-button",
