@@ -43,6 +43,10 @@ module OpenProject
     require "open_project/thematiq/css_tokens"
     require "open_project/thematiq/custom_css"
     require "open_project/thematiq/nlds_converter"
+    require "open_project/thematiq/email"
+    require "open_project/thematiq/icons"
+    require "open_project/thematiq/gallery"
+    require "open_project/thematiq/gallery/client"
 
     # The token set the page being drawn is styled with: the page's own when the head hooks worked it out
     # (PageScope, a design system per project), else the instance's.

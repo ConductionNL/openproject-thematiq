@@ -1,0 +1,6 @@
+<%# The organisation's text and the legal links under an e-mail in the house style. %>
+<% store = (OpenProject::Thematiq::Store.new rescue nil) %>
+<% if store&.email_styled? %>
+  <% labels = OpenProject::Thematiq::Store::FOOTER_LINKS.to_h { |kind| [kind, t("thematiq.footer.links.#{kind}")] } %>
+<%= raw OpenProject::Thematiq::Email.footer_html(store.active_token_set, text: store.email_footer, links: store.footer_links, labels:) %>
+<% end %>

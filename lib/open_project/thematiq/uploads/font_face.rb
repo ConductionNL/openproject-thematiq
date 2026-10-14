@@ -12,7 +12,15 @@ module OpenProject
 
         Face = Struct.new(:family, :weight, :style, keyword_init: true)
 
+        # Families whose licence reserves them for an entitled organisation. An upload of one asks for a confirmation.
+        GATED = %w[marianne].freeze
+
         module_function
+
+        def gated?(family)
+          GATED.include?(family.to_s.strip.downcase)
+        end
+
 
         # Returns a Face, or raises Refused.
         def clean(family:, weight:, style:)
