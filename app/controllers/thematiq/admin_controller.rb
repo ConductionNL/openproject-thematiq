@@ -531,6 +531,20 @@ module Thematiq
       render :playground
     end
 
+    # A design system per group, in priority order: the rows of the form, top first.
+    def update_groups
+      rows = Array(params[:groups]).first(OpenProject::Thematiq::Store::MAX_GROUP_CHOICES + 1).map do |row|
+        row.respond_to?(:permit) ? row.permit(:group_id, :design_system_id).to_h.values_at("group_id", "design_system_id") : []
+      end
+      if @store.save_group_choices(rows)
+        record_change("groups")
+        flash[:notice] = t("thematiq.groups.notice_saved")
+      else
+        flash[:error] = t("thematiq.groups.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-groups"
+    end
+
     # The shared light or dark choice: whether another product may link a person here to set it.
     def update_appearance
       @store.save_appearance_link(params[:appearance_link_enabled] == "1")
@@ -734,7 +748,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"

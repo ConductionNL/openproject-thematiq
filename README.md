@@ -208,6 +208,10 @@ Under **E-mail**, tick **Send e-mail in the house style**: every e-mail OpenProj
 
 Under **Planned switch**, choose a design system and a date and time. The first page after that time makes the switch, for everyone, and the history names it. There is no background job: on a quiet instance the switch happens with the first visitor after the time.
 
+### A design system per group
+
+Under **Design systems per group**, give a group of people its own design system, in order: a person in several groups gets the first one's. It takes the instance's place for them; a project's or a module's own design system still wins, and the sign-in page keeps the instance's.
+
 ### Lock a project's design system
 
 On a project's **Project settings**, **Design**, an instance admin can tick **Lock this project's design system**. Its project admins then see it, but cannot change it.

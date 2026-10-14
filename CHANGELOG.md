@@ -28,6 +28,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 ### Scope and schedule
 
 - A planned switch to a design system at a date and time, made by the first page after it; a lock on a project's design system (#86).
+- A design system per group of people, in priority order; the sign-in page keeps the instance's (#99).
 
 ### More surfaces and components
 
