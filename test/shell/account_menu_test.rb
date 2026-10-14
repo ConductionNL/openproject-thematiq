@@ -37,7 +37,7 @@ class AccountMenuTest < Minitest::Test
     assert_includes PARTIAL, %(aria-expanded="false")
     assert_includes PARTIAL, %(aria-controls="<%= panel_id %>")
     assert_includes PARTIAL, "<nav"
-    assert_includes PARTIAL, " hidden"
+    assert_includes PARTIAL, %(popover="manual"), "in the top layer, so nothing on the page covers it"
     refute_includes PARTIAL, %(role="menu"), "links in a list, Tab keeps working"
     assert_equal %w[button region], EN.keys.sort
     assert_includes EN["button"], "%{name}"

@@ -32,11 +32,11 @@
   color: var(--thematiq-primary-deep);
 }
 
+/* A popover in the top layer: the script sets the two variables from the button's place. */
 .thematiq-account-menu--panel {
-  position: absolute;
-  top: calc(100% + 9px);
-  right: 0;
-  z-index: 40;
+  position: fixed;
+  inset: var(--tq-account-top, 77px) var(--tq-account-right, 20px) auto auto;
+  margin: 0;
   box-sizing: border-box;
   width: 300px;
   max-width: calc(100vw - 16px);
@@ -51,7 +51,7 @@
   font-size: 14px;
   text-align: left;
 }
-.thematiq-account-menu--panel[hidden] { display: none; }
+.thematiq-account-menu--panel:not(:popover-open) { display: none; }
 /* A bridge over the gap between the button and the panel, so the pointer can cross it without closing the menu. */
 .thematiq-account-menu--panel::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; }
 
@@ -98,7 +98,7 @@
   .op-app-header .thematiq-account-menu--button { padding: 0 3px; }
 }
 @media screen and (max-width: 543px) {
-  .thematiq-account-menu--panel { position: fixed; top: calc(var(--header-height, 68px) + 4px); right: 8px; left: 8px; width: auto; }
+  .thematiq-account-menu--panel { inset: var(--tq-account-top, 77px) 8px auto 8px; width: auto; }
 }
 
 @media (forced-colors: active) {
