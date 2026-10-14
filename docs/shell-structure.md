@@ -42,25 +42,22 @@ A failing hook does not break the page. `OpenProject::Hook.call_hook` rescues th
 
 ## Top bar: item by item
 
+The design is the dossiq bar of Nextcloud Zuiddrecht (`werkplek/DqKop` on identity.conduction.nl/screens), so OpenProject and Nextcloud share one bar. The earlier OpenProject design, `OpHeader`, is no longer the canon.
+
 | Item in the design | Mechanism | Status |
 |---|---|---|
-| Bar height, order, spacing | CSS | Built |
-| Logo first, then the row of apps, then the app switcher | Override `top_menu_left_menu_items`: call `super`, add the row, move the app switcher to the end. Done in the markup so the focus order matches what you see | Built |
-| No app name in the bar | The logo names the product and the marked tile names the place. The logo link keeps core's name, "Home" | Built |
-| Brand block as wide as the sidebar | CSS in the geometry layer: the block takes `--main-menu-width`, the logo starts 24 px in, the rule is the block's last pixel. The geometry layer pins that width to 264 px, so the rule stays at 264 when the sidebar is collapsed, and on pages without a sidebar | Built |
-| Row of apps and modules | The same override renders it. See "The row of apps" below | Built |
-| Logo of the design system | One CSS rule from the head hook sets the background image of core's logo link. Without a logo in the token set, OpenProject's own logo stays | Built |
-| App switcher as a two column popover | CSS on core's dialog. It stays a modal dialog, so focus trap and Escape keep working | Built |
-| App switcher, Nextcloud column | Hook `module_menu_dialog_content_before` renders a fixed list of six links. Only when a Nextcloud address is set | Built. The list is fixed |
-| App switcher, OpenProject column | Core's own module list, restyled. It comes from core's menu and permission helpers | Built |
-| A second line under each app name | The plugin's own list, see "The list under the nine-dot button" | Built |
-| Search | Core's own field, restyled | Built. The placeholder is core's text |
-| Bell instead of the inbox icon | CSS mask on core's link. The link keeps its name, "Notifications" | Built |
-| Unread dot | Core's own indicator, restyled as a dot. It shows when the real unread count is above zero | Built |
-| Help | Core's own menu, outline icon by CSS mask | Built |
-| Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super`. Core's own account menu opens | Built |
-| No green quick add button | CSS turns it into a plain icon button. Hiding it would take "new project" and "invite user" away from the bar, and the project menu does not offer those | Built as a plain plus. See open questions |
-| Outline icons in the bar | CSS mask per icon | Built for six icons |
+| Bar colour | thematiq's header colours where the set has them (`color-header-background`, `color-header-text`; white with ink for Zuiddrecht, Cunningham and 20 more), the primary colour and its text otherwise. The variable layer writes them as `--thematiq-bar`, `--thematiq-on-bar` and their fill, line, edge and muted text (`Variables::Generator#bar_declarations`). Core's own `--header-bg-color` keeps the primary | Built |
+| Bar height, columns, spacing | CSS: 68 px with a 1 px line, padding 0 20 px 0 14 px, three columns with the search (at most 560 px) in the middle | Built |
+| Brand block: emblem, organisation, app name | Override `render_logo`: one link home with core's logo element inside, the design system's name and `Setting.app_title`. The emblem is a file beside the bundled logo (`zuiddrecht-emblem.svg`); a design system without one shows its logo and the app name | Built |
+| App switcher as a filled 40 px square after a line | Override `top_menu_left_menu_items`: the logo first, the switcher after it. CSS for the square and the line | Built |
+| App menu as a popover of tiles | CSS on the plugin's list (see below): 640 px wide under the button, tiles in four columns, Nextcloud's in six, the current tile in the accent colour | Built |
+| No row of tiles | The default of `top_bar_apps` is no row. An administrator can still set an own row | Built |
+| Search | Core's own field, restyled: round, the bar's fill and line, the glass at 14 px | Built. The placeholder is core's text |
+| Bell with the unread dot | CSS mask on core's link and core's own indicator as a dot in the accent colour | Built |
+| Second round button | Core's help menu, outline icon by CSS mask. The design has Contacts there; OpenProject has no contacts | Built as help |
+| No quick add | CSS hides core's quick add menu. Its entries have other homes: "Create work package" in the project menu and on Home, a new project on the project list, members on a project's Members page | Built |
+| Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super` | Built |
+| No brand stripe under the bar | The design has none. The stripe stays a variable for the surfaces that draw it | Built |
 
 ### The row of apps
 
@@ -96,11 +93,11 @@ Differences from the design: it is a dialog of links, not a `role="menu"`, becau
 
 **The setting.** `top_bar_apps` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.top_bar_apps`. It is a list of keys separated by commas. A Nextcloud app has the key of its name (`files`, `mail`, `calendar`, `tasks`, `talk`, `contacts`). A module has the name of its item in core's top menu (`home`, `my_page`, `projects`, `work_packages`, `gantt`, `team_planners`, `boards`, `meetings`, `news`, `cost_reports_global`, `wikis`). Empty gives the default, `none` gives no row, and there are at most twelve.
 
-**The field.** **Administration**, **Thematiq design**, **Tiles in the top bar**: the row of the design, an own row, or no tiles. An own row has twelve places, each a list of the keys in `Shell::AppRow::KNOWN` (the six Nextcloud apps and the fifteen modules of core's top menu in 17.9.1), filled from left to right. Empty places and repeats are dropped; an own row without a tile is refused. A key the setting already held, from another plugin for example, stays on offer.
+**The field.** **Administration**, **Thematiq design**, **Tiles in the top bar**: the bar of the design without tiles, an own row, or no tiles. An own row has twelve places, each a list of the keys in `Shell::AppRow::KNOWN` (the six Nextcloud apps and the fifteen modules of core's top menu in 17.9.1), filled from left to right. Empty places and repeats are dropped; an own row without a tile is refused. A key the setting already held, from another plugin for example, stays on offer.
 
-**The default** is the row of the design: `files, mail, calendar, work_packages, boards, gantt, meetings`.
+**The default** is no row, as the dossiq bar draws it. The places of the field start with the row of the earlier OpHeader design (`Shell::AppRow::OPHEADER`: `files, mail, calendar, work_packages, boards, gantt, meetings`), for an own row.
 
-**When an entry is not there for this user**, because no Nextcloud address is set or core hides the module, it is left out and the row is filled up to its length from core's own order: Home, My page, My time tracking, then Projects, Work packages, Gantt, Team planners, Boards, Meetings, News, Time and costs, Wiki. So without a Nextcloud address the default row is Work packages, Boards, Gantt, Meetings, Home, My page, My time tracking. A module the instance has no licence for is never in the row. It stays in the app switcher, where core marks it.
+**When an entry is not there for this user**, because no Nextcloud address is set or core hides the module, it is left out and the row is filled up to its length from core's own order: Home, My page, My time tracking, then Projects, Work packages, Gantt, Team planners, Boards, Meetings, News, Time and costs, Wiki. So without a Nextcloud address that OpHeader row becomes Work packages, Boards, Gantt, Meetings, Home, My page, My time tracking. A module the instance has no licence for is never in the row. It stays in the app switcher, where core marks it.
 
 ### What the account button shows
 
