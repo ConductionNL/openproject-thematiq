@@ -14,6 +14,30 @@ module OpenProject
         CORE_VERSION = "17.9.1"
 
         FILES = {
+          # CreateDialog sends the create actions to core's create dialog: this controller answers
+          # /projects/:id/work_packages/dialog/new with the dialog, saves, and redirects back on success.
+          "app/controllers/work_packages/dialogs_controller.rb" =>
+            "1067f09f6b88890710bbafa756ba5f7efed1e2fc15442e0b67b9505c50fdd27a",
+          # The dialog's id, title and footer, and the form's id and fields, which the script and
+          # stylesheets/shell/70-create-modal.css name.
+          "app/components/work_packages/dialogs/create_dialog_component.html.erb" =>
+            "8dab61203a263c1cfa982b6703e71317213e804c8649ee607eb3f56350a6f9df",
+          "app/components/work_packages/dialogs/create_form_component.html.erb" =>
+            "a4bf04e4779bf93fed8a69b614c8b3e49c845c7d0781ffbf815d8e6fdb95b718",
+          "app/forms/work_packages/dialogs/create_form.rb" =>
+            "d9150197884c933d48637ddf306d0ffe440b929c798a20ae030e52f5044c2a85",
+          # How core itself fetches that dialog: a GET with the Turbo stream type, rendered with renderStreamMessage.
+          "frontend/src/stimulus/controllers/async-dialog.controller.ts" =>
+            "075bf2b2ffb5b75ba32533defcba1e85a5e8d8eed97fdb5e95d63122a6dcff65",
+          # The create links it recognises: the quick add menu's /projects/:id/work_packages/new?type=,
+          "lib/redmine/menu_manager/top_menu/quick_add_menu.rb" =>
+            "69d5ca873112ea33454f47747defe233b3866d98ee7cac070dba48364c83fd6f",
+          # the page's Create button, button.add-work-package,
+          "frontend/src/app/features/work-packages/components/wp-buttons/wp-create-button/wp-create-button.html" =>
+            "a218269fdbd7be0a67417332e3da6c34509dfdd028ef81ff9c6ca5960b7c298b",
+          # and the list of types under it, links to .../create_new?type=.
+          "frontend/src/app/shared/components/op-context-menu/handlers/op-types-context-menu.directive.ts" =>
+            "9b614916f565f35335f398ef9fd3b0d2344991d93a316af856e4be8471032358",
           # TopBar overrides top_menu_left_menu_items and render_logo.
           "lib/redmine/menu_manager/top_menu_helper.rb" =>
             "3e221f320def6117811289a99dc8afce9e9797b7c2dcc46c8b64d65ead23cb59",
@@ -104,6 +128,16 @@ module OpenProject
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
         PARTS = {
+          create_dialog: [
+            "app/controllers/work_packages/dialogs_controller.rb",
+            "app/components/work_packages/dialogs/create_dialog_component.html.erb",
+            "app/components/work_packages/dialogs/create_form_component.html.erb",
+            "app/forms/work_packages/dialogs/create_form.rb",
+            "frontend/src/stimulus/controllers/async-dialog.controller.ts",
+            "lib/redmine/menu_manager/top_menu/quick_add_menu.rb",
+            "frontend/src/app/features/work-packages/components/wp-buttons/wp-create-button/wp-create-button.html",
+            "frontend/src/app/shared/components/op-context-menu/handlers/op-types-context-menu.directive.ts"
+          ],
           top_bar: [
             "lib/redmine/menu_manager/top_menu_helper.rb",
             "lib/redmine/menu_manager/top_menu/user_menu.rb",

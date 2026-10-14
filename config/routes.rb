@@ -57,6 +57,7 @@ Rails.application.routes.draw do
                                            constraints: { id: /[A-Za-z0-9][A-Za-z0-9._-]{0,63}/ }
   get "thematiq/api/v1/contrast", to: "thematiq/api#contrast", as: :thematiq_api_contrast, format: false
   get "thematiq/appearance", to: "thematiq/appearance#show", as: :thematiq_appearance, format: false
+  post "admin/thematiq/groups", to: "thematiq/admin#update_groups", as: :admin_thematiq_groups
   post "admin/thematiq/appearance", to: "thematiq/admin#update_appearance", as: :admin_thematiq_appearance
   get "thematiq/metrics", to: "thematiq/metrics#show", as: :thematiq_metrics, format: false
   get "thematiq/api/shell-tokens", to: "thematiq/shell_tokens#show", as: :thematiq_shell_tokens, format: false

@@ -13,6 +13,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 - A CSS file of design tokens, as thematiq writes a token set, light and dark, with references followed (#83).
 - Your own CSS, off by default: an allow-list parser writes it anew from checked parts and serves it last (#83).
 - Your own tokens as `--thematiq-org-<name>`, light and dark (#83); motion tokens on the plugin's own animation (#83).
+- A value of a custom design system may name another token, `{primary}`, and follows it (#100).
 - An NL Design System theme converted by thematiq's own table: built theme CSS, W3C tokens or Style Dictionary (#84).
 - A font library: fonts uploaded once for every design system that names their family (#85).
 
@@ -28,6 +29,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 ### Scope and schedule
 
 - A planned switch to a design system at a date and time, made by the first page after it; a lock on a project's design system (#86).
+- A design system per group of people, in priority order; the sign-in page keeps the instance's (#99).
 
 ### More surfaces and components
 

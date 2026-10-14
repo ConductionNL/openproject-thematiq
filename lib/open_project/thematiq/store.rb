@@ -166,6 +166,35 @@ module OpenProject
         true
       end
 
+      # --- a design system per group of people, in order: the first group of a person decides (sco-group-priority) ---
+
+      MAX_GROUP_CHOICES = 100
+
+      def group_choices
+        stored = data["group_choices"]
+        return [] unless stored.is_a?(Array)
+
+        stored.select do |entry|
+          entry.is_a?(Hash) && entry["group_id"].is_a?(Integer) && entry["group_id"].positive? && find_set(entry["design_system_id"].to_s)
+        end.first(MAX_GROUP_CHOICES)
+      end
+
+      # rows: [[group id, design system id]] in priority order; an empty design system leaves the group out.
+      # false: an unknown design system or too many rows; nothing is stored.
+      def save_group_choices(rows)
+        cleaned = []
+        Array(rows).each do |group_id, design_system_id|
+          next if design_system_id.to_s.empty?
+          return false unless group_id.to_s.match?(/\A[1-9]\d{0,9}\z/) && find_set(design_system_id.to_s)
+
+          cleaned << { "group_id" => group_id.to_i, "design_system_id" => design_system_id.to_s }
+        end
+        return false if cleaned.size > MAX_GROUP_CHOICES
+
+        write("group_choices" => cleaned.uniq { |entry| entry["group_id"] })
+        true
+      end
+
       # --- the gallery and the catalogue notice: off until an admin turns it on (see Gallery) ---
 
       def gallery_enabled?

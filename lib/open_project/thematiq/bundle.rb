@@ -27,7 +27,7 @@ module OpenProject
       SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
                         environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens
                         planned_switches locked_projects footer_links email_styled email_footer gallery_enabled gallery_url
-                        appearance_link_enabled].freeze
+                        appearance_link_enabled group_choices].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -148,6 +148,10 @@ module OpenProject
                                       Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {}).save_email_settings(styled: false, footer: settings["email_footer"])
         raise Refused, "gallery" unless [nil, true, false].include?(settings["gallery_enabled"]) && [nil, true, false].include?(settings["appearance_link_enabled"])
         raise Refused, "gallery" unless settings["gallery_url"].nil? || Gallery.valid_url?(settings["gallery_url"])
+        groups = settings["group_choices"]
+        raise Refused, "groups" unless groups.nil? || (groups.is_a?(Array) && groups.size <= Store::MAX_GROUP_CHOICES && groups.all? do |entry|
+          entry.is_a?(Hash) && entry["group_id"].is_a?(Integer) && entry["group_id"].positive? && known.call(entry["design_system_id"])
+        end)
         links = settings["footer_links"]
         raise Refused, "footer_links" unless links.nil? || (links.is_a?(Hash) && (links.keys - Store::FOOTER_LINKS).empty? &&
                                                           Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {}).save_footer_links(links))

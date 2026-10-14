@@ -257,6 +257,17 @@ en:
         removal: "The removal date must be a date from today on."
         message: "The note may hold up to 200 characters, without markup."
         too_many: "You can keep up to 200 deprecations."
+    groups:
+      title: "Design systems per group"
+      hint: "Give a group of people its own design system on this shared OpenProject. A person in several groups gets the design system of the first one in this list. It takes the place of the instance's design system for them; a project's or a module's own design system still wins, and the sign-in page keeps the instance's."
+      none: "OpenProject has no groups yet."
+      place: "Place %{number}"
+      design_system: "Design system of place %{number}"
+      no_group: "No group"
+      none_chosen: "No design system"
+      save: "Save groups"
+      notice_saved: "The design systems per group are saved."
+      error_invalid: "A group or a design system is not there. Nothing was saved."
     appearance:
       title: "Shared light or dark choice"
       hint: "When someone picks light or dark in another product, that product can link them here to set their OpenProject choice the same way, and send them back: %{example}. The mode is light, dark or system; return_to is a path here or an address under the Nextcloud address above. No connection between the products, only a link the person follows. Off until you turn it on."
@@ -431,6 +442,7 @@ en:
         email: "Changed the e-mail settings"
         gallery: "Changed the gallery settings"
         appearance: "Changed the shared light or dark choice"
+        groups: "Changed the design systems per group"
     bundle:
       title: "The whole setup"
       hint: "One file with the whole setup: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Use it to move the setup from a test to a production OpenProject. Uploaded logos, icons and fonts are not in it."
@@ -485,6 +497,7 @@ en:
         footer_links: "The legal links in the configuration file cannot be read. Nothing was changed."
         email: "The e-mail settings in the configuration file cannot be read. Nothing was changed."
         gallery: "The gallery settings in the configuration file cannot be read. Nothing was changed."
+        groups: "The design systems per group in the configuration file cannot be read. Nothing was changed."
     editor:
       title: "Custom design system"
       description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."
@@ -493,7 +506,7 @@ en:
       based_on: "Based on"
       based_on_hint: "Values you leave empty come from this design system."
       tokens: "Values"
-      tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
+      tokens_hint: "Leave a field empty to keep the value of the design system it is based on. A value may also name another token of the same kind, such as {primary}: it then follows that token."
       base_value: "In %{name}: %{value}."
       changed: "Changed"
       changed_total:
@@ -1187,6 +1200,9 @@ en:
           tasks: "Tasks"
           talk: "Talk"
           contacts: "Contacts"
+      create_dialog:
+        title: "Create work package"
+        submit: "Create work package"
       home:
         greeting: "Hello %{name}"
         welcome: "Welcome message"
