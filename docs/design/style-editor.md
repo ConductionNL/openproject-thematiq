@@ -27,8 +27,8 @@ An administrator opens **Custom token overrides** in Nextcloud's theming setting
 | Save the overrides, for everyone | The plugin had this | "Save and apply" stores a name, a base and the overrides in OpenProject's settings |
 | Save the changes as a new theme | The plugin had this | Every custom design system is a base plus overrides. Up to 50 |
 | Export and import the overrides | The plugin had this, and gets the Figma formats | [figma.md](../figma.md) |
-| An opacity control per colour, with a checkerboard swatch | Not built | A range input beside the picker that writes an eight digit hex. Small, in the script |
-| A dark value per colour | Not built | The design systems of the catalogue bring a dark block. A custom design system keeps the dark block of its base. To build: `dark_overrides` in the custom draft and a second field per colour |
+| An opacity control per colour, with a checkerboard swatch | Built in #68 | A range input beside each picker writes `#rrggbb` at full opacity and `#rrggbbaa` below it; the picker keeps the opacity. Every swatch lies over a checkerboard |
+| A dark value per colour | Built in #68 | A dark field under every colour, roles and vocabulary alike. Empty keeps the dark value of the base, else OpenProject's own: nothing is derived. A refused dark value blocks saving like a light one |
 | 713 variables, with component groups that open on demand, and an advanced group with a warning | Built for thematiq's full vocabulary: 185 values in fourteen groups under "More values" | Each group is an entry in `Editor::GROUPS`, filled by `Editor::VOCABULARY_RULES`. Each starts closed in a `details` element, and opens when it holds a changed or refused value or when a search finds a value in it. Each row names thematiq's CSS name and says whether OpenProject draws it |
 | See Nextcloud's own value for a variable | Partly. Each row shows the value of the base design system | OpenProject's own value per variable would come with the vocabulary list |
 | A playground: buttons, inputs, note cards, list items and the login card in each state, per Nextcloud version | Partly. One picture of the shell: top bar, menu, buttons, input, table, link, a notice | More parts in the same picture, drawn with Primer's class names. No version selector: the plugin supports one OpenProject version |
@@ -37,8 +37,8 @@ An administrator opens **Custom token overrides** in Nextcloud's theming setting
 | Deprecate a token | Not built | After own tokens |
 | Custom CSS: free CSS, cleaned before it is stored | Not built | Hostile input of the highest kind. It needs a CSS parser with an allow-list, not a pattern. To decide with the owner before building |
 | Animation speed and easing | Not built | OpenProject has no variables for motion. It would only reach the plugin's own menu |
-| Try a design system in your own session, with a banner to publish or discard | Not built | A user preference that names a design system, read by the head hook, and a banner through the body hook |
-| A version after every change, and restore | Not built | A list of the last settings in the plugin's own table, with "Restore". The table exists since the uploads |
+| Try a design system in your own session, with a banner to publish or discard | Built in #70 | The session names the design system for a day at most; `PageScope` puts it on every page of that administrator, and the body hook draws the banner |
+| A version after every change, and restore | Built in #69 | The table `thematiq_changes`: one row per change with the whole setup after it, the newest 50 restorable after a dry run |
 
 ## What this step changes for an administrator
 
@@ -62,9 +62,7 @@ Add one line to `GROUPS` in `lib/open_project/thematiq/editor.rb`, and its label
 ## Build order from here
 
 1. Built: the vocabulary list and its kinds, steps 1 to 3 of [full-vocabulary.md](full-vocabulary.md), and its groups in the editor. A value a set does not fill keeps OpenProject's own value. Nothing is derived.
-2. A dark value per colour.
-3. Opacity per colour.
-4. More parts in the preview.
-5. Versions and restore.
-6. A trial in your own session.
-7. Own tokens, then custom CSS, once the owner has decided on custom CSS.
+2. Built in #68: a dark value per colour, opacity per colour, and the preview as a project's or a module's design system.
+3. More parts in the preview.
+4. Built in #69 and #70: versions and restore, and a trial in your own session.
+5. Own tokens, then custom CSS, once the owner has decided on custom CSS.
