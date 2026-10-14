@@ -94,4 +94,32 @@ module ThematiqHelper
     preview = OpenProject::Thematiq::Preview.new(token_set)
     tag.span(class: "thematiq-editor__swatch", style: dark ? preview.dark_swatch(key) : preview.swatch(key), aria: { hidden: true })
   end
+  # Every style tag of the plugin's head hooks, by id, as it would be for a page drawn in this design system.
+  # The apply dialog swaps them in place, so the page repaints without a reload. An empty value means: no such tag.
+  # It mirrors app/views/thematiq/hooks/_head.html.erb, _meta.html.erb and shell/_head.html.erb.
+  def thematiq_style_map(token_set)
+    thematiq = OpenProject::Thematiq
+    root = OpenProject::Configuration["rails_relative_url_root"].to_s
+    logo = thematiq::Shell::Logo.css(token_set, root:).to_s
+    light_bar = if logo.blank? && thematiq::Contrast.on(token_set, "primary") != "#ffffff"
+                  [thematiq::Shell::Logo.rule(asset_path("logo_openproject.png")),
+                   thematiq::Shell::Logo.rule(asset_path("icon_logo.svg"), selector: thematiq::Shell::Logo::MOBILE_SELECTOR)].join("\n")
+                else
+                  ""
+                end
+    fonts = thematiq::Assets.bundled.font_face_css(token_set, root:).to_s
+    { "openproject-thematiq" => thematiq::Stylesheet.css(token_set), "openproject-thematiq-early" => thematiq::Stylesheet.early_css(token_set),
+      "openproject-thematiq-content" => "", "openproject-thematiq-assets" => fonts, "openproject-thematiq-early-assets" => fonts,
+      "openproject-thematiq-logo" => logo, "openproject-thematiq-logo-light-bar" => light_bar,
+      "openproject-thematiq-early-logo" => logo, "openproject-thematiq-early-logo-light-bar" => light_bar }
+  end
+
+  # The value of one row of the comparison: a swatch and the value, or OpenProject's own.
+  def thematiq_compare_value(value, kind)
+    return tag.span(t("thematiq.compare.own"), class: "color-fg-muted") if value.nil?
+
+    swatch = kind == :color ? tag.span(class: "thematiq-editor__swatch thematiq-compare__swatch", aria: { hidden: true },
+                                       style: OpenProject::Thematiq::Preview.new(OpenProject::Thematiq::Tokens::TokenSet.fallback).swatch_of(value)) : nil
+    safe_join([swatch, tag.code(value)].compact, " ")
+  end
 end

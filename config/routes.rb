@@ -3,6 +3,10 @@
 Rails.application.routes.draw do
   get "admin/thematiq", to: "thematiq/admin#show", as: :admin_thematiq
   post "admin/thematiq", to: "thematiq/admin#update"
+  get "admin/thematiq/compare", to: "thematiq/admin#compare", as: :admin_thematiq_compare
+  post "admin/thematiq/trial", to: "thematiq/admin#trial", as: :admin_thematiq_trial
+  post "admin/thematiq/trial/publish", to: "thematiq/admin#trial_publish", as: :admin_thematiq_trial_publish
+  post "admin/thematiq/trial/discard", to: "thematiq/admin#trial_discard", as: :admin_thematiq_trial_discard
   get "admin/thematiq/custom", to: "thematiq/admin#edit", as: :admin_thematiq_custom
   post "admin/thematiq/custom", to: "thematiq/admin#update_custom"
   post "admin/thematiq/custom/files", to: "thematiq/admin#update_files", as: :admin_thematiq_custom_files

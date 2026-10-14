@@ -17,17 +17,69 @@ module Thematiq
       @total = @store.catalogue.sets.size + @store.custom_drafts.size
     end
 
-    # Makes the chosen design system the active one.
-    def update
-      token_set = @store.activate(params[:set_id].to_s)
+    # What changes when the chosen design system replaces the one in use, before anything is applied.
+    # Every value that differs, light and dark, each with a box to keep the value of now. Also the way to a trial.
+    def compare
+      @chosen = @store.find_set(params[:set_id].to_s)
+      return refuse_unknown_set unless @chosen
 
-      if token_set
-        record_change("apply", token_set.name)
-        flash[:notice] = t("thematiq.admin.notice_applied", name: token_set.name)
-      else
-        flash[:error] = t("thematiq.admin.error_unknown_set")
+      @current = @store.active_token_set
+      if @chosen.id == current_id && OpenProject::Thematiq::Trial.id(session).nil?
+        flash[:notice] = t("thematiq.compare.notice_same", name: @chosen.name)
+        return redirect_to action: :show
       end
-      redirect_to action: :show
+
+      @rows = OpenProject::Thematiq::Diff.between(@current, @chosen)
+    end
+
+    # Makes the chosen design system the active one. After the comparison, the values left unticked are kept: the
+    # result is a new custom design system, the chosen one with those values of the one in use now.
+    # A request that asks for JSON gets the new style sheets, so the page repaints without a reload.
+    def update
+      token_set = @store.find_set(params[:set_id].to_s)
+      return refuse_unknown_set unless token_set
+
+      kept = params[:compared].present? ? kept_values(token_set) : [{}, {}]
+      token_set = kept.any?(&:any?) ? keep_values(token_set, *kept) : @store.activate(token_set.id)
+      return refuse_too_many unless token_set
+
+      OpenProject::Thematiq::Trial.stop(session)
+      record_change("apply", token_set.name)
+      notice = t("thematiq.admin.notice_applied", name: token_set.name)
+      respond_to do |format|
+        format.html do
+          flash[:notice] = notice
+          redirect_to action: :show
+        end
+        format.json { render json: { notice:, name: token_set.name, styles: helpers.thematiq_style_map(token_set) } }
+      end
+    end
+
+    # --- a trial in your own session ---
+
+    def trial
+      token_set = @store.find_set(params[:set_id].to_s)
+      return refuse_unknown_set unless token_set
+
+      OpenProject::Thematiq::Trial.start(session, token_set.id)
+      flash[:notice] = t("thematiq.trial.notice_started", name: token_set.name)
+      redirect_to home_path
+    end
+
+    def trial_publish
+      token_set = @store.find_set(OpenProject::Thematiq::Trial.id(session).to_s)
+      OpenProject::Thematiq::Trial.stop(session)
+      return refuse_unknown_set unless token_set && @store.activate(token_set.id)
+
+      record_change("trial_publish", token_set.name)
+      flash[:notice] = t("thematiq.trial.notice_published", name: token_set.name)
+      redirect_back_or_to admin_thematiq_path
+    end
+
+    def trial_discard
+      OpenProject::Thematiq::Trial.stop(session)
+      flash[:notice] = t("thematiq.trial.notice_discarded")
+      redirect_back_or_to admin_thematiq_path
     end
 
     # The editor: the custom set, or a new one that starts from a design system of the catalogue.
@@ -263,6 +315,44 @@ module Thematiq
     end
 
     private
+
+    # The id of the design system in use: a custom one, else the catalogue's.
+    def current_id
+      @store.active_custom_id || @store.active_token_set.id
+    end
+
+    def refuse_unknown_set
+      flash[:error] = t("thematiq.admin.error_unknown_set")
+      redirect_to action: :show
+    end
+
+    def refuse_too_many
+      flash[:error] = t("thematiq.transfer.errors.too_many")
+      redirect_to action: :show
+    end
+
+    def kept_values(token_set)
+      rows = OpenProject::Thematiq::Diff.between(@store.active_token_set, token_set)
+      OpenProject::Thematiq::Diff.kept(rows, params[:take])
+    end
+
+    # The chosen design system with some values of the one in use: stored as a new custom design system and applied.
+    def keep_values(token_set, light, dark)
+      chosen = @store.custom_draft(token_set.id)
+      base = chosen ? chosen.base : token_set
+      overrides = chosen ? chosen.overrides.merge(chosen.vocabulary) : {}
+      roles = dark.select { |key, _| OpenProject::Thematiq::Tokens::TokenSet::DARK_KEYS.include?(key) }
+      new_id = @store.next_custom_id
+      return nil unless new_id
+
+      draft = OpenProject::Thematiq::CustomDraft.new(base:, name: t("thematiq.compare.kept_name", name: token_set.name).first(80),
+                                                     overrides: overrides.merge(light), id: new_id,
+                                                     dark: (chosen ? chosen.dark : {}).merge(roles),
+                                                     dark_vocabulary: (chosen ? chosen.dark_vocabulary : {}).merge(dark.except(*roles.keys)))
+      return nil unless save_draft(draft, new: true)
+
+      @store.activate(new_id)
+    end
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared].freeze

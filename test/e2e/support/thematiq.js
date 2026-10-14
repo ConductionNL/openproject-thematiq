@@ -20,10 +20,18 @@ async function activeSetId(page) {
   return page.locator("input.thematiq-picker__radio:checked").getAttribute("value");
 }
 
+// Apply on the picker opens the apply dialog, which shows what changes; its Apply repaints the page without a reload.
+// The design system that is in use already goes straight back to the picker.
 async function applySet(page, id) {
   await page.goto(PICKER);
   await page.locator(`#thematiq-set-${id}`).check();
-  await Promise.all([page.waitForURL(/\/admin\/thematiq/), page.getByRole("button", { name: "Apply", exact: true }).click()]);
+  await Promise.all([page.waitForEvent("framenavigated"), page.locator("#thematiq-picker-form").getByRole("button", { name: "Apply", exact: true }).click()]);
+  await page.waitForLoadState("load");
+  if (new URL(page.url()).pathname.endsWith("/compare")) {
+    await page.locator("#thematiq-compare-form").getByRole("button", { name: "Apply", exact: true }).click();
+    await expect(page.locator('[data-test-selector="thematiq-applied"]')).toBeVisible();
+  }
+  await page.goto(PICKER);
   await expect(page.locator('[data-test-selector="thematiq-active"]')).toBeVisible();
 }
 
