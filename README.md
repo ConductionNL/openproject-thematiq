@@ -2,7 +2,7 @@
 
 An OpenProject plugin that gives OpenProject the same shell as a Nextcloud themed with [thematiq](https://github.com/ConductionNL/thematiq). A user who moves from one product to the other sees the same top bar, navigation, buttons, inputs and tables.
 
-The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests. The design systems ship inside the plugin.
+The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests unless an administrator turns on the [gallery](#the-gallery-and-the-catalogue-notice), which is off by default. The design systems ship inside the plugin.
 
 **Status: early work.** A spike proved the route on OpenProject 17.9.1 community edition. The plugin itself is being built on the `development` branch.
 
@@ -162,7 +162,7 @@ This was tested on the Docker route with OpenProject 17.9.1, on the compose inst
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
@@ -183,6 +183,26 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 - **Legal links.** Under **Legal links**, give the addresses of a privacy statement, an imprint and an accessibility statement. They show at the end of every page and on the sign-in page, in the design system's footer colours.
 - **Brand stripe.** A design system with thematiq's three stripe colours draws them under the top bar, in their ratios.
 - **Sign-in background.** A custom design system can carry a photo for behind the sign-in page: upload it under **Logo, icons and fonts**.
+
+### Try a design system on OpenProject's components
+
+**Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. Under **Your own component**, paste HTML and CSS you are building: your CSS reads the design system's variables, such as `var(--thematiq-primary)`, in a frame that runs no script; nothing is stored. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
+
+### Government icons
+
+The plugin ships thematiq's government icon sets (RVO, OpenGemeenten, Den Haag, DSFR; 2,526 icons, each rebuilt by the plugin's SVG check), with their licences. Any app on the instance uses an icon by name at `/thematiq/icons/<set>/<name>.svg`; `/thematiq/api/v1/icons` lists them. **Icon library** on Thematiq design shows the sets.
+
+### The gallery and the catalogue notice
+
+thematiq publishes its catalogue of design systems. Under **Gallery**, a link on **Thematiq design**, turn on **Read the gallery from the address below**: the plugin then reads that one https address (thematiq's own on GitHub, or one you give). **Check now** lists the design systems this plugin does not have, or has with other values, and **Add** makes one a custom design system. The picker checks once a day and says when thematiq published a newer catalogue; **Dismiss** hides that until the next one. This is the plugin's only network connection, and it is off until you turn it on. A nightly workflow in this repository proposes the newer catalogue as a pull request.
+
+### A shared light or dark choice
+
+Turn on **Let another product set a person's light or dark choice by link**. Another product, such as Nextcloud with thematiq, then links a signed-in person to `/thematiq/appearance?mode=dark&return_to=/` (or `light`, or `system`) to set their OpenProject choice the same way and send them back. `return_to` may be a path here or an address under the Nextcloud address. It is only a link the person follows; off by default.
+
+### E-mail in the house style
+
+Under **E-mail**, tick **Send e-mail in the house style**: every e-mail OpenProject sends gets a band in the primary colour with the app's title and the logo at the top, and your organisation's text and the legal links at the end. Mail clients drop style sheets, so all of it is inline. OpenProject's own header and footer texts stay. It is off until you turn it on.
 
 ### Plan a switch
 
@@ -286,6 +306,26 @@ Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design syst
 ### A branding package that applies itself
 
 Set `THEMATIQ_BUNDLE_FILE` to the path of a configuration file inside the container, mounted from your deployment. When OpenProject starts, the plugin makes it the setup, once per version of the file: an unchanged file is not applied again, so later changes on the admin page stay until the file changes. A file that does not read is refused whole and the log says why; OpenProject starts anyway. Each application is a row in the history.
+
+### An environment marker
+
+Under **Environment marker**, give a label such as Test and a colour: it shows at the top of every page, the sign-in page included, so nobody works in the wrong OpenProject. `THEMATIQ_ENVIRONMENT_LABEL` sets it as code and wins over the field.
+
+### Deprecated tokens
+
+Under **Deprecated tokens**, mark a token your organisation is moving away from: a severity, what to use instead and by when. Nothing changes value; the editor shows the notice next to the token and other apps read the list at `/thematiq/api/v1/deprecations`. Past its date it says "Due for removal" and still works.
+
+### A brand manager who is not an administrator
+
+Give someone a global role with the permission **Manage the design**. They see **Thematiq design** in the administration and can do everything on it, and nothing else of the administration. Their changes carry their name in the history.
+
+### A contrast report for an audit
+
+**Contrast report for an audit**, on **Thematiq design**, lists every design system in use, for the instance, each project and each module, with each pair of text and background the shell draws, light and dark, against WCAG 2.1 success criterion 1.4.3. Print it or download it as JSON; `rake thematiq:compliance[report.json]` writes the same, and `STRICT=1` makes it fail on a pair under 4.5 to 1. `docs/contrast-report.md` and `docs/token-reference.md` are generated from the code by `script/generate-docs.rb`.
+
+### Read endpoints for other apps
+
+Other apps on this OpenProject read the catalogue, one design system, its style sheets, own tokens, deprecations, the icon list and a contrast check; another product reads the design system in use in thematiq's shell-tokens shape. [docs/api.md](docs/api.md) lists them.
 
 ### Metrics
 
