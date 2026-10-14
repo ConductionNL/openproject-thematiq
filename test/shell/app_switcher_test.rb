@@ -18,7 +18,7 @@ class AppSwitcherTest < Minitest::Test
   def test_the_core_file_it_replaces_a_method_of_is_guarded_with_the_top_bar
     assert_includes Shell::CoreGuard::PARTS.fetch(:top_bar), "lib/redmine/menu_manager/top_menu/module_menu.rb"
     shell = File.read(File.join(ROOT, "lib/open_project/thematiq/shell.rb"))
-    assert_match(/top_bar: \[TopBar, AppSwitcher\]/, shell, "installed only when the top bar's core files are the known ones")
+    assert_match(/top_bar: \[TopBar, AppSwitcher, AccountMenu\]/, shell, "installed only when the top bar's core files are the known ones")
   end
 
   def test_every_entry_the_field_offers_has_a_second_line

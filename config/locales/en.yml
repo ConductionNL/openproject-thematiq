@@ -1047,6 +1047,9 @@ en:
           news: "News"
           cost_reports_global: "Time and costs"
           wikis: "Wiki"
+      account_menu:
+        button: "Menu of %{name}"
+        region: "Account"
       app_switcher:
         title: "All apps and modules"
         keys: "Arrow keys move, Enter opens, Escape closes."

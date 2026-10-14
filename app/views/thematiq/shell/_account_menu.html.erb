@@ -1,0 +1,39 @@
+<%# The account menu: a dropdown under the avatar, as in Nextcloud. See Shell::AccountMenu. The entries are core's. %>
+<div class="op-app-menu--item thematiq-account-menu" data-thematiq-account-menu>
+  <button type="button" id="<%= button_id %>"
+          class="Button Button--invisible Button--medium op-app-header--primer-button thematiq-account-menu--button"
+          aria-expanded="false" aria-controls="<%= panel_id %>"
+          aria-label="<%= t("thematiq.shell.account_menu.button", name: menu[:name]) %>"
+          data-test-selector="op-app-header--user-menu-button">
+    <span class="thematiq-account-menu--avatar" aria-hidden="true"><%= menu[:avatar] %></span>
+    <span class="thematiq-account" aria-hidden="true">
+      <strong class="thematiq-account--name"><%= menu[:name] %></strong>
+      <% if menu[:role].present? %><span class="thematiq-account--role"><%= menu[:role] %></span><% end %>
+    </span>
+    <svg class="thematiq-account-menu--chevron" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"></path></svg>
+  </button>
+  <nav id="<%= panel_id %>" class="thematiq-account-menu--panel" aria-label="<%= t("thematiq.shell.account_menu.region") %>" hidden
+       data-test-selector="thematiq-account-menu">
+    <div class="thematiq-account-menu--who">
+      <span class="thematiq-account-menu--avatar" aria-hidden="true"><%= menu[:avatar] %></span>
+      <span class="thematiq-account-menu--names">
+        <strong><%= menu[:name] %></strong>
+        <% if menu[:role].present? %><span><%= menu[:role] %></span><% end %>
+      </span>
+    </div>
+    <% menu[:partials].each do |partial| %>
+      <div class="thematiq-account-menu--partial"><%= render partial: partial %></div>
+    <% end %>
+    <ul class="thematiq-account-menu--list">
+      <% menu[:links].each do |link| %>
+        <% if link[:divider] %><li class="thematiq-account-menu--divider" role="separator"></li><% end %>
+        <li>
+          <%= link_to link[:href], **link[:options], class: "thematiq-account-menu--entry", data: link[:data] do %>
+            <% if link[:icon] %><%= render(Primer::Beta::Octicon.new(icon: link[:icon], "aria-hidden": "true")) %><% end %>
+            <span><%= link[:label] %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </nav>
+</div>

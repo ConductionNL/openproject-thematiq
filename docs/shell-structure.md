@@ -56,8 +56,23 @@ The design is the dossiq bar of Nextcloud Zuiddrecht (`werkplek/DqKop` on identi
 | Bell with the unread dot | CSS mask on core's link and core's own indicator as a dot in the accent colour | Built |
 | Second round button | Core's help menu, outline icon by CSS mask. The design has Contacts there; OpenProject has no contacts | Built as help |
 | No quick add | CSS hides core's quick add menu. Its entries have other homes: "Create work package" in the project menu and on Home, a new project on the project list, members on a project's Members page | Built |
-| Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super` | Built |
+| Account button with avatar, name and role | `Shell::AccountMenu`, see "The account menu" below. Signed out, core's button and sign-in form | Built |
+| Account menu as a dropdown under the avatar | `Shell::AccountMenu` overrides the private `render_user_drop_down(items)` for a signed in user | Built |
 | No brand stripe under the bar | The design has none. The stripe stays a variable for the surfaces that draw it | Built |
+
+### The account menu
+
+Core opens the account menu as a sheet that slides in from the right: a Primer dialog placed at the right edge, rendered in the private `TopMenu::UserMenu#render_user_drop_down(items)`. A dialog is modal, so it cannot open under the pointer, and its placement is the sheet. Nextcloud's account menu is a dropdown under the avatar. No board draws it open, so the plugin follows Nextcloud 32: a panel under the avatar, aligned to its right edge, with the person on top and one row per entry, in the look of the app menu (white, a 1 px line, the large radius, the same shadow).
+
+For a signed in user `Shell::AccountMenu` renders its own disclosure in that method's place:
+
+- A button with the avatar, the name and the role and a chevron, named "Menu of" and the person's name, with `aria-expanded` and `aria-controls`. It keeps core's test selector.
+- A `nav` named "Account" with the person on top, then core's own entries: the items core passes in, so each item's condition still holds (Administration only for who may open it), with core's address, caption, icon and options (sign out keeps `data-turbo="false"`). An item with a partial, such as the running timer, renders with core's partial.
+- A script inlined at the end of the page: a click opens and closes it and keeps it open; the pointer opens it after 150 ms and closes it 300 ms after leaving, unless a click opened it; Escape closes it and puts the focus back on the button; a click outside or the focus leaving it closes it; the arrow keys, Home and End move between the entries, and Tab works as well.
+
+Signed out, core's own dialog with the sign-in form renders. When rendering fails, core's dialog renders and the log says why. It leans on `user_menu.rb`, which the guard checks for the top bar.
+
+Differences from Nextcloud: there is no status and no "Appearance and accessibility" entry, because OpenProject has neither in its account menu; the entries are OpenProject's.
 
 ### The row of apps
 

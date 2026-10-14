@@ -13,6 +13,7 @@ module OpenProject
     #   Shell::NextcloudApps  the Nextcloud column of the app switcher
     #   Shell::AppRow         which apps and modules the top bar shows as icons
     #   Shell::AppSwitcher    the list under the nine-dot button, in place of core's
+    #   Shell::AccountMenu    the account menu as a dropdown under the avatar, in place of core's sheet
     #   Shell::Logo           the logo of the active design system, as a CSS rule
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
@@ -52,12 +53,13 @@ module OpenProject
         require "open_project/thematiq/shell/logo"
         require "open_project/thematiq/shell/top_bar"
         require "open_project/thematiq/shell/app_switcher"
+        require "open_project/thematiq/shell/account_menu"
 
         require "open_project/thematiq/shell/project_menu"
 
         require "open_project/thematiq/shell/home"
 
-        { top_bar: [TopBar, AppSwitcher], project_menu: [ProjectMenu], home: [Home] }.each do |part, overrides|
+        { top_bar: [TopBar, AppSwitcher, AccountMenu], project_menu: [ProjectMenu], home: [Home] }.each do |part, overrides|
           changed = CoreGuard.changed_files(part:)
           next overrides.each(&:install!) if changed.empty?
 
