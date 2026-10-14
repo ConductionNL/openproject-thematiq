@@ -42,6 +42,10 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 - A gallery of thematiq's published catalogue and a notice when it is newer, behind an admin switch that is off by default: the plugin's only network connection. A nightly workflow proposes the newer catalogue as a pull request. Another product can set a person's light or dark choice by a link, off by default (#95).
 
+### Small things
+
+- The picker says how much of thematiq's vocabulary each shipped design system fills; the contrast report measures the status colours; selected text takes the brand colour; an upload of the Marianne typeface asks for the entitlement first (#98).
+
 ### Database
 
 No new table since 0.2.0. Uploads take one more kind, `login_background`, and the font library uses the set id `library` in `thematiq_uploads`.

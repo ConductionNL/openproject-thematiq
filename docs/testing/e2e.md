@@ -29,6 +29,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `metrics.spec.js` | `/thematiq/metrics` answers 404 without `THEMATIQ_METRICS_TOKEN`; with it, 401 without the token and the text format with it. Set `THEMATIQ_E2E_METRICS_TOKEN` to check the second |
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
+| `wave1.spec.js` | Each shipped design system says how much of the vocabulary it fills; a font named Marianne waits for the entitlement |
 | `vocabulary.spec.js` | A design system with values of thematiq's full vocabulary, imported as a file, reaches Primer's variables and OpenProject's own elements; a key it leaves out keeps OpenProject's value |
 | `schedule.spec.js` | A switch is planned, listed and cancelled (the switch itself is in the request check) |
 | `playground.spec.js` | The playground draws OpenProject's components in a chosen design system, the content area only |
