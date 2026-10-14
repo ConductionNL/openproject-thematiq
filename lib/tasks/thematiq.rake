@@ -69,7 +69,7 @@ namespace :thematiq do
         puts text
       else
         File.write(args[:file], text)
-        warn "Written: #{args[:file]}"
+        $stderr.puts "Written: #{args[:file]}"
       end
     end
 
