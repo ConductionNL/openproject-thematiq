@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 110 |
+| in plugin | 111 |
 | being built | 0 |
 | to build, as is | 15 |
-| to build, adapted | 37 |
+| to build, adapted | 36 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **52 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 34 S, 15 M and 3 L.
+1. **51 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 33 S, 15 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -236,7 +236,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `gov-admin-only` | Allow only administrators to change the theme | `specs/admin-settings` | in plugin | `app/controllers/thematiq/admin_controller.rb` |  |
-| `gov-delegated-role` | Delegate theme editing to a brand manager who is not a full administrator | `lib/Settings/Admin.php` | to build, adapted | A global permission in OpenProject's roles instead of Nextcloud's delegated settings | S |
+| `gov-delegated-role` | Delegate theme editing to a brand manager who is not a full administrator | `lib/Settings/Admin.php` | in plugin | #80: the global permission "Manage the design" opens the whole Thematiq design page to a brand manager, and nothing else of the administration |  |
 | `gov-audit-log` | See who changed which theming setting, from what to what, and when | `specs/prometheus-metrics` | in plugin | #69: one row per change with who and when, in a table of the plugin's own; #72 downloads it as CSV |  |
 | `gov-audit-export` | Export the theming audit log for an auditor | `specs/prometheus-metrics` | in plugin | #72: the history as CSV, with cells that look like a formula quoted |  |
 | `gov-audit-append-only` | Rely on the audit log not being editable after the fact | `specs/prometheus-metrics` | in plugin | #69: the model refuses an update or a delete. Only the setup of rows older than the newest 50 is cleared |  |
