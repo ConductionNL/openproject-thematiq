@@ -506,7 +506,7 @@ en:
       based_on: "Based on"
       based_on_hint: "Values you leave empty come from this design system."
       tokens: "Values"
-      tokens_hint: "Leave a field empty to keep the value of the design system it is based on."
+      tokens_hint: "Leave a field empty to keep the value of the design system it is based on. A value may also name another token of the same kind, such as {primary}: it then follows that token."
       base_value: "In %{name}: %{value}."
       changed: "Changed"
       changed_total:
