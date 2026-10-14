@@ -1,0 +1,9 @@
+# Local logs, screenshots and scratch output of build lanes
+/.lane/
+/tmp/
+*.log
+*.gem
+/pkg/
+/.bundle/
+Gemfile.lock
+__pycache__/

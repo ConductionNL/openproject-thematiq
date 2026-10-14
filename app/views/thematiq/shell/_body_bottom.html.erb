@@ -1,0 +1,21 @@
+<%# The banner of a trial, for the administrator who started it. Nobody else has a trial in their session. %>
+<% if OpenProject::Thematiq::PageScope.trial? %>
+  <% trial_set = OpenProject::Thematiq::PageScope.current.page_set %>
+  <section class="thematiq-trial" aria-label="<%= t("thematiq.trial.region") %>" data-test-selector="thematiq-trial-banner">
+    <p class="thematiq-trial__text"><strong><%= t("thematiq.trial.banner", name: trial_set.name) %></strong> <%= t("thematiq.trial.only_you") %></p>
+    <%= form_with(url: admin_thematiq_trial_publish_path, method: :post, data: { turbo: false }) do %>
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, size: :small)) { t("thematiq.trial.publish") } %>
+    <% end %>
+    <%= form_with(url: admin_thematiq_trial_discard_path, method: :post, data: { turbo: false }) do %>
+      <%= render(Primer::Beta::Button.new(type: :submit, size: :small)) { t("thematiq.trial.discard") } %>
+    <% end %>
+  </section>
+<% end %>
+<%# The script of the two-layer project menu: ARIA state from core's menu classes, and "Show all" in a long submenu. See Shell::ProjectMenu. %>
+<% menu_texts = { expand: t("thematiq.shell.project_menu.expand"), collapse: t("thematiq.shell.project_menu.collapse"), show_all: t("thematiq.shell.project_menu.show_all") } %>
+<%= nonced_javascript_tag do %>
+window.thematiqProjectMenuTexts = <%= raw json_escape(menu_texts.to_json) %>;
+<%= raw OpenProject::Thematiq::Shell::ProjectMenu.script %>
+<%= raw OpenProject::Thematiq::Shell::ProjectMenu.tour_script %>
+<% if OpenProject::Thematiq::Shell::AppSwitcher.installed? %><%= raw OpenProject::Thematiq::Shell::AppSwitcher.script %><% end %>
+<% end %>

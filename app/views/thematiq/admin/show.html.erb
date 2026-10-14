@@ -1,0 +1,322 @@
+<% html_title t(:label_administration), t("thematiq.admin.title") %>
+<% active = @store.active_token_set %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.admin.title") }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       t("thematiq.admin.title")]
+    )
+    header.with_description { t("thematiq.admin.description") }
+  end
+%>
+
+<% if @store.catalogue.error %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, data: { test_selector: "thematiq-catalogue-error" })) do %>
+    <%= t("thematiq.admin.catalogue_unusable") %>
+  <% end %>
+<% end %>
+
+<% if @store.environment_id %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :lock, mb: 3, data: { test_selector: "thematiq-environment" })) do %>
+    <%= t("thematiq.environment.banner", variable: OpenProject::Thematiq::Store::ENVIRONMENT_KEY, name: active.name) %>
+  <% end %>
+<% elsif @store.environment_value %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :danger, icon: :stop, mb: 3, data: { test_selector: "thematiq-environment-unknown" })) do %>
+    <%= t("thematiq.environment.unknown", variable: OpenProject::Thematiq::Store::ENVIRONMENT_KEY, value: @store.environment_value) %>
+  <% end %>
+<% end %>
+
+<% if active.rejected.any? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :alert, mb: 3, data: { test_selector: "thematiq-rejected-banner" })) do %>
+    <%= t("thematiq.admin.rejected_tokens", tokens: active.rejected.join(", ")) %>
+  <% end %>
+<% end %>
+
+<p class="thematiq-picker__status" data-test-selector="thematiq-active">
+  <%= t("thematiq.admin.active_now_html", name: active.name) %>
+</p>
+<p><%= link_to t("thematiq.history.link"), admin_thematiq_history_path, data: { test_selector: "thematiq-history-link" } %></p>
+
+<% assets = OpenProject::Thematiq::Assets.bundled %>
+<% named_font = assets.named_family(active) %>
+<% if named_font %>
+  <p class="color-fg-muted" data-test-selector="thematiq-font-note">
+    <% if assets.uploaded_family?(active, named_font) %>
+      <%= t("thematiq.fonts.uploaded", family: named_font) %>
+    <% elsif assets.bundled_family?(named_font) %>
+      <%= t("thematiq.fonts.loaded", family: named_font) %>
+    <% elsif assets.faces(active).any? %>
+      <%= t("thematiq.fonts.next_loaded", family: named_font, next_family: assets.faces(active).first.family) %>
+    <% else %>
+      <%= t("thematiq.fonts.not_loaded", family: named_font) %>
+    <% end %>
+  </p>
+<% end %>
+
+<%= form_with(url: admin_thematiq_path, method: :get, data: { turbo: false }, id: "thematiq-search-form",
+              class: "thematiq-picker__search", role: "search") do %>
+  <%= render(Primer::Alpha::TextField.new(
+        name: :q,
+        id: "thematiq-search",
+        label: t("thematiq.admin.search_label"),
+        value: @query,
+        input_width: :large
+      )) %>
+  <div class="thematiq-picker__search-actions">
+    <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.admin.search") } %>
+    <% if @query.present? %>
+      <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.admin.show_all") } %>
+    <% end %>
+  </div>
+<% end %>
+
+<p class="color-fg-muted" role="status" data-test-selector="thematiq-count">
+  <%= t("thematiq.admin.count", shown: @customs.size + @sets.size, total: @total) %>
+</p>
+
+<% if @sets.empty? && @customs.empty? %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :default, mb: 3, data: { test_selector: "thematiq-no-results" })) do %>
+    <%= t("thematiq.admin.no_results") %>
+  <% end %>
+<% else %>
+  <%# Apply first shows what changes (the apply dialog). A plain GET: nothing is written until that page's Apply. %>
+  <%= form_with(url: admin_thematiq_compare_path, method: :get, data: { turbo: false }, id: "thematiq-picker-form") do %>
+    <%# Apply comes before the list. Every card has three links, each a tab stop of its own, so after the list
+        Apply was some 200 tab stops away (first full test, finding 14). Here it is one Shift+Tab from the list. %>
+    <div class="thematiq-picker__actions">
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary)) { t("thematiq.admin.apply") } %>
+      <span class="color-fg-muted"><%= t("thematiq.admin.apply_hint") %></span>
+    </div>
+    <fieldset class="thematiq-picker">
+      <legend class="sr-only"><%= t("thematiq.admin.picker_legend") %></legend>
+      <% @customs.each do |custom| %>
+        <% custom_set = custom.token_set %>
+        <% custom_active = @store.active_custom_id == custom.id %>
+        <div class="thematiq-picker__option" data-test-selector="thematiq-custom-option">
+          <label class="thematiq-picker__label" for="thematiq-set-<%= custom.id %>">
+            <input type="radio" name="set_id" id="thematiq-set-<%= custom.id %>" value="<%= custom.id %>"
+                   class="thematiq-picker__radio" required <%= "checked" if custom_active %>>
+            <%= thematiq_thumbnail(custom_set) %>
+            <span class="thematiq-picker__text">
+              <span class="thematiq-picker__name"><%= custom_set.name %></span>
+              <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_custom") } %>
+              <% if custom_active %>
+                <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
+              <% end %>
+              <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: custom.changed_count, name: custom.base.name) %></span>
+              <% low = OpenProject::Thematiq::Contrast.failures(custom_set) %>
+              <% if low.any? %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
+                  <%= t("thematiq.contrast.low", pairs: low.map { |pair| t("thematiq.contrast.pairs.#{pair}") }.to_sentence) %>
+                </span>
+              <% end %>
+            </span>
+          </label>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(id: custom.id),
+                                              "aria-label": t("thematiq.admin.edit_label", name: custom_set.name))) { t("thematiq.admin.edit_tokens") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: custom.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.transfer.export_label", name: custom_set.name))) { t("thematiq.transfer.export") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_path(id: custom.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.figma.download_label", name: custom_set.name))) { t("thematiq.figma.download") } %>
+        </div>
+      <% end %>
+      <% @sets.each do |token_set| %>
+        <% is_active = !@store.custom_active? && token_set.id == active.id %>
+        <div class="thematiq-picker__option">
+          <label class="thematiq-picker__label" for="thematiq-set-<%= token_set.id %>">
+            <input type="radio" name="set_id" id="thematiq-set-<%= token_set.id %>" value="<%= token_set.id %>"
+                   class="thematiq-picker__radio" required <%= "checked" if is_active %>>
+            <%= thematiq_thumbnail(token_set) %>
+            <span class="thematiq-picker__text">
+              <span class="thematiq-picker__name"><%= token_set.name %></span>
+              <% if token_set.id == @store.catalogue.default.id %>
+                <%= render(Primer::Beta::Label.new(scheme: :secondary, ml: 1)) { t("thematiq.admin.badge_default") } %>
+              <% end %>
+              <% if is_active %>
+                <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
+              <% end %>
+              <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+              <% low = OpenProject::Thematiq::Contrast.failures(token_set) %>
+              <% if low.any? %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
+                  <%= t("thematiq.contrast.low", pairs: low.map { |pair| t("thematiq.contrast.pairs.#{pair}") }.to_sentence) %>
+                </span>
+              <% end %>
+            </span>
+          </label>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(from: token_set.id),
+                                              "aria-label": t("thematiq.admin.customise_label", name: token_set.name))) { t("thematiq.admin.customise") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: token_set.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.transfer.export_label", name: token_set.name))) { t("thematiq.transfer.export") } %>
+          <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_figma_path(id: token_set.id), scheme: :invisible,
+                                              "aria-label": t("thematiq.figma.download_label", name: token_set.name))) { t("thematiq.figma.download") } %>
+        </div>
+      <% end %>
+    </fieldset>
+  <% end %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-short-form") { t("thematiq.short_form.title") }
+end %>
+<%# thematiq's short form: a name and two colours. The rest is worked out and opens in the editor, unsaved. %>
+<%= form_with(url: admin_thematiq_from_colours_path, method: :post, data: { turbo: false }, id: "thematiq-short-form-form",
+              class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.short_form.hint") %></p>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-short-name"><%= t("thematiq.editor.name") %></label>
+    <input type="text" name="name" id="thematiq-short-name" class="FormControl-input FormControl-medium" maxlength="80" required>
+  </div>
+  <% [["primary", "#1a67a3"], ["background", "#ffffff"]].each do |field, example| %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-short-<%= field %>"><%= t("thematiq.short_form.#{field}") %></label>
+      <input type="color" name="<%= field %>" id="thematiq-short-<%= field %>" value="<%= example %>" required
+             aria-describedby="thematiq-short-<%= field %>-hint">
+      <p class="thematiq-editor__hint" id="thematiq-short-<%= field %>-hint"><%= t("thematiq.short_form.#{field}_hint") %></p>
+    </div>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.short_form.submit") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.transfer.import_title") }
+end %>
+
+<%= form_with(url: admin_thematiq_import_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-import-form",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-import-file"><%= t("thematiq.transfer.file") %></label>
+  <input type="file" name="file" id="thematiq-import-file" accept="application/json,.json" required aria-describedby="thematiq-import-hint">
+  <p class="thematiq-editor__hint" id="thematiq-import-hint">
+    <%= t("thematiq.transfer.import_hint") %>
+  </p>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.transfer.import") } %>
+<% end %>
+
+<p class="thematiq-editor__hint">
+  <%= t("thematiq.figma.from_figma") %>
+  <%= link_to t("thematiq.figma.upload"), admin_thematiq_figma_path, data: { test_selector: "thematiq-figma-link" } %>
+</p>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-bundle") { t("thematiq.bundle.title") }
+end %>
+<%# The whole setup in one file, to move it from a test to a production OpenProject. %>
+<p class="thematiq-editor__hint"><%= t("thematiq.bundle.hint") %></p>
+<p>
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_bundle_path, data: { test_selector: "thematiq-bundle-download" })) { t("thematiq.bundle.download") } %>
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_history_export_path, scheme: :invisible)) { t("thematiq.history.download") } %>
+</p>
+<%= form_with(url: admin_thematiq_bundle_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-bundle-form",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-bundle-file"><%= t("thematiq.bundle.file") %></label>
+  <input type="file" name="file" id="thematiq-bundle-file" accept="application/json,.json" required aria-describedby="thematiq-bundle-file-hint">
+  <p class="thematiq-editor__hint" id="thematiq-bundle-file-hint"><%= t("thematiq.bundle.file_hint") %></p>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.bundle.upload") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium) { t("thematiq.shell.settings.title") }
+end %>
+
+<%= form_with(url: admin_thematiq_shell_path, method: :post, data: { turbo: false }, id: "thematiq-shell-form") do %>
+  <%= render(Primer::Alpha::TextField.new(
+        name: :nextcloud_url,
+        id: "thematiq-nextcloud-url",
+        label: t("thematiq.shell.settings.nextcloud_url"),
+        caption: t("thematiq.shell.settings.nextcloud_url_caption"),
+        value: @store.nextcloud_url.to_s,
+        placeholder: "https://cloud.example.org",
+        input_width: :large
+      )) %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.settings.save") } %>
+<% end %>
+
+<% row = OpenProject::Thematiq::Shell::AppRow %>
+<% top_mode, top_keys = @store.top_bar_apps %>
+<% offered = row::KNOWN | top_keys %>
+<% slots = top_mode == "custom" ? top_keys : (top_mode == "default" ? row::DEFAULT : []) %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-top-bar") { t("thematiq.shell.top_bar.title") }
+end %>
+<%= form_with(url: admin_thematiq_top_bar_path, method: :post, data: { turbo: false }, id: "thematiq-top-bar-form",
+              class: "thematiq-top-bar") do %>
+  <p class="thematiq-editor__hint" id="thematiq-top-bar-rules"><%= t("thematiq.shell.top_bar.rules", max: row::MAX) %></p>
+  <fieldset class="thematiq-top-bar__modes" aria-describedby="thematiq-top-bar-rules">
+    <legend class="thematiq-editor__label"><%= t("thematiq.shell.top_bar.mode") %></legend>
+    <% %w[default custom none].each do |mode| %>
+      <label class="thematiq-editor__toggle">
+        <input type="radio" name="top_bar_mode" value="<%= mode %>" <%= "checked" if top_mode == mode %>>
+        <%= t("thematiq.shell.top_bar.modes.#{mode}") %>
+      </label>
+    <% end %>
+  </fieldset>
+  <fieldset class="thematiq-top-bar__places">
+    <legend class="thematiq-editor__label"><%= t("thematiq.shell.top_bar.places") %></legend>
+    <p class="thematiq-editor__hint"><%= t("thematiq.shell.top_bar.places_hint") %></p>
+    <ol class="thematiq-top-bar__list">
+      <% row::MAX.times do |index| %>
+        <li class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-tile-<%= index + 1 %>"><%= t("thematiq.shell.top_bar.place", number: index + 1) %></label>
+          <select name="tiles[]" id="thematiq-tile-<%= index + 1 %>" class="FormControl-select FormControl-medium">
+            <option value=""><%= t("thematiq.shell.top_bar.empty") %></option>
+            <% offered.each do |key| %>
+              <option value="<%= key %>" <%= "selected" if slots[index] == key %>><%= t("thematiq.shell.top_bar.tiles.#{key}", default: key) %><%= t("thematiq.shell.top_bar.from_nextcloud") if row::NEXTCLOUD_KEYS.include?(key) %></option>
+            <% end %>
+          </select>
+        </li>
+      <% end %>
+    </ol>
+  </fieldset>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.shell.top_bar.save") } %>
+<% end %>
+
+<% module_rows = Thematiq::Scope.ready? ? Thematiq::Scope.rows.select { |r| r.project_id.nil? }.to_h { |r| [r.module_name, r.design_system_id] } : {} %>
+<% chosen_for_projects = @store.project_choices %>
+<%# Built once: every custom design system is checked again on the way out, and there are eleven lists. %>
+<% every_set = @store.all_sets %>
+<% every_option = every_set.map { |token_set| [token_set.name, token_set.id] } %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-scopes") { t("thematiq.scopes.admin.title") }
+end %>
+<%= form_with(url: admin_thematiq_scopes_path, method: :post, data: { turbo: false }, id: "thematiq-scopes-form", class: "thematiq-top-bar") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.description") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="projects_may_choose" value="1" id="thematiq-projects-may-choose" <%= "checked" if @store.projects_may_choose? %>>
+    <%= t("thematiq.scopes.admin.projects_may_choose") %>
+  </label>
+  <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.projects_may_choose_hint") %></p>
+  <details class="thematiq-editor__more" <%= "open" if chosen_for_projects.any? %>>
+    <summary class="thematiq-editor__more-title"><%= t("thematiq.scopes.admin.choices") %>
+      <span class="thematiq-editor__hint"><%= chosen_for_projects.empty? ? t("thematiq.scopes.admin.choices_all") : t("thematiq.editor.values_count", count: chosen_for_projects.size) %></span>
+    </summary>
+    <fieldset class="thematiq-top-bar__places">
+      <legend class="sr-only"><%= t("thematiq.scopes.admin.choices") %></legend>
+      <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.choices_hint") %></p>
+      <div class="thematiq-top-bar__list">
+        <% every_set.each do |token_set| %>
+          <label class="thematiq-editor__toggle">
+            <input type="checkbox" name="project_choices[]" value="<%= token_set.id %>" <%= "checked" if chosen_for_projects.include?(token_set.id) %>>
+            <%= token_set.name %>
+          </label>
+        <% end %>
+      </div>
+    </fieldset>
+  </details>
+  <fieldset class="thematiq-top-bar__places">
+    <legend class="thematiq-editor__label"><%= t("thematiq.scopes.admin.modules") %></legend>
+    <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.modules_hint") %></p>
+    <div class="thematiq-top-bar__list">
+      <% OpenProject::Thematiq::Scopes::MODULES.each_key do |name| %>
+        <div class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-module-<%= name %>"><%= t("thematiq.scopes.modules.#{name}") %></label>
+          <select name="modules[<%= name %>]" id="thematiq-module-<%= name %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.scopes.admin.module_inherit"), ""]] + every_option, module_rows[name].to_s) %>
+          </select>
+        </div>
+      <% end %>
+    </div>
+  </fieldset>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.scopes.admin.save") } %>
+<% end %>

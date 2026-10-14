@@ -1,0 +1,61 @@
+/* Top bar. Canon: OpHeader.
+ * The bar prints no app name: the logo carries it, and the row of apps the shell adds shows where you are. */
+
+/* height 68 px, full width */
+/* three columns: the brand block with the row of apps as wide as they are, the search, the rest.
+ * The search is the column that gives way (canon: flex 0 1 560px). On a module page the current tile shows its
+ * name and the row is wider; with a 320 px minimum the bar was 22 px wider than a 1440 px window. */
+.op-app-header { height: 68px; padding: 0 20px 0 0; box-sizing: border-box; font-family: var(--thematiq-font); grid-template-columns: auto minmax(240px, 460px) minmax(max-content, 1fr); column-gap: 16px; }
+.op-app-header--start { width: auto; padding-left: 0; }
+.op-app-header--end { flex: 0 0 auto; width: auto; margin-left: auto; padding-right: 0; }
+.op-app-header .op-app-menu { display: flex; align-items: center; height: 68px; margin-left: 0; }
+
+/* brand block: as wide as the sidebar, so its right edge is the sidebar's edge. The logo starts 24 px in,
+ * in line with the icons of the menu (14 px sidebar padding plus 10 px item padding), and is 26 px high. The sidebar's width is pinned in 10-variables.css. */
+.op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: -1; height: 68px; display: flex; align-items: center; box-sizing: border-box; width: var(--main-menu-width, 264px); min-width: var(--main-menu-width, 264px); padding-left: 24px; margin: 0; }
+.op-app-header .op-logo:not(.op-logo--icon) .op-logo--link { display: block; flex: 0 0 auto; height: 26px; width: 104px; min-width: 104px; background-size: contain; background-position: left center; }
+
+/* app switcher: 40 x 40 button, icon 20 px */
+.op-app-header .op-app-menu > .Button--iconOnly { width: 40px; height: 40px; }
+.op-app-header .op-app-menu > .Button--iconOnly svg { width: 20px; height: 20px; }
+
+/* search: 320 to 460 px wide, 44 px high, 1 px border, radius-lg, 15 px text */
+.op-app-header--center { width: 100%; margin: 0; justify-content: flex-start; }
+.op-app-header .op-app-search, .op-app-header opce-global-search { display: block; width: 100%; }
+.op-app-header .top-menu-search { width: 100% !important; max-width: none !important; margin: 0; height: 68px; }
+.op-app-header .top-menu-search .op-autocompleter, .op-app-header .top-menu-search ng-select { width: 100% !important; max-width: none !important; }
+.op-app-header .top-menu-search .op-autocompleter,
+.op-app-header .top-menu-search .ng-select-container {
+  height: 44px !important; min-height: 44px; border-radius: var(--thematiq-radius-lg) !important;
+}
+.op-app-header .top-menu-search .ng-select-container {
+  border: 1px solid var(--thematiq-on-primary) !important; background: var(--thematiq-bar-field) !important; /* canon: white at 12%, less where the text needs it */
+}
+.op-app-header .global-search--input { font-size: 15px; }
+
+/* icon buttons: 44 x 44, icon 22 px, radius */
+.op-app-header--end .Button--iconOnly.Button--iconOnly { width: 44px; height: 44px; border-radius: var(--thematiq-radius); }
+.op-app-header--end .Button--iconOnly svg { width: 22px; height: 22px; }
+
+/* account: 48 px high button, avatar 38 px */
+.op-app-header--end > button.op-app-header--primer-button.Button--invisible { height: 48px; width: auto; }
+.op-app-header .op-top-menu-user-avatar .op-avatar,
+.op-app-header .op-top-menu-user-avatar .op-principal--avatar { width: 38px; height: 38px; line-height: 38px; }
+
+/* Below 1012 px OpenProject uses its compact header. The canon sizes above are for the desktop bar:
+ * its fixed columns would push the right side off a narrow screen. So the columns, the brand block
+ * and the search go back to sizes that follow the content. */
+@media screen and (max-width: 1011px) {
+  .op-app-header { grid-template-columns: minmax(0, auto) 1fr auto; column-gap: 0; padding: 0 6px; }
+  .op-app-header--start { width: auto; }
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { order: 0; width: auto; min-width: 0; padding-left: 0; margin: 0 8px 0 0; }
+  .op-app-header--center { flex: 1 1 auto; width: auto; justify-content: flex-end; }
+  .op-app-header .op-app-search,
+  .op-app-header opce-global-search { display: flex; width: auto; }
+}
+
+/* Below 850 px OpenProject hides the wide logo and shows its square mark. The brand block rule above
+ * sets display, which would bring the wide logo back, so it is hidden again here. */
+@media screen and (max-width: 850px) {
+  .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { display: none; }
+}

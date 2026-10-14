@@ -1,0 +1,55 @@
+<% html_title t("thematiq.scopes.project.title") %>
+<% source = @resolution.page.last %>
+<% current = @store.find_set(@resolution.page.first) || @store.active_token_set %>
+<% options = lambda do |selected|
+     own = @sets.map { |token_set| [token_set.name, token_set.id] }
+     kept = selected.present? && own.none? { |_name, id| id == selected } && @store.find_set(selected) ? [[@store.find_set(selected).name, selected]] : []
+     options_for_select([[t("thematiq.scopes.project.inherit"), ""]] + kept + own, selected.to_s)
+   end %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { t("thematiq.scopes.project.title") }
+    header.with_breadcrumbs([{ href: project_overview_path(@project.id), text: @project.name },
+                             { href: project_settings_general_path(@project.id), text: t(:label_project_settings) },
+                             t("thematiq.scopes.project.title")])
+    header.with_description { t("thematiq.scopes.project.description") }
+  end
+%>
+
+<p class="thematiq-picker__status" data-test-selector="thematiq-project-source">
+  <%= t("thematiq.scopes.project.now", name: current.name) %>
+  <%= case source.kind
+      when :project then t("thematiq.scopes.source.project")
+      when :parent then t("thematiq.scopes.source.parent", name: Project.find_by(id: source.project_id)&.name.to_s)
+      else t("thematiq.scopes.source.instance")
+      end %>
+</p>
+
+<%= form_with(url: project_settings_thematiq_design_path(@project.identifier), method: :post, data: { turbo: false },
+              id: "thematiq-project-design-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-project-design"><%= t("thematiq.scopes.project.whole_page") %></label>
+    <select name="design_system" id="thematiq-project-design" class="FormControl-select FormControl-medium" aria-describedby="thematiq-project-design-hint">
+      <%= options.call(@rows[""]) %>
+    </select>
+    <p class="thematiq-editor__hint" id="thematiq-project-design-hint"><%= t("thematiq.scopes.project.whole_page_hint") %></p>
+  </div>
+
+  <fieldset class="thematiq-top-bar__places">
+    <legend class="thematiq-editor__label"><%= t("thematiq.scopes.project.modules") %></legend>
+    <p class="thematiq-editor__hint"><%= t("thematiq.scopes.project.modules_hint") %></p>
+    <div class="thematiq-top-bar__list">
+      <% OpenProject::Thematiq::Scopes::MODULES.each_key do |name| %>
+        <div class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-project-module-<%= name %>"><%= t("thematiq.scopes.modules.#{name}") %></label>
+          <select name="modules[<%= name %>]" id="thematiq-project-module-<%= name %>" class="FormControl-select FormControl-medium">
+            <%= options.call(@rows[name]) %>
+          </select>
+        </div>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, mt: 3)) { t("thematiq.scopes.project.save") } %>
+<% end %>

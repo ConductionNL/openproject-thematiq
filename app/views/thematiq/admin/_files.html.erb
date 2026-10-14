@@ -1,0 +1,145 @@
+<%# The uploaded files of the custom design system in the editor: logos, icons and fonts.
+    Each kind is a form of its own on one action, with a named button to upload and one to remove.
+    The limits next to each field come from OpenProject::Thematiq::Uploads::KINDS. %>
+<% uploads = OpenProject::Thematiq::Uploads %>
+<% records = @stored ? Thematiq::Upload.records_for(@draft.id) : [] %>
+<% type_names = ->(kind) { kind.formats.map { |format| uploads::FORMATS.fetch(format)[:label] }.join(", ") } %>
+<% accept = ->(kind) { kind.formats.flat_map { |format| format == "jpeg" ? %w[.jpg .jpeg] : [".#{format}"] }.join(",") } %>
+<% primary = @draft.token_set["primary"] %>
+
+<section class="thematiq-files" aria-labelledby="thematiq-files-title">
+  <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+    component.with_heading(tag: :h3, size: :medium, id: "thematiq-files-title") { t("thematiq.uploads.title") }
+  end %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.uploads.description") %></p>
+  <p class="thematiq-editor__hint"><%= t("thematiq.uploads.export_note") %></p>
+
+  <% if !@stored %>
+    <p class="thematiq-files__empty"><%= t("thematiq.uploads.save_first") %></p>
+  <% elsif !Thematiq::Upload.ready? %>
+    <p class="thematiq-editor__error"><%= t("thematiq.uploads.errors.not_ready") %></p>
+  <% else %>
+    <div class="thematiq-files__list">
+      <% uploads::KINDS.each_value.select(&:single).each do |kind| %>
+        <% record = records.reverse.find { |candidate| candidate.kind == kind.name } %>
+        <% field_id = "thematiq-file-#{kind.name.tr('_', '-')}" %>
+        <%= form_with(url: admin_thematiq_custom_files_path, method: :post, multipart: true, data: { turbo: false },
+                      id: "#{field_id}-form", class: "thematiq-files__item") do %>
+          <input type="hidden" name="id" value="<%= @draft.id %>">
+          <input type="hidden" name="kind" value="<%= kind.name %>">
+          <h4 class="thematiq-files__name">
+            <%= t("thematiq.uploads.kinds.#{kind.name}.label").upcase_first %>
+            <span class="thematiq-editor__role"><%= t("thematiq.uploads.kinds.#{kind.name}.hint") %></span>
+          </h4>
+
+          <% if record %>
+            <div class="thematiq-files__preview" <% if kind.name == "logo_inverse" && primary %>style="background: <%= primary %>"<% end %>>
+              <img src="<%= record.url(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>"
+                   alt="<%= t("thematiq.uploads.preview_alt", kind: t("thematiq.uploads.kinds.#{kind.name}.label")) %>">
+            </div>
+            <p class="thematiq-editor__hint">
+              <%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: uploads.human_size(record.byte_size)) %>
+              <% if record.width && record.height %><%= t("thematiq.uploads.current_pixels", width: record.width, height: record.height) %><% end %>
+              <% if record.label %><%= t("thematiq.uploads.current_name", name: record.label) %><% end %>
+            </p>
+          <% else %>
+            <p class="thematiq-files__empty"><%= t("thematiq.uploads.none") %></p>
+          <% end %>
+
+          <label class="thematiq-editor__label" for="<%= field_id %>">
+            <%= t(record ? "thematiq.uploads.choose_replacement" : "thematiq.uploads.choose",
+                  kind: t("thematiq.uploads.kinds.#{kind.name}.label")) %>
+          </label>
+          <input type="file" name="file" id="<%= field_id %>" accept="<%= accept.call(kind) %>" required aria-describedby="<%= field_id %>-limits">
+          <p class="thematiq-editor__hint" id="<%= field_id %>-limits">
+            <%= t(kind.formats.include?("svg") ? "thematiq.uploads.limit_image" : "thematiq.uploads.limit_raster",
+                  types: type_names.call(kind), size: uploads.human_size(kind.max_bytes),
+                  min: kind.min_side, width: kind.max_width, height: kind.max_height) %>
+          </p>
+          <div class="thematiq-files__actions">
+            <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t(record ? "thematiq.uploads.replace" : "thematiq.uploads.upload") } %>
+            <% if record %>
+              <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, name: "remove", value: record.token, formnovalidate: true,
+                                                  "aria-label": t("thematiq.uploads.remove_label", kind: t("thematiq.uploads.kinds.#{kind.name}.label")))) { t("thematiq.uploads.remove") } %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% font_kind = uploads.kind("font") %>
+    <% fonts = records.select { |record| record.kind == "font" && record.face } %>
+    <% font_root = OpenProject::Configuration["rails_relative_url_root"].to_s %>
+    <% if fonts.any? %>
+      <style id="thematiq-files-fonts">
+<%= raw fonts.map { |record| uploads::FontFace.css(record, root: font_root) }.join("\n") %>
+      </style>
+    <% end %>
+    <%= form_with(url: admin_thematiq_custom_files_path, method: :post, multipart: true, data: { turbo: false },
+                  id: "thematiq-file-font-form", class: "thematiq-files__item thematiq-files__item--fonts") do %>
+      <input type="hidden" name="id" value="<%= @draft.id %>">
+      <input type="hidden" name="kind" value="font">
+      <h4 class="thematiq-files__name">
+        <%= t("thematiq.uploads.kinds.font.label").upcase_first %>
+        <span class="thematiq-editor__role"><%= t("thematiq.uploads.kinds.font.hint") %></span>
+      </h4>
+
+      <% if fonts.any? %>
+        <ul class="thematiq-files__fonts">
+          <% fonts.each do |record| %>
+            <li class="thematiq-files__font">
+              <span class="thematiq-files__sample" style="font-family: '<%= record.face.family %>'; font-weight: <%= record.face.weight.include?(" ") ? "400" : record.face.weight %>; font-style: <%= record.face.style %>" aria-hidden="true"><%= t("thematiq.uploads.font_sample") %></span>
+              <span>
+                <strong><%= record.face.family %></strong>
+                <%= t("thematiq.uploads.font_face", weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"), style: t("thematiq.uploads.styles.#{record.face.style}")) %>
+                <span class="thematiq-editor__role"><%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: uploads.human_size(record.byte_size)) %></span>
+              </span>
+              <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, size: :small, name: "remove", value: record.token, formnovalidate: true,
+                                                  "aria-label": t("thematiq.uploads.remove_font_label", family: record.face.family,
+                                                                                                        weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"),
+                                                                                                        style: t("thematiq.uploads.styles.#{record.face.style}")))) { t("thematiq.uploads.remove") } %>
+            </li>
+          <% end %>
+        </ul>
+      <% else %>
+        <p class="thematiq-files__empty"><%= t("thematiq.uploads.none_fonts") %></p>
+      <% end %>
+
+      <div class="thematiq-files__fontfields">
+        <div class="thematiq-editor__field">
+          <label class="thematiq-editor__label" for="thematiq-file-font"><%= t("thematiq.uploads.choose_font") %></label>
+          <input type="file" name="file" id="thematiq-file-font" accept="<%= accept.call(font_kind) %>" required aria-describedby="thematiq-file-font-limits">
+        </div>
+        <div class="thematiq-editor__field">
+          <label class="thematiq-editor__label" for="thematiq-file-font-family"><%= t("thematiq.uploads.font_family") %></label>
+          <input type="text" name="font_family" id="thematiq-file-font-family" class="FormControl-input FormControl-medium" maxlength="60" required
+                 autocomplete="off" spellcheck="false" aria-describedby="thematiq-file-font-family-hint"
+                 value="<%= fonts.last&.face&.family || OpenProject::Thematiq::Assets.bundled.named_family(@draft.token_set) %>">
+        </div>
+        <div class="thematiq-editor__field">
+          <label class="thematiq-editor__label" for="thematiq-file-font-weight"><%= t("thematiq.uploads.font_weight") %></label>
+          <select name="font_weight" id="thematiq-file-font-weight" class="FormControl-select FormControl-medium">
+            <% uploads::FontFace::WEIGHTS.each do |weight| %>
+              <option value="<%= weight %>" <%= "selected" if weight == "400" %>><%= t("thematiq.uploads.weights.w#{weight.tr(' ', '_')}") %></option>
+            <% end %>
+          </select>
+        </div>
+        <div class="thematiq-editor__field">
+          <label class="thematiq-editor__label" for="thematiq-file-font-style"><%= t("thematiq.uploads.font_style") %></label>
+          <select name="font_style" id="thematiq-file-font-style" class="FormControl-select FormControl-medium">
+            <% uploads::FontFace::STYLES.each do |style| %>
+              <option value="<%= style %>"><%= t("thematiq.uploads.styles.#{style}") %></option>
+            <% end %>
+          </select>
+        </div>
+      </div>
+      <p class="thematiq-editor__hint" id="thematiq-file-font-limits">
+        <%= t("thematiq.uploads.limit_font", types: type_names.call(font_kind), size: uploads.human_size(font_kind.max_bytes), count: uploads::MAX_FONTS) %>
+      </p>
+      <p class="thematiq-editor__hint" id="thematiq-file-font-family-hint"><%= t("thematiq.uploads.font_family_hint") %></p>
+      <div class="thematiq-files__actions">
+        <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.uploads.upload_font") } %>
+      </div>
+    <% end %>
+  <% end %>
+</section>

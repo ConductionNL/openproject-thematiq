@@ -1,0 +1,182 @@
+/* openproject-thematiq, shell layer: the project menu (design: OpNav).
+ *
+ * Builds on stylesheets/geometry/30-sidebar.css, which sets the width, the item height and the
+ * active item. Here: what the shell adds. The create action, the project switcher with initials,
+ * the group titles, the count, the bottom items and the outline icons.
+ * Selectors are OpenProject 17.9.1 class names, plus the thematiq-* classes the shell renders.
+ */
+
+:root {
+  /* Outline icons from the design, 24 px grid, stroke 1.75. Used as masks, so they take the text colour. */
+  --shell-icon-overview: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'/%3E%3C/svg%3E");
+  --shell-icon-work-packages: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01'/%3E%3C/svg%3E");
+  --shell-icon-boards: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5h16v14H4zM9 5v14M15 5v14'/%3E%3C/svg%3E");
+  --shell-icon-gantt: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 5h8M7 12h10M11 19h10M3 3v18'/%3E%3C/svg%3E");
+  --shell-icon-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z'/%3E%3C/svg%3E");
+  --shell-icon-team: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E");
+  --shell-icon-backlogs: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16M4 12h10M4 18h6M20 12l-3 3-2-2'/%3E%3C/svg%3E");
+  --shell-icon-meetings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M23 7l-7 5 7 5zM1 5h15v14H1z'/%3E%3C/svg%3E");
+  --shell-icon-wiki: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E");
+  --shell-icon-time: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M12 6v6l4 2'/%3E%3C/svg%3E");
+  --shell-icon-members: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M23 21v-2a4 4 0 0 0-3-3.87'/%3E%3C/svg%3E");
+  --shell-icon-settings: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E");
+}
+
+/* ---------- Top of the menu: create action, then the project switcher ---------- */
+
+/* Core puts the switcher and the collapse button in one row. The create action gets a row of its
+ * own above them. The rows follow the order of the markup, so the focus order is what you see. */
+#main-menu .main-menu--top-container > div:first-child {
+  display: grid !important; /* core sets d-flex here, a Primer utility with !important */
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px 6px;
+  align-items: center;
+}
+#main-menu .main-menu--top-container > div:first-child > .overflow-hidden { display: contents; }
+#main-menu .main-menu--top-container > div:first-child > .overflow-hidden > .thematiq-nav-create { grid-column: 1 / -1; }
+#main-menu .main-menu--top-container .main-menu--projects-divider { display: none; }
+#main-menu .main-menu--top-container { padding-bottom: 20px; }
+
+#main-menu a.thematiq-nav-create {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--thematiq-action-deep);
+  border-radius: var(--thematiq-radius);
+  background: var(--thematiq-action);
+  color: var(--thematiq-on-action);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+#main-menu a.thematiq-nav-create:hover,
+#main-menu a.thematiq-nav-create:focus { background: var(--thematiq-action-deep); color: var(--thematiq-on-action); text-decoration: none; }
+#main-menu a.thematiq-nav-create:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: 2px; }
+.thematiq-nav-create svg { flex: none; }
+
+/* Project switcher: initials, "Project" over the name, chevron. */
+#main-menu .op-project-select--trigger-button {
+  width: 100%;
+  height: auto;
+  padding: 4px 10px;
+  justify-content: flex-start;
+  text-align: left;
+  color: var(--thematiq-ink);
+}
+#main-menu .op-project-select--trigger-button .Button-content { display: flex; align-items: center; gap: 10px; width: 100%; }
+#main-menu .op-project-select--trigger-button .Button-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+}
+.thematiq-project--initials {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--thematiq-radius);
+  background: var(--thematiq-primary-deep);
+  color: var(--thematiq-surface);
+  font-size: 12px;
+  font-weight: 700;
+}
+.thematiq-project--text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.thematiq-project--label { font-size: 12px; font-weight: 400; color: var(--thematiq-muted); }
+.thematiq-project--name { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+#main-menu .op-project-select--trigger-button .Button-trailingVisual > svg { display: none; }
+#main-menu .op-project-select--trigger-button .Button-trailingVisual::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: var(--thematiq-muted);
+  -webkit-mask: var(--shell-icon-chevron) center / contain no-repeat;
+  mask: var(--shell-icon-chevron) center / contain no-repeat;
+}
+
+/* ---------- The list: group titles, count, bottom items ---------- */
+
+/* A column, so the spacer can push the bottom items down. 30-nested-menu.css keeps the list in
+ * view in core's "closed" state too. */
+#main-menu ul.menu_root:has(> .thematiq-nav-group, > .thematiq-nav-spacer) { display: flex; flex-direction: column; }
+
+#main-menu ul.menu_root > .thematiq-nav-group {
+  margin: 0;
+  padding: 0 10px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 21px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--thematiq-muted);
+}
+#main-menu ul.menu_root > .thematiq-nav-group:not(:first-child) { margin-top: 18px; }
+#main-menu ul.menu_root > .thematiq-nav-spacer { flex: 1 1 auto; min-height: 20px; margin: 0; }
+
+#main-menu ul.menu_root > li a .op-menu--item-title { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; width: 100%; min-width: 0; }
+.thematiq-nav-count {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--thematiq-v-nav-badge-bg, var(--thematiq-primary-light));
+  color: var(--thematiq-v-nav-badge-ink, var(--thematiq-primary-deep));
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ---------- Outline icons for the items the design draws. Other items keep core's icon. ---------- */
+
+#main-menu .menu_root > li[data-name="overview"] { --shell-icon: var(--shell-icon-overview); }
+#main-menu .menu_root > li[data-name="work_packages"] { --shell-icon: var(--shell-icon-work-packages); }
+#main-menu .menu_root > li[data-name="boards"] { --shell-icon: var(--shell-icon-boards); }
+#main-menu .menu_root > li[data-name="gantt"] { --shell-icon: var(--shell-icon-gantt); }
+#main-menu .menu_root > li[data-name="calendar_view"] { --shell-icon: var(--shell-icon-calendar); }
+#main-menu .menu_root > li[data-name="team_planner_view"] { --shell-icon: var(--shell-icon-team); }
+#main-menu .menu_root > li[data-name="backlogs"] { --shell-icon: var(--shell-icon-backlogs); }
+#main-menu .menu_root > li[data-name="meetings"] { --shell-icon: var(--shell-icon-meetings); }
+#main-menu .menu_root > li[data-name^="wiki-"] { --shell-icon: var(--shell-icon-wiki); }
+#main-menu .menu_root > li[data-name="costs"] { --shell-icon: var(--shell-icon-time); }
+#main-menu .menu_root > li[data-name="members"] { --shell-icon: var(--shell-icon-members); }
+#main-menu .menu_root > li[data-name="settings"] { --shell-icon: var(--shell-icon-settings); }
+
+#main-menu .menu_root > li:is([data-name="overview"], [data-name="work_packages"], [data-name="boards"], [data-name="gantt"], [data-name="calendar_view"], [data-name="team_planner_view"], [data-name="backlogs"], [data-name="meetings"], [data-name^="wiki-"], [data-name="costs"], [data-name="members"], [data-name="settings"]) > a > svg:first-child,
+#main-menu .menu_root > li:is([data-name="overview"], [data-name="work_packages"], [data-name="boards"], [data-name="gantt"], [data-name="calendar_view"], [data-name="team_planner_view"], [data-name="backlogs"], [data-name="meetings"], [data-name^="wiki-"], [data-name="costs"], [data-name="members"], [data-name="settings"]) > .main-item-wrapper > a > svg:first-child { display: none; }
+#main-menu .menu_root > li:is([data-name="overview"], [data-name="work_packages"], [data-name="boards"], [data-name="gantt"], [data-name="calendar_view"], [data-name="team_planner_view"], [data-name="backlogs"], [data-name="meetings"], [data-name^="wiki-"], [data-name="costs"], [data-name="members"], [data-name="settings"]) > a::before,
+#main-menu .menu_root > li:is([data-name="overview"], [data-name="work_packages"], [data-name="boards"], [data-name="gantt"], [data-name="calendar_view"], [data-name="team_planner_view"], [data-name="backlogs"], [data-name="meetings"], [data-name^="wiki-"], [data-name="costs"], [data-name="members"], [data-name="settings"]) > .main-item-wrapper > a::before {
+  content: "";
+  flex: none;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  vertical-align: middle;
+  background: currentColor;
+  -webkit-mask: var(--shell-icon) center / contain no-repeat;
+  mask: var(--shell-icon) center / contain no-repeat;
+}
+
+/* Windows high contrast replaces background colours, so the masked icons need a system colour. */
+@media (forced-colors: active) {
+  #main-menu .menu_root > li > a::before,
+  #main-menu .menu_root > li > .main-item-wrapper > a::before,
+  #main-menu .op-project-select--trigger-button .Button-trailingVisual::before { background: CanvasText; }
+}

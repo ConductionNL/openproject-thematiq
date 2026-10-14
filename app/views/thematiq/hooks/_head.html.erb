@@ -1,0 +1,24 @@
+<%# The asset precompile step does nothing for plugins on the official image, so the CSS is inlined.
+    The design system can differ per project (docs/design/scopes.md). Turbo keeps the head between visits and only
+    adds style tags, so the plugin's tags are tracked: when they differ on the next page, Turbo loads it whole. %>
+<% OpenProject::Thematiq.scope_page(project: local_assigns[:project], controller: local_assigns[:controller]) %>
+<style id="openproject-thematiq" data-plugin-version="<%= OpenProject::Thematiq::VERSION %>" data-turbo-track="reload">
+<%= raw OpenProject::Thematiq.stylesheet %>
+</style>
+<%# A module's own design system reaches the content area only. %>
+<% content_css = OpenProject::Thematiq.content_stylesheet %>
+<% if content_css %>
+<style id="openproject-thematiq-content" data-turbo-track="reload">
+<%= raw content_css %>
+</style>
+<% end %>
+<%# The fonts of the active design system. They are files the plugin serves itself, under /thematiq/. %>
+<% asset_css = OpenProject::Thematiq.asset_stylesheet(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>
+<% if asset_css.present? %>
+<style id="openproject-thematiq-assets" data-turbo-track="reload">
+<%= raw asset_css %>
+</style>
+<% end %>
+<%= render partial: "thematiq/shell/head" %>
+<%# After OpenProject's own favicon link, so a browser that takes the last one takes this. %>
+<%= render partial: "thematiq/hooks/icons" %>

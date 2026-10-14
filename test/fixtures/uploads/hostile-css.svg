@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <style>@import url("https://evil.example/a.css");</style>
+  <style>rect { fill: url(https://evil.example/p.svg#p) }</style>
+  <style>@font-face { font-family: x; src: url(https://evil.example/f.woff2) }</style>
+  <style>rect { font-family: '/*'; background: url(https://evil.example/hidden); content: '*/' }</style>
+  <style>rect { background: u\72l(https://evil.example/escaped) }</style>
+  <style><![CDATA[ rect { behavior: expression(alert(1)) } ]]></style>
+  <rect width="10" height="10" style="background: url(javascript:alert(1))"/>
+  <rect id="kept" width="10" height="10" style="fill: #aa0055"/>
+</svg>

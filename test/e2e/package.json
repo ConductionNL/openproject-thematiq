@@ -1,0 +1,14 @@
+{
+  "name": "openproject-thematiq-e2e",
+  "private": true,
+  "description": "End-to-end tests of the openproject-thematiq plugin against a running OpenProject. See docs/testing/e2e.md.",
+  "license": "EUPL-1.2",
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report .results/report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0"
+  }
+}

@@ -1,0 +1,186 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+# The vocabulary on the page: which variables a filled key writes, and that an unfilled key writes nothing.
+class VocabularyLayerTest < Minitest::Test
+  TokenSet = OpenProject::Thematiq::Tokens::TokenSet
+  Generator = OpenProject::Thematiq::Variables::Generator
+  Vocabulary = OpenProject::Thematiq::Tokens::Vocabulary
+  LIGHT = Generator::LIGHT_SCOPE
+
+  def set(vocabulary, tokens = {})
+    TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => tokens, "vocabulary" => vocabulary,
+                        "dark" => { "tokens" => { "primary" => "#5b8ac2" } } })
+  end
+
+  def blocks(css)
+    css.scan(/^([^\n{}\/]+) \{\n(.*?)\n\}/m).to_h { |selector, body| [selector, body] }
+  end
+
+  def light(vocabulary, tokens = {})
+    blocks(Generator.new(set(vocabulary, tokens)).css).fetch(LIGHT)
+  end
+
+  def test_the_drawn_list_is_what_the_layer_draws
+    assert_equal Vocabulary::DRAWN.sort, Generator.drawn_keys
+  end
+
+  def test_a_set_without_vocabulary_writes_no_variable_of_the_vocabulary
+    css = Generator.new(set({})).css
+
+    (Generator::VOCABULARY_COLORS.keys - Generator::PRIMER_COLORS.keys - Generator::OPENPROJECT_COLORS.keys).each do |variable|
+      refute_includes css, "#{variable}:", variable
+    end
+  end
+
+  # The bundled catalogue carries thematiq's vocabulary. What it changes on the page is the vocabulary layer's
+  # variables and nothing else: every line it adds or changes is one of the mapped variables.
+  def test_the_bundled_catalogue_only_changes_the_vocabulary_variables
+    mapped = Generator::VOCABULARY_COLORS.keys + Generator::VOCABULARY_SHAPE.keys
+    changed_sets = 0
+    OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
+      bare = TokenSet.new(id: token_set.id, name: token_set.name, tokens: token_set.tokens, dark: token_set.dark_tokens)
+      added = Generator.new(token_set).css.lines - Generator.new(bare).css.lines
+      changed_sets += 1 if added.any?
+
+      added.each { |line| assert_includes mapped, line[/\A\s*(--[A-Za-z0-9-]+):/, 1], "#{token_set.id}: #{line.strip}" }
+    end
+    assert_operator changed_sets, :>, 50, "the catalogue carries vocabulary for most sets"
+  end
+
+  def test_status_colours_reach_primers_scales
+    body = light({ "color-error" => "#cc0000", "color-warning" => "#7a4f00", "color-success" => "#1e6b2a",
+                   "component-status-badge-error-background-color" => "#fcedec", "component-status-badge-info-background-color" => "#eaf0f7" })
+
+    assert_includes body, "--fgColor-danger: #cc0000;"
+    assert_includes body, "--bgColor-danger-emphasis: #cc0000;"
+    assert_includes body, "--borderColor-danger-emphasis: #cc0000;"
+    assert_includes body, "--bgColor-danger-muted: #fcedec;"
+    assert_includes body, "--fgColor-attention: #7a4f00;"
+    assert_includes body, "--bgColor-success-emphasis: #1e6b2a;"
+    assert_includes body, "--bgColor-accent-muted: #eaf0f7;"
+    refute_includes body, "--bgColor-attention-muted:", "a key the set leaves out writes nothing"
+  end
+
+  def test_the_badge_text_colour_wins_for_the_text_variable
+    body = light({ "color-error" => "#cc0000", "component-status-badge-error-color" => "#a30000" })
+
+    assert_includes body, "--fgColor-danger: #a30000;"
+    assert_includes body, "--bgColor-danger-emphasis: #cc0000;"
+    assert_equal 1, body.scan("--fgColor-danger:").size
+  end
+
+  def test_the_info_colour_is_carried_not_drawn
+    refute Vocabulary.drawn?("color-info")
+    refute_includes Generator.new(set({ "color-info" => "#123456" })).css, "#123456"
+  end
+
+  def test_the_dark_theme_keeps_openprojects_own_status_colours
+    css = Generator.new(set({ "color-error" => "#cc0000" })).css
+    dark = blocks(css).fetch(Generator::DARK_SCOPE)
+
+    refute_includes dark, "#cc0000"
+  end
+
+  def test_text_lines_and_corners
+    css = Generator.new(set({ "color-text-light" => "#ffffff", "component-separator-border-color" => "#e4e6ea",
+                              "border-radius-small" => "4px", "border-radius-pill" => "100px" }, { "radius-lg" => "12px" })).css
+    mode = blocks(css).fetch("[data-color-mode]")
+
+    assert_includes blocks(css).fetch(LIGHT), "--fgColor-onEmphasis: #ffffff;"
+    assert_includes blocks(css).fetch(LIGHT), "--borderColor-muted: #e4e6ea;"
+    assert_includes mode, "--borderRadius-small: 4px;"
+    assert_includes mode, "--borderRadius-full: 100px;"
+    assert_includes mode, "--borderRadius-medium: 12px;", "the role still writes its own corner"
+  end
+
+  def test_the_focus_ring_is_opaque
+    assert_includes light({ "color-focus-rgb" => "54, 105, 165", "color-focus" => "rgba(54, 105, 165, 0.5)" }),
+                    "--focus-outlineColor: rgb(54, 105, 165);"
+    assert_includes light({ "color-focus" => "#3669a5" }, { "primary" => "#111111" }), "--focus-outlineColor: #3669a5;"
+    see_through = light({ "color-focus" => "rgba(54, 105, 165, 0.5)" }, { "primary" => "#111111" })
+
+    assert_includes see_through, "--focus-outlineColor: #111111;", "a see-through focus colour leaves the role's ring"
+    assert_equal 1, see_through.scan("--focus-outlineColor:").size
+  end
+
+  def test_buttons
+    body = light({ "component-button-color" => "#1b1c1d", "component-button-border-color" => "#8a929e",
+                   "component-button-hover-background-color" => "#f0f1f3", "color-error" => "#cc0000", "color-error-hover" => "#a30000",
+                   "component-button-error-color" => "#ffffff" }, { "field" => "#c4c7cb", "action" => "#1f883d" })
+
+    assert_includes body, "--button-default-fgColor-rest: #1b1c1d;"
+    assert_includes body, "--button--font-color: #1b1c1d;"
+    assert_includes body, "--button-default-borderColor-rest: #8a929e;"
+    assert_equal 1, body.scan("--button-default-borderColor-rest:").size, "the vocabulary replaces the role's line"
+    assert_includes body, "--button-default-bgColor-hover: #f0f1f3;"
+    assert_includes body, "--button-danger-fgColor-rest: #cc0000;"
+    assert_includes body, "--button-danger-bgColor-hover: #a30000;"
+    assert_includes body, "--button-danger-fgColor-hover: #ffffff;"
+  end
+
+  def test_the_main_button_stays_the_action_colour
+    body = light({ "color-button-primary-background" => "#154273", "color-button-primary-hover" => "#162f50" }, { "action" => "#1f883d" })
+
+    assert_includes body, "--button-primary-bgColor-rest: #1f883d;"
+    refute_includes body, "#154273"
+    refute OpenProject::Thematiq::Tokens::Vocabulary.drawn?("color-button-primary-background")
+  end
+
+  def test_the_table_and_the_workspace
+    css = Generator.new(set({ "component-table-header-background-color" => "#f5f6f8", "component-table-header-color" => "#5e6168",
+                              "component-table-header-font-weight" => "400", "component-table-border-color" => "#e4e6ea",
+                              "component-table-row-hover-background-color" => "#f0f1f3",
+                              "component-content-surface-background-color" => "#f5f6f8" })).css
+    body = blocks(css).fetch(LIGHT)
+
+    assert_includes body, "--thematiq-v-table-head: #f5f6f8;"
+    assert_includes body, "--thematiq-v-table-head-ink: #5e6168;"
+    assert_includes body, "--thematiq-v-table-line: #e4e6ea;"
+    assert_includes body, "--box-list-item-bg-hover-color: #f0f1f3;"
+    assert_includes body, "--body-background: #f5f6f8;"
+    assert_includes blocks(css).fetch("[data-color-mode]"), "--thematiq-v-table-head-weight: 400;"
+  end
+
+  def test_the_navigation_draws_a_wash_with_its_label_and_stays_off_a_coloured_menu
+    nav = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000",
+            "component-navigation-badge-background-color" => "#cc0000", "component-navigation-badge-color" => "#ffffff" }
+    body = light(nav)
+
+    assert_includes body, "--thematiq-v-nav-active-wash: color-mix(in srgb, #cc0000 16%, var(--thematiq-surface));"
+    assert_includes body, "--thematiq-v-nav-active-ink: #a30000;"
+    assert_includes body, "--thematiq-v-nav-badge-bg: #cc0000;"
+    assert_includes body, "--thematiq-v-nav-badge-ink: #ffffff;"
+    refute_includes light(nav, { "menu" => "#102030" }), "--thematiq-v-nav-"
+  end
+
+  def test_heading_sizes_and_the_body_font
+    mode = blocks(Generator.new(set({ "component-heading-1-font-size" => "1.75rem", "component-heading-6-font-size" => "0.875rem",
+                                      "body-font-family" => "Inter, sans-serif" }, { "font-family" => "'Fira Sans', sans-serif" })).css)
+           .fetch("[data-color-mode]")
+
+    assert_includes mode, "--h1-size: 1.75rem;"
+    assert_includes mode, "--h6-size: 0.875rem;"
+    refute_includes mode, "--h2-size:"
+    assert_includes mode, "--body-font-family: Inter, sans-serif;"
+  end
+
+  # The geometry layer reads every vocabulary variable with the canon's value as fallback, so a set without
+  # vocabulary looks exactly as before.
+  def test_the_geometry_layer_falls_back_to_the_canon
+    css = Dir[File.expand_path("../../stylesheets/**/*.css", __dir__)].map { |file| File.read(file) }.join
+    uses = css.scan(/var\((--thematiq-v-[a-z-]+)(,?)/)
+
+    refute_empty uses
+    uses.each { |name, comma| assert_equal ",", comma, "#{name} without a fallback" }
+  end
+
+  def test_a_hostile_value_never_reaches_the_layer
+    HOSTILE_VALUES.each do |value|
+      css = Generator.new(set({ "color-error" => value })).css
+
+      refute_includes css, "--fgColor-danger:", value.inspect
+    end
+  end
+end

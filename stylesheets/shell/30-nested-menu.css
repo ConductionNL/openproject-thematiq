@@ -1,0 +1,180 @@
+/* openproject-thematiq, shell layer: the two-layer project menu (design: OpNav, nested).
+ *
+ * OpenProject already renders the second level of a module as a ul inside the module's li.
+ * It shows it by swapping the sidebar: the list gets the class "closed", every other row is
+ * hidden and the open row fills the column. Here the list always stays, and the second level
+ * shows under its row. Core's own arrow button still opens and closes it: it toggles "open" on
+ * the row, and that class is all these rules look at. docs/shell-structure.md has the details.
+ *
+ * Every rule is scoped to a menu that holds .thematiq-project--initials. The project switcher
+ * override renders those, and it is only installed when the core files match. On another
+ * OpenProject version the initials are not there, none of this applies and core's menu is back.
+ *
+ * Sizes are from "Navigation, nested" in spike/OP-TWIN-canon.md.
+ */
+
+/* ---------- The list stays in both of core's states ---------- */
+
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed { overflow: visible; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li { display: list-item; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li.open { height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root.closed > li.open > .main-item-wrapper { display: flex; }
+
+/* The back arrow and the repeated item name belong to the swapped sidebar. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-menu--children-menu-header { display: none; }
+
+/* Core hides the block under the menu while a submenu shows. */
+#main-menu:has(.thematiq-project--initials) #sidebar.-hidden { display: block; }
+
+/* ---------- Level two, under an open row. No height of its own, so no inner scrollbar. ---------- */
+
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children {
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 2px 0 6px 20px;
+  padding: 0 0 0 10px;
+  border-left: 2px solid var(--thematiq-line);
+  overflow: visible;
+}
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li:not(.open) > ul.main-menu--children { display: none; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children li { display: list-item; margin-bottom: 2px; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > ul.main-menu--children > li.partial { height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-submenu { display: block; height: auto; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-submenu--body { flex: none; overflow: visible; padding-bottom: 0; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open .op-sidemenu-filterable-tree { height: auto; overflow: visible; }
+
+/* A row of level two: a plain menu child (Project settings, Backlogs) or a link in a module's frame. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 36px;
+  height: auto;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--thematiq-radius);
+  color: var(--thematiq-ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: normal;
+}
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a:hover,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action:hover { background: var(--thematiq-soft); color: var(--thematiq-ink); }
+
+/* The current page. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a.selected,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-action.selected {
+  background: var(--thematiq-v-nav-active-wash, var(--thematiq-primary-light));
+  color: var(--thematiq-v-nav-active-ink, var(--thematiq-primary-deep));
+  font-weight: 600;
+}
+
+/* No icons on level two. Marks that carry meaning, the favourite star and the Enterprise mark, stay. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > li > a > svg:first-child,
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--item-icon { display: none; }
+
+/* The design has no search field in a submenu. A long list gets "Show all" instead. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--search { display: none; }
+
+/* Group labels in a list: Default, Favourites, Public, Private. Core's button still folds the group. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--title {
+  margin: 0;
+  padding: 8px 10px 4px;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 21px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--thematiq-muted);
+}
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--body > div:first-child > .op-submenu--title { padding-top: 4px; }
+
+/* The module's own create action: a quiet last row instead of a filled button. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer { display: block; padding: 0; text-align: left; }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer .op-submenu--footer-action {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 36px;
+  height: auto;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--thematiq-radius);
+  box-shadow: none;
+  background: transparent;
+  color: var(--thematiq-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer .op-submenu--footer-action:hover { background: var(--thematiq-soft); color: var(--thematiq-ink); }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer .op-submenu--footer-action .Button-content { justify-content: flex-start; gap: 8px; }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .op-submenu--footer .op-submenu--footer-action svg { color: inherit; }
+
+/* A long list: the script hides what comes after the first six and adds this row. */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children .thematiq-nav-hidden { display: none !important; } /* core sets display on these rows with long selectors */
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children div[data-controller="menus--submenu"]:not(:has(.op-submenu--item:not(.thematiq-nav-hidden))) { display: none; }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > .thematiq-nav-show-all > button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--thematiq-radius);
+  background: transparent;
+  color: var(--thematiq-link);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > .thematiq-nav-show-all > button:hover { background: var(--thematiq-soft); }
+#main-menu:has(.thematiq-project--initials) ul.main-menu--children > .thematiq-nav-show-all > button:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: -2px; }
+
+/* ---------- The parent row ---------- */
+
+/* The link, then a toggle of 32 x 36. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper { align-items: center; margin-bottom: 0; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > a:first-child { flex: 1 1 auto; max-width: none; padding-right: 4px; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler {
+  flex: none;
+  width: 32px;
+  height: 36px;
+  border-radius: var(--thematiq-radius);
+  color: var(--thematiq-muted);
+}
+
+/* Contains the current page: the name in the primary colour, without the filled background. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li:has(> ul.main-menu--children :is(.selected, [role="treeitem"][aria-current="true"])) > .main-item-wrapper > a.selected {
+  border-color: transparent !important; /* core draws the selected item's left edge with a long selector */
+  box-shadow: none;
+  background: transparent;
+  color: var(--thematiq-v-nav-active-ink, var(--thematiq-primary-deep));
+  font-weight: 600;
+}
+
+/* A chevron instead of the arrow: down when open, right when closed. */
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler > svg { display: none; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before {
+  content: "";
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask: var(--shell-icon-chevron) center / contain no-repeat;
+  mask: var(--shell-icon-chevron) center / contain no-repeat;
+  transform: rotate(-90deg);
+}
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li.open > .main-item-wrapper > .toggler::before { transform: none; }
+#main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: -2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { transition: transform 0.15s; }
+}
+
+@media (forced-colors: active) {
+  #main-menu:has(.thematiq-project--initials) ul.menu_root > li > .main-item-wrapper > .toggler::before { background: CanvasText; }
+}

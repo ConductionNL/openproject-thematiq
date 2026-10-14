@@ -1,0 +1,37 @@
+{
+  "$description": "Fixture brand",
+  "base": {
+    "$type": "color",
+    "blue": { "$value": { "colorSpace": "srgb", "components": [0, 0.3333, 0.6667], "hex": "#0055aa" } }
+  },
+  "nldesign": {
+    "color": {
+      "$type": "color",
+      "primary": { "$value": "{base.blue}" },
+      "link": { "$value": "{nldesign.color.primary}" },
+      "border": { "$value": { "colorSpace": "srgb", "components": [0, 0, 0], "alpha": 0.5 } },
+      "text": { "$value": { "colorSpace": "display-p3", "components": [0.07, 0.13, 0.2], "hex": "#112233" } },
+      "accent": { "$value": "{loop.a}" },
+      "background": { "$value": "{does.not.exist}" },
+      "text-muted": { "$value": { "value": 4, "unit": "px" }, "$type": "dimension" },
+      "border-dark": { "$value": "url(https://evil.example/x)" }
+    },
+    "border": {
+      "radius": { "$type": "dimension", "$value": { "value": 6, "unit": "px" } }
+    },
+    "font": {
+      "family": { "$type": "fontFamily", "$value": ["Fira Sans", "sans-serif"] }
+    }
+  },
+  "loop": {
+    "$type": "color",
+    "a": { "$value": "{loop.b}" },
+    "b": { "$value": "{loop.a}" }
+  },
+  "shadow": {
+    "card": { "$type": "shadow", "$value": { "color": "#000000", "offsetX": { "value": 0, "unit": "px" }, "offsetY": { "value": 1, "unit": "px" }, "blur": { "value": 2, "unit": "px" }, "spread": { "value": 0, "unit": "px" } } }
+  },
+  "loose": {
+    "nldesign": { "color": { "action": { "$value": "#123456" } } }
+  }
+}
