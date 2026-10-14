@@ -205,6 +205,20 @@ end %>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.css_upload.submit") } %>
 <% end %>
 
+<%# An NL Design System theme, converted by thematiq's table. %>
+<%= form_with(url: admin_thematiq_nlds_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-nlds-upload",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-nlds-file"><%= t("thematiq.nlds.file") %></label>
+  <input type="file" name="file" id="thematiq-nlds-file" accept="text/css,application/json,.css,.json" required aria-describedby="thematiq-nlds-hint">
+  <p class="thematiq-editor__hint" id="thematiq-nlds-hint"><%= t("thematiq.nlds.hint") %></p>
+  <label class="thematiq-editor__label" for="thematiq-nlds-prefix"><%= t("thematiq.nlds.prefix") %></label>
+  <input type="text" name="prefix" id="thematiq-nlds-prefix" class="FormControl-input FormControl-medium" maxlength="31" aria-describedby="thematiq-nlds-prefix-hint">
+  <p class="thematiq-editor__hint" id="thematiq-nlds-prefix-hint"><%= t("thematiq.nlds.prefix_hint") %></p>
+  <label class="thematiq-editor__label" for="thematiq-nlds-name"><%= t("thematiq.editor.name") %></label>
+  <input type="text" name="name" id="thematiq-nlds-name" class="FormControl-input FormControl-medium" maxlength="80">
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.nlds.submit") } %>
+<% end %>
+
 <p class="thematiq-editor__hint">
   <%= t("thematiq.figma.from_figma") %>
   <%= link_to t("thematiq.figma.upload"), admin_thematiq_figma_path, data: { test_selector: "thematiq-figma-link" } %>

@@ -9,6 +9,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `signin.spec.js` | The sign-in page and a missing page carry the active design system; the admin page sends a visitor to sign in |
 | `bundle.spec.js` | The whole setup downloads as a file and comes back after a dry run; a hostile file is refused; the history downloads as CSV |
 | `operations.spec.js` | The health report answers JSON for an administrator |
+| `nlds.spec.js` | An NL Design System theme converts into a custom design system, with a report and what the table left out |
 | `own-tokens.spec.js` | An own token reaches every page and the read endpoint |
 | `picker.spec.js` | The bundled design systems are listed, the search narrows, Apply changes the colour of the top bar for everyone |
 | `compliance.spec.js` | The contrast report lists the design system in use and downloads as JSON |

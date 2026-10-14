@@ -110,6 +110,11 @@ module OpenProject
       # wins), the vocabulary by its --nldesign- names. A value that fails its kind is skipped and named.
       def read(text)
         light, dark = declarations(text)
+        from_maps(light, dark)
+      end
+
+      # The same, from maps of names to values. The NL Design System converter hands its output in here.
+      def from_maps(light, dark)
         skipped = []
         imported = 0
         pick = lambda do |map, fallback_map|

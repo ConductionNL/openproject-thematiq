@@ -1117,6 +1117,19 @@ begin
   admin.post "/admin/thematiq/own-tokens", params: { name: "evil", kind: "length", value: "1px; } body { display:none", authenticity_token: own_token_form }
   check("a hostile own token is refused") { OpenProject::Thematiq::Store.new.own_tokens.map { |token| token["name"] } == ["check-gap"] }
   OpenProject::Thematiq::Store.new.delete_own_token("check-gap")
+
+  # 23. An NL Design System theme
+  nlds_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  nlds_member.post "/admin/thematiq/nlds", params: { file: upload.call(".t { --utrecht-link-color: #9b0c23; }") }
+  check("a non-admin cannot convert a theme") { [403, 422].include?(nlds_member.response.status) }
+  nlds_token = form_token(admin, "/admin/thematiq", "thematiq-nlds-upload")
+  admin.post "/admin/thematiq/nlds", params: { file: upload.call(".t { --utrecht-link-color: #9b0c23; --x: </style><script>alert(1)</script>; }"),
+                                               name: "Check NLDS", authenticity_token: nlds_token }
+  check("a theme converts, and the report escapes what it names") do
+    admin.response.status == 200 && !admin.response.body.include?("<script>alert(1)</script>") &&
+      OpenProject::Thematiq::Store.new.custom_drafts.any? { |draft| draft.name == "Check NLDS" && draft.token_set["link"] == "#9b0c23" }
+  end
+  OpenProject::Thematiq::Store.new.custom_drafts.select { |draft| draft.name == "Check NLDS" }.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

@@ -202,6 +202,7 @@ You can keep up to 50 custom design systems.
 ### Bring your own house style
 
 - **A CSS file of design tokens.** On **Thematiq design**, under **A CSS file of design tokens**, choose a file with custom properties as thematiq writes a token set (`--nldesign-color-primary` and so on, dark values in a block or media query that says dark). References with `var()` are followed. The file becomes a new custom design system, and a page lists what was read and what was left out.
+- **An NL Design System theme.** Under **An NL Design System theme**, choose a built theme CSS, a W3C Design Tokens JSON or a Style Dictionary `tokens.json`. thematiq's own converter table (`data/mapping/nlds-to-nextcloud.json`, vendored from thematiq) decides what each token becomes and what is worked out when the theme has none. A report lists every token and what was left out. Component tokens are not carried.
 - **Your own CSS.** Under **Your own CSS**, write rules for what the tokens cannot say and turn it on. The plugin reads it part by part and writes it anew: style rules and `@media` only, no `@import`, no `url()`, no escapes. One part that does not fit refuses all of it, and the parts are named. It comes last on every page.
 - **Your own tokens.** Under **Your own tokens**, add a value as `--thematiq-org-<name>`, with a dark value if you like. It is on every page for your CSS and other plugins.
 

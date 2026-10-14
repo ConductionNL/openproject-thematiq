@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get "admin/thematiq/export", to: "thematiq/admin#export", as: :admin_thematiq_export
   post "admin/thematiq/import", to: "thematiq/admin#import", as: :admin_thematiq_import
   post "admin/thematiq/css", to: "thematiq/admin#css_upload", as: :admin_thematiq_css
+  post "admin/thematiq/nlds", to: "thematiq/admin#nlds_upload", as: :admin_thematiq_nlds
   get "admin/thematiq/figma", to: "thematiq/admin#figma", as: :admin_thematiq_figma
   get "admin/thematiq/figma/download", to: "thematiq/admin#figma_download", as: :admin_thematiq_figma_download
   post "admin/thematiq/figma", to: "thematiq/admin#figma_upload"
