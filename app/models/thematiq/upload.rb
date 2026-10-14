@@ -12,7 +12,8 @@ module Thematiq
     WITHOUT_BYTES = %i[id token set_id kind file_format byte_size width height sha256 font_family font_weight font_style label].freeze
 
     validates :token, format: { with: Uploads::TOKEN }, uniqueness: true
-    validates :set_id, format: { with: OpenProject::Thematiq::CustomDraft::ID_PATTERN }
+    # A custom design system's id, or the font library's.
+    validates :set_id, format: { with: /\A(?:custom(?:-[1-9]\d{0,3})?|library)\z/ }
     validates :kind, inclusion: { in: Uploads::KINDS.keys }
     validates :file_format, inclusion: { in: Uploads::FORMATS.keys }
     validates :sha256, format: { with: /\A[0-9a-f]{64}\z/ }

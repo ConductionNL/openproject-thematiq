@@ -1,0 +1,49 @@
+<% title = t("thematiq.compliance.title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.compliance.description", criterion: @report["criterion"]) }
+  end
+%>
+
+<div data-test-selector="thematiq-compliance">
+  <p><%= t("thematiq.compliance.generated", time: @report["generated_at"], version: @report["plugin_version"]) %></p>
+  <p><strong data-test-selector="thematiq-compliance-verdict"><%= t(@report["passes"] ? "thematiq.compliance.verdict_all" : "thematiq.compliance.verdict_some") %></strong></p>
+  <p>
+    <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_compliance_path(format: :json))) { t("thematiq.compliance.download") } %>
+    <span class="thematiq-editor__hint"><%= t("thematiq.compliance.print_hint") %></span>
+  </p>
+  <% @report["design_systems"].each do |system| %>
+    <section class="thematiq-compliance__system" data-thematiq-system="<%= system["id"] %>">
+      <h3><%= system["name"] %> <code><%= system["id"] %></code></h3>
+      <p><%= t("thematiq.compliance.used_by", places: system["used_by"].to_sentence) %></p>
+      <% [["light", system["light"]], ["dark", system["dark"]]].each do |theme, pairs| %>
+        <h4><%= t("thematiq.compliance.#{theme}") %></h4>
+        <% if pairs.nil? %>
+          <p><%= t("thematiq.compliance.no_dark") %></p>
+        <% else %>
+          <% if theme == "dark" && !system["dark_used"] %><p><%= t("thematiq.compliance.dark_unused") %></p><% end %>
+          <table class="thematiq-history">
+            <thead><tr><th scope="col"><%= t("thematiq.compliance.pair") %></th><th scope="col"><%= t("thematiq.compliance.ratio") %></th><th scope="col"><%= t("thematiq.compliance.verdict") %></th></tr></thead>
+            <tbody>
+              <% pairs.each do |pair| %>
+                <tr class="<%= "thematiq-compliance__fail" if pair["verdict"] == "fail" %>">
+                  <td><%= t("thematiq.contrast.pairs.#{pair["pair"]}", default: pair["pair"]) %></td>
+                  <td><%= pair["ratio"] ? t("thematiq.compliance.ratio_value", ratio: format("%.2f", pair["ratio"])) : "" %></td>
+                  <td><%= t("thematiq.compliance.verdicts.#{pair["verdict"]}") %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        <% end %>
+      <% end %>
+    </section>
+  <% end %>
+</div>

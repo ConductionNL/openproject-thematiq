@@ -178,6 +178,20 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 
 On the page of step 3, select **Try it yourself first**. Only you see that design system, on every page, until you select **Publish to everyone** or **Discard** in the banner at the foot of the page. A trial ends by itself after a day.
 
+### Legal links, a brand stripe and a sign-in background
+
+- **Legal links.** Under **Legal links**, give the addresses of a privacy statement, an imprint and an accessibility statement. They show at the end of every page and on the sign-in page, in the design system's footer colours.
+- **Brand stripe.** A design system with thematiq's three stripe colours draws them under the top bar, in their ratios.
+- **Sign-in background.** A custom design system can carry a photo for behind the sign-in page: upload it under **Logo, icons and fonts**.
+
+### Plan a switch
+
+Under **Planned switch**, choose a design system and a date and time. The first page after that time makes the switch, for everyone, and the history names it. There is no background job: on a quiet instance the switch happens with the first visitor after the time.
+
+### Lock a project's design system
+
+On a project's **Project settings**, **Design**, an instance admin can tick **Lock this project's design system**. Its project admins then see it, but cannot change it.
+
 ### Go back to an earlier version
 
 Every change is kept in **History**, a link on **Thematiq design**: when, who, and what. Select **Restore** next to a change. A page lists what the restore changes. Nothing is written until you select **Restore this version**. A restore is a change of its own, so it can be undone too. Uploaded logos, icons and fonts are not part of a version.
@@ -198,6 +212,14 @@ You can keep up to 50 custom design systems.
 1. On **Thematiq design**, under **Start from your colours**, give a name, your main colour and a background colour.
 2. Select **Open in the editor**. The plugin works out the shades of the main colour and a link colour that reads on white. Nothing is saved yet: the editor shows every value and its contrast.
 3. Change what you want and select **Save and apply**. Add a logo once it is saved, under **Logo, icons and fonts**.
+
+### Bring your own house style
+
+- **A CSS file of design tokens.** On **Thematiq design**, under **A CSS file of design tokens**, choose a file with custom properties as thematiq writes a token set (`--nldesign-color-primary` and so on, dark values in a block or media query that says dark). References with `var()` are followed. The file becomes a new custom design system, and a page lists what was read and what was left out.
+- **An NL Design System theme.** Under **An NL Design System theme**, choose a built theme CSS, a W3C Design Tokens JSON or a Style Dictionary `tokens.json`. thematiq's own converter table (`data/mapping/nlds-to-nextcloud.json`, vendored from thematiq) decides what each token becomes and what is worked out when the theme has none. A report lists every token and what was left out. Component tokens are not carried.
+- **A font library.** Under **Font library**, upload your organisation's fonts once. Every design system whose font names the family uses them, the shipped ones too; a design system's own upload of the same family wins.
+- **Your own CSS.** Under **Your own CSS**, write rules for what the tokens cannot say and turn it on. The plugin reads it part by part and writes it anew: style rules and `@media` only, no `@import`, no `url()`, no escapes. One part that does not fit refuses all of it, and the parts are named. It comes last on every page.
+- **Your own tokens.** Under **Your own tokens**, add a value as `--thematiq-org-<name>`, with a dark value if you like. It is on every page for your CSS and other plugins.
 
 ### Download for Figma and upload from Figma
 
@@ -260,6 +282,14 @@ A task that changes the setup leaves a row in the history.
 ### The design system as code
 
 Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design system, for example `zuiddrecht`. It wins over the admin page, which then says so and turns Apply off. An id that is not there is ignored, and the admin page and the health report say so. `docker/compose.yml` passes the variable through: `THEMATIQ_DESIGN_SYSTEM=zuiddrecht docker compose -f docker/compose.yml up -d`.
+
+### A branding package that applies itself
+
+Set `THEMATIQ_BUNDLE_FILE` to the path of a configuration file inside the container, mounted from your deployment. When OpenProject starts, the plugin makes it the setup, once per version of the file: an unchanged file is not applied again, so later changes on the admin page stay until the file changes. A file that does not read is refused whole and the log says why; OpenProject starts anyway. Each application is a row in the history.
+
+### Metrics
+
+Set `THEMATIQ_METRICS_TOKEN` to a secret of 24 characters or more, and `GET /thematiq/metrics` answers Prometheus' text format to a scraper that sends `Authorization: Bearer <token>`: whether the plugin is healthy, the design system in use, the counts of custom design systems, scopes and history rows. Without the variable the address answers 404. It opens no connection itself: the scraper comes to it.
 
 ### Health
 

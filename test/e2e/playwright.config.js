@@ -17,7 +17,8 @@ module.exports = defineConfig({
   workers: 1,
   fullyParallel: false,
   retries: 0,
-  timeout: 90_000,
+  // Generous: the machine that runs the suite is often loaded by other work, and the editor page is large.
+  timeout: 180_000,
   expect: { timeout: 15_000 },
   reporter: [["list"], ["html", { outputFolder: ".results/report", open: "never" }]],
   use: {

@@ -26,8 +26,26 @@
       end %>
 </p>
 
+<% locked = @store.locked?(@project.identifier) %>
+<% read_only = locked && !User.current.admin? %>
+<% if locked %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :warning, icon: :lock, mb: 3, data: { test_selector: "thematiq-project-locked" })) do %>
+    <%= t(read_only ? "thematiq.locks.read_only" : "thematiq.locks.admin_note") %>
+  <% end %>
+<% end %>
+
 <%= form_with(url: project_settings_thematiq_design_path(@project.identifier), method: :post, data: { turbo: false },
               id: "thematiq-project-design-form") do %>
+  <% if User.current.admin? %>
+    <input type="hidden" name="lock" value="0">
+    <label class="thematiq-editor__toggle">
+      <input type="checkbox" name="lock" value="1" id="thematiq-project-lock" <%= "checked" if locked %> aria-describedby="thematiq-project-lock-hint">
+      <%= t("thematiq.locks.label") %>
+    </label>
+    <p class="thematiq-editor__hint" id="thematiq-project-lock-hint"><%= t("thematiq.locks.hint") %></p>
+  <% end %>
+  <fieldset class="thematiq-top-bar__modes" <%= "disabled" if read_only %>>
+  <legend class="sr-only"><%= t("thematiq.scopes.project.title") %></legend>
   <div class="thematiq-editor__field">
     <label class="thematiq-editor__label" for="thematiq-project-design"><%= t("thematiq.scopes.project.whole_page") %></label>
     <select name="design_system" id="thematiq-project-design" class="FormControl-select FormControl-medium" aria-describedby="thematiq-project-design-hint">
@@ -51,5 +69,8 @@
     </div>
   </fieldset>
 
-  <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, mt: 3)) { t("thematiq.scopes.project.save") } %>
+  </fieldset>
+  <% unless read_only %>
+    <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, mt: 3)) { t("thematiq.scopes.project.save") } %>
+  <% end %>
 <% end %>

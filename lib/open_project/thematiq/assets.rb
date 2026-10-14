@@ -52,6 +52,18 @@ module OpenProject
         []
       end
 
+      # The organisation's font library: fonts uploaded once for every design system that names their family.
+      LIBRARY_ID = "library"
+
+      def self.library_fonts
+        records = upload_source.call(LIBRARY_ID)
+        return [] unless records.is_a?(Array)
+
+        records.select { |record| record.is_a?(Uploads::Record) && record.set_id == LIBRARY_ID && record.usable? && record.kind == "font" && record.face }
+      rescue StandardError
+        []
+      end
+
       def self.read_fonts(path)
         document = JSON.parse(File.read(path))
         document.is_a?(Hash) && document["fonts"].is_a?(Array) ? document["fonts"] : []
@@ -88,6 +100,13 @@ module OpenProject
 
       def mobile_logo_url(token_set, root: "", uploads: self.class.uploads_for(token_set))
         upload(uploads, "logo_mobile")&.url(root:)
+      end
+
+      # The rule for the sign-in page's background, or "" without an upload. The body of the sign-in pages carries the
+      # class controller-account, so the rule only reaches those. The address is built from a 64 hex character token.
+      def login_background_css(token_set, root: "", uploads: self.class.uploads_for(token_set))
+        url = upload(uploads, "login_background")&.url(root:)
+        url ? "body.controller-account { background: url(#{url}) center / cover no-repeat fixed; }" : ""
       end
 
       # --- icons ---
@@ -134,11 +153,15 @@ module OpenProject
         uploaded_fonts(token_set, uploads:).any? { |record| record.face.family.casecmp?(family.to_s) }
       end
 
-      # The @font-face rules for a design system: its bundled families, then its uploaded fonts.
-      # A family that was uploaded is not loaded from the bundle as well, so the upload wins.
-      # Empty when none of its fonts is bundled or uploaded.
-      def font_face_css(token_set, root: "", uploads: self.class.uploads_for(token_set))
-        uploaded = uploaded_fonts(token_set, uploads:)
+      # The @font-face rules for a design system: its bundled families, the library's fonts of its stack, then its own
+      # uploaded fonts. A family that was uploaded, to the design system or to the library, is not loaded from the
+      # bundle as well; the design system's own upload wins over the library. Empty when no font applies.
+      def font_face_css(token_set, root: "", uploads: self.class.uploads_for(token_set), library: self.class.library_fonts)
+        own_uploads = uploaded_fonts(token_set, uploads:)
+        own_families = own_uploads.map { |record| record.face.family.downcase }
+        stack = families(token_set).map(&:downcase)
+        from_library = library.select { |record| stack.include?(record.face.family.downcase) && !own_families.include?(record.face.family.downcase) }
+        uploaded = from_library + own_uploads
         own = uploaded.map { |record| record.face.family.downcase }
         bundled = faces(token_set).reject { |face| own.include?(face.family.downcase) }.map do |face|
           "@font-face { font-family: '#{face.family}'; font-style: #{face.style}; font-weight: #{face.weight}; " \

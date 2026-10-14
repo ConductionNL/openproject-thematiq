@@ -979,7 +979,218 @@ begin
     admin.response.status == 200 && admin.response.media_type == "application/json" && health["status"] == "ok" &&
       health["version"] == OpenProject::Thematiq::VERSION && health["tables"].values.all?
   end
+
+  # 15. The read endpoints (docs/api.md)
+  api_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  api_member.get "/thematiq/api/v1/sets", headers: { "Accept" => "application/json" }
+  sets_answer = JSON.parse(api_member.response.body) rescue {}
+  check("a member reads the catalogue") { api_member.response.status == 200 && sets_answer["sets"].to_a.size >= 60 }
+  api_anonymous = session_for
+  api_anonymous.get "/thematiq/api/v1/sets", headers: { "Accept" => "application/json" }
+  check("without a session the catalogue answers 401") { api_anonymous.response.status == 401 }
+  api_member.get "/thematiq/api/v1/sets/zuiddrecht/stylesheet.css"
+  check("a style sheet answers CSS") { api_member.response.status == 200 && api_member.response.media_type == "text/css" }
+  api_member.get "/thematiq/api/v1/sets/../../etc/passwd"
+  check("a path in the id does not reach the endpoint") { api_member.response.status == 404 }
+  api_member.get "/thematiq/api/v1/contrast", params: { foreground: "red; } body {", background: "#fff" }
+  check("a hostile colour gives an unknown verdict") { JSON.parse(api_member.response.body)["verdict"] == "unknown" }
+  api_anonymous.get "/thematiq/api/shell-tokens"
+  shell = JSON.parse(api_anonymous.response.body) rescue {}
+  check("shell-tokens answers without a session, eighteen roles, no cookie") do
+    api_anonymous.response.status == 200 && shell["tokens"].to_h.size == 18 && api_anonymous.response.headers["Set-Cookie"].blank?
+  end
+
+  # 16. The contrast report
+  report_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  report_member.get "/admin/thematiq/compliance"
+  check("a non-admin cannot read the contrast report") { report_member.response.status == 403 }
+  admin.get "/admin/thematiq/compliance.json"
+  report = JSON.parse(admin.response.body) rescue {}
+  check("the contrast report downloads as JSON with the design system in use") do
+    admin.response.status == 200 && report["design_systems"].to_a.first.to_h["used_by"].to_a.include?("instance")
+  end
+
+  # 17. The environment marker and deprecations
+  gov_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  gov_member.post "/admin/thematiq/marker", params: { environment_label: "Hacked" }
+  check("a non-admin cannot set the environment marker") { [403, 422].include?(gov_member.response.status) && OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "<script>alert(1)</script>", authenticity_token: marker_token }
+  check("a marker with markup is refused") { OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "Test", environment_colour: "#008800", authenticity_token: marker_token }
+  marker_view = session_for
+  marker_view.get "/login"
+  check("the marker shows on the sign-in page") { marker_view.response.body.include?('data-test-selector="thematiq-environment-marker"') }
+  marker_token = form_token(admin, "/admin/thematiq", "thematiq-marker-form")
+  admin.post "/admin/thematiq/marker", params: { environment_label: "", authenticity_token: marker_token }
+  check("an empty label clears the marker") { OpenProject::Thematiq::Store.new.environment_marker.nil? }
+  deprecation_token = form_token(admin, "/admin/thematiq", "thematiq-deprecation-form")
+  admin.post "/admin/thematiq/deprecations", params: { key: "accent", severity: "warning", removal: "2001-01-01", authenticity_token: deprecation_token }
+  check("a removal date in the past is refused") { OpenProject::Thematiq::Store.new.deprecations.empty? }
+  deprecation_token = form_token(admin, "/admin/thematiq", "thematiq-deprecation-form")
+  admin.post "/admin/thematiq/deprecations", params: { key: "accent", severity: "warning", authenticity_token: deprecation_token }
+  # A session of its own: the refused post above signed the member's session out.
+  reader = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  reader.get "/thematiq/api/v1/deprecations", headers: { "Accept" => "application/json" }
+  check("a member reads the deprecations") { (JSON.parse(reader.response.body)["deprecations"] rescue []).any? { |entry| entry["key"] == "accent" } }
+  OpenProject::Thematiq::Store.new.delete_deprecation("accent")
+
+  # 18. A brand manager: the global permission "Manage the design", without being an administrator
+  manager_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  manager_session.get "/admin/thematiq"
+  check("without the permission the member gets 403") { manager_session.response.status == 403 }
+  design_role = GlobalRole.create!(name: "Thematiq check brand manager #{SecureRandom.hex(3)}", permissions: [:manage_design])
+  global_member = Member.new(principal: member, project: nil)
+  global_member.member_roles.build(role: design_role)
+  global_member.save!
+  manager_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  manager_session.get "/admin/thematiq"
+  check("with the permission a member opens the design page") { manager_session.response.status == 200 && manager_session.response.body.include?("thematiq-picker-form") }
+  check("the menu of the administration offers it") { manager_session.response.body.include?("Thematiq design") }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  manager_session.get "/admin/thematiq/compare", params: { set_id: "zuiddrecht" }
+  manager_token = CGI.unescapeHTML(manager_session.response.body[/<form[^>]*id="thematiq-compare-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  manager_session.post "/admin/thematiq", params: { set_id: "zuiddrecht", authenticity_token: manager_token }
+  check("a brand manager applies a design system, and the history names them") do
+    OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" && Thematiq::Change.order(:id).last.user_id == member.id
+  end
+  manager_session.get "/users"
+  check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
+  manager_session.get "/admin/settings/general"
+  check("not the general settings either") { manager_session.response.status == 403 }
+
+  # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
+  scraper = session_for
+  scraper.get "/thematiq/metrics"
+  if OpenProject::Thematiq::Metrics.token
+    check("metrics without the token answer 401") { scraper.response.status == 401 }
+    scraper.get "/thematiq/metrics", headers: { "Authorization" => "Bearer #{OpenProject::Thematiq::Metrics.token}" }
+    check("metrics with the token answer the text format") { scraper.response.status == 200 && scraper.response.body.include?("thematiq_up ") }
+  else
+    check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
+  end
+
+  # 20. A CSS file of design tokens
+  css_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  css_member.post "/admin/thematiq/css", params: { file: upload.call(":root { --nldesign-color-primary: #aa0055; }") }
+  check("a non-admin cannot upload a CSS file") { [403, 422].include?(css_member.response.status) }
+  css_before = OpenProject::Thematiq::Store.new.custom_drafts.size
+  css_token = form_token(admin, "/admin/thematiq", "thematiq-css-upload")
+  admin.post "/admin/thematiq/css", params: { file: upload.call(":root { --nldesign-color-primary: #aa0055; --x: </style><script>alert(1)</script>; }"),
+                                              name: "Check CSS", authenticity_token: css_token }
+  check("a CSS file becomes a custom design system, and its report escapes what it names") do
+    admin.response.status == 200 && !admin.response.body.include?("<script>alert(1)</script>") &&
+      OpenProject::Thematiq::Store.new.custom_drafts.size == css_before + 1
+  end
+  OpenProject::Thematiq::Store.new.custom_drafts.select { |draft| draft.name == "Check CSS" }.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+
+  # 21. Your own CSS
+  own_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  own_member.post "/admin/thematiq/custom-css", params: { custom_css: "a { color: red; }", custom_css_enabled: "1" }
+  check("a non-admin cannot set CSS") { [403, 422].include?(own_member.response.status) && OpenProject::Thematiq::Store.new.served_custom_css.nil? }
+  own_token = form_token(admin, "/admin/thematiq", "thematiq-custom-css-form")
+  admin.post "/admin/thematiq/custom-css", params: { custom_css: "a { color: red; } </style><script>alert(1)</script>", custom_css_enabled: "1", authenticity_token: own_token }
+  check("markup refuses the CSS with 422 and escapes it on the page") do
+    admin.response.status == 422 && !admin.response.body.include?("<script>alert(1)</script>") && OpenProject::Thematiq::Store.new.served_custom_css.nil?
+  end
+  own_token = form_token(admin, "/admin/thematiq", "thematiq-custom-css-form")
+  admin.post "/admin/thematiq/custom-css", params: { custom_css: ".op-app-header { outline: 1px solid red; }", custom_css_enabled: "1", authenticity_token: own_token }
+  own_view = session_for
+  own_view.get "/login"
+  check("the CSS is served last, on the sign-in page too") do
+    body = own_view.response.body
+    body.include?('<style id="openproject-thematiq-custom"') && body.index('id="openproject-thematiq-custom"') > body.index('id="openproject-thematiq"')
+  end
+  OpenProject::Thematiq::Store.new.save_custom_css(enabled: false, text: "")
+
+  # 22. Own tokens
+  token_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  token_member.post "/admin/thematiq/own-tokens", params: { name: "x", kind: "color", value: "red" }
+  check("a non-admin cannot add an own token") { [403, 422].include?(token_member.response.status) && OpenProject::Thematiq::Store.new.own_tokens.empty? }
+  own_token_form = form_token(admin, "/admin/thematiq", "thematiq-own-token-form")
+  admin.post "/admin/thematiq/own-tokens", params: { name: "check-gap", label: "Gap", kind: "length", value: "12px", authenticity_token: own_token_form }
+  token_view = session_for
+  token_view.get "/login"
+  check("an own token is on every page") { token_view.response.body.include?("--thematiq-org-check-gap: 12px;") }
+  own_token_form = form_token(admin, "/admin/thematiq", "thematiq-own-token-form")
+  admin.post "/admin/thematiq/own-tokens", params: { name: "evil", kind: "length", value: "1px; } body { display:none", authenticity_token: own_token_form }
+  check("a hostile own token is refused") { OpenProject::Thematiq::Store.new.own_tokens.map { |token| token["name"] } == ["check-gap"] }
+  OpenProject::Thematiq::Store.new.delete_own_token("check-gap")
+
+  # 23. An NL Design System theme
+  nlds_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  nlds_member.post "/admin/thematiq/nlds", params: { file: upload.call(".t { --utrecht-link-color: #9b0c23; }") }
+  check("a non-admin cannot convert a theme") { [403, 422].include?(nlds_member.response.status) }
+  nlds_token = form_token(admin, "/admin/thematiq", "thematiq-nlds-upload")
+  admin.post "/admin/thematiq/nlds", params: { file: upload.call(".t { --utrecht-link-color: #9b0c23; --x: </style><script>alert(1)</script>; }"),
+                                               name: "Check NLDS", authenticity_token: nlds_token }
+  check("a theme converts, and the report escapes what it names") do
+    admin.response.status == 200 && !admin.response.body.include?("<script>alert(1)</script>") &&
+      OpenProject::Thematiq::Store.new.custom_drafts.any? { |draft| draft.name == "Check NLDS" && draft.token_set["link"] == "#9b0c23" }
+  end
+  OpenProject::Thematiq::Store.new.custom_drafts.select { |draft| draft.name == "Check NLDS" }.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+
+  # 24. The font library
+  check("a library font can be stored") do
+    stored = Thematiq::Upload.store!(set_id: "library", result: OpenProject::Thematiq::Uploads::Inspector.inspect_upload("font", UploadSamples.woff2),
+                                     face: OpenProject::Thematiq::Uploads::FontFace.clean(family: "Check Library", weight: "400", style: "normal"), label: "x.woff2")
+    stored.to_record&.set_id == "library"
+  end
+  library_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  library_member.post "/admin/thematiq/custom/files", params: { id: "library", kind: "font", file: upload.call("x") }
+  check("a non-admin cannot add to the library") { [403, 422].include?(library_member.response.status) }
+  library_token = form_token(admin, "/admin/thematiq", "thematiq-library-form")
+  admin.post "/admin/thematiq/custom/files", params: { id: "library", kind: "logo", file: upload.call("<svg/>"), authenticity_token: library_token }
+  check("the library takes fonts only") { Thematiq::Upload.where(set_id: "library", kind: "logo").none? }
+  Thematiq::Upload.remove_set("library")
+
+  # 25. A planned switch, and a locked project
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  OpenProject::Thematiq::Store.new.plan_switch(set_id: "zuiddrecht", at: Time.now + 1)
+  sleep 2
+  switch_view = session_for
+  switch_view.get "/login"
+  check("the first page after the time makes the planned switch, and the history names it") do
+    head_style(switch_view).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") &&
+      OpenProject::Thematiq::Store.new.planned_switches.empty? && Thematiq::Change.order(:id).last.action == "scheduled_switch"
+  end
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  store_for_lock = OpenProject::Thematiq::Store.new
+  store_for_lock.save_project_rules(allow: true, choices: [])
+  store_for_lock.lock_project(parent_project.identifier, true)
+  lock_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  lock_session.get "/projects/#{parent_project.identifier}/settings/design"
+  lock_token = CGI.unescapeHTML(lock_session.response.body[/<form[^>]*id="thematiq-project-design-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  check("a locked project shows its design system read-only to its project admin") do
+    lock_session.response.status == 200 && lock_session.response.body.include?('data-test-selector="thematiq-project-locked"')
+  end
+  lock_session.post "/projects/#{parent_project.identifier}/settings/design", params: { design_system: "zuiddrecht", authenticity_token: lock_token }
+  check("a project admin cannot change a locked project") do
+    lock_session.response.status == 403 && Thematiq::Scope.find_by(project_id: parent_project.id, module_name: "").nil?
+  end
+  store_for_lock.lock_project(parent_project.identifier, false)
+  store_for_lock.save_project_rules(allow: false, choices: [])
+
+  # 26. Legal links in the footer
+  footer_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  footer_member.post "/admin/thematiq/footer", params: { footer_links: { privacy: "https://evil.example" } }
+  check("a non-admin cannot set the legal links") { [403, 422].include?(footer_member.response.status) && OpenProject::Thematiq::Store.new.footer_links.empty? }
+  footer_token = form_token(admin, "/admin/thematiq", "thematiq-footer-form")
+  admin.post "/admin/thematiq/footer", params: { footer_links: { privacy: "javascript:alert(1)" }, authenticity_token: footer_token }
+  check("a link that is not a web address is refused") { OpenProject::Thematiq::Store.new.footer_links.empty? }
+  footer_token = form_token(admin, "/admin/thematiq", "thematiq-footer-form")
+  admin.post "/admin/thematiq/footer", params: { footer_links: { imprint: "https://example.org/imprint" }, authenticity_token: footer_token }
+  footer_view = session_for
+  footer_view.get "/login"
+  check("the legal links show on the sign-in page") { footer_view.response.body.include?('href="https://example.org/imprint"') }
+  OpenProject::Thematiq::Store.new.save_footer_links({})
 ensure
+  if defined?(global_member) && global_member&.persisted?
+    global_member.destroy
+  end
+  design_role&.destroy if defined?(design_role)
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
     Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }

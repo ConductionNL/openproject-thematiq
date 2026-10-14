@@ -5,6 +5,7 @@ require "open_project/thematiq/tokens"
 require "open_project/thematiq/custom_draft"
 require "open_project/thematiq/scopes"
 require "open_project/thematiq/store"
+require "open_project/thematiq/custom_css"
 
 module OpenProject
   module Thematiq
@@ -23,7 +24,9 @@ module OpenProject
       MAX_SCOPES = 5000
 
       # The settings a bundle carries. Anything else in the plugin's settings is not part of the setup.
-      SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps].freeze
+      SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
+                        environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens
+                        planned_switches locked_projects footer_links].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -53,6 +56,21 @@ module OpenProject
       # The JSON text of a bundle, for a download or a version.
       def self.dump(bundle)
         JSON.pretty_generate(bundle)
+      end
+
+      # A store that writes nowhere, for checking values by the store's own rules.
+      class ProbeBackend
+        def initialize
+          @data = {}
+        end
+
+        def read
+          @data
+        end
+
+        def write(data)
+          @data = data
+        end
       end
 
       # A checked bundle. settings are ready to store, scopes name projects by identifier.
@@ -100,12 +118,14 @@ module OpenProject
           draft = CustomDraft.new(base:, name: definition["name"], overrides: definition["overrides"], id:, logo: definition["logo"],
                                   dark: definition["dark"], vocabulary: definition["vocabulary"],
                                   dark_vocabulary: definition["dark_vocabulary"], dark_errors: true)
+          raise Refused, "customs" unless [nil, true, false].include?(definition["lock_primary"])
           raise Refused, "custom_invalid" unless draft.valid?
         end
-        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary") }
+        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary", "lock_primary") }
       end
 
       def self.check_settings(settings, known)
+        require "time"
         raise Refused, "active" unless settings["active_id"].nil? || known.call(settings["active_id"])
         raise Refused, "active" unless settings["active_custom"].nil? || (settings["customs"] || {}).key?(settings["active_custom"])
         raise Refused, "projects" unless [nil, true, false].include?(settings["projects_may_choose"])
@@ -118,6 +138,52 @@ module OpenProject
 
         apps = settings["top_bar_apps"]
         raise Refused, "top_bar_apps" unless apps.nil? || (apps.is_a?(String) && apps.length <= 500)
+
+        check_marker_and_deprecations(settings)
+        raise Refused, "custom_css" unless [nil, true, false].include?(settings["custom_css_enabled"])
+        check_own_tokens(settings["own_tokens"])
+        links = settings["footer_links"]
+        raise Refused, "footer_links" unless links.nil? || (links.is_a?(Hash) && (links.keys - Store::FOOTER_LINKS).empty? &&
+                                                          Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {}).save_footer_links(links))
+        locked = settings["locked_projects"]
+        raise Refused, "locks" unless locked.nil? || (locked.is_a?(Array) && locked.size <= 5000 && locked.all? { |id| id.is_a?(String) && id.match?(/\A[a-z0-9][a-z0-9_-]{0,99}\z/) })
+        switches = settings["planned_switches"]
+        raise Refused, "planned_switches" unless switches.nil? || (switches.is_a?(Array) && switches.size <= Store::MAX_SWITCHES && switches.all? do |entry|
+          entry.is_a?(Hash) && known.call(entry["set_id"]) && (Time.iso8601(entry["at"].to_s) rescue nil)
+        end)
+        raise Refused, "custom_css" unless settings["custom_css"].nil? || (settings["custom_css"].is_a?(String) && CustomCss.check(settings["custom_css"]).ok?)
+      end
+
+      def self.check_own_tokens(tokens)
+        return if tokens.nil?
+        raise Refused, "own_tokens" unless tokens.is_a?(Hash) && tokens.size <= Store::MAX_OWN_TOKENS
+
+        probe = Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {})
+        tokens.each do |name, entry|
+          raise Refused, "own_tokens" unless entry.is_a?(Hash) &&
+                                             probe.save_own_token(name:, label: entry["label"], kind: entry["kind"], value: entry["value"], dark: entry["dark"]).nil?
+        end
+      end
+
+      # The environment marker and the deprecations, checked by the store's own rules on a store of their own.
+      def self.check_marker_and_deprecations(settings)
+        probe = Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {})
+        label = settings["environment_label"]
+        unless label.nil? && settings["environment_colour"].nil?
+          raise Refused, "environment_marker" unless label.is_a?(String) && probe.save_environment_marker(label, settings["environment_colour"])
+        end
+        deprecations = settings["deprecations"]
+        return if deprecations.nil?
+        raise Refused, "deprecations" unless deprecations.is_a?(Hash) && deprecations.size <= Store::MAX_DEPRECATIONS
+
+        deprecations.each do |key, entry|
+          raise Refused, "deprecations" unless entry.is_a?(Hash)
+
+          # A version keeps a date that has passed since: that is a due deprecation, not a broken one.
+          code = probe.save_deprecation(key:, severity: entry["severity"], replacement: entry["replacement"],
+                                        removal: entry["removal"], message: entry["message"], today: Date.new(2000, 1, 1))
+          raise Refused, "deprecations" if code
+        end
       end
 
       def self.check_scopes(scopes, known, project_exists)

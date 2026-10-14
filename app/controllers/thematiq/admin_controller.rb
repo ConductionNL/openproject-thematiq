@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 module Thematiq
-  # The "Thematiq design" page in the administration. Admins only.
+  # The "Thematiq design" page in the administration. For administrators, and for a brand manager with the global
+  # permission "Manage the design" (gov-delegated-role).
   class AdminController < ApplicationController
-    before_action :require_admin
+    before_action :authorize_global
     before_action :load_state
 
     layout "admin"
@@ -176,6 +177,100 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-top-bar"
     end
 
+    # The environment marker: a label on every page, such as "Test", in a colour. Empty clears it.
+    def update_environment_marker
+      if @store.save_environment_marker(params[:environment_label], params[:environment_colour])
+        record_change("environment_marker", params[:environment_label].to_s.strip.first(30).presence)
+        flash[:notice] = t("thematiq.marker.notice_saved")
+      else
+        flash[:error] = t("thematiq.marker.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-marker"
+    end
+
+    # The administrator's own CSS. Checked part by part; one part that does not fit refuses all of it, with reasons.
+    def update_custom_css
+      result = @store.save_custom_css(enabled: params[:custom_css_enabled] == "1", text: params[:custom_css].to_s)
+      if result.ok?
+        record_change("custom_css")
+        flash[:notice] = t(@store.custom_css_enabled? ? "thematiq.custom_css.notice_on" : "thematiq.custom_css.notice_off")
+        redirect_to action: :show, anchor: "thematiq-custom-css"
+      else
+        @custom_css_text = params[:custom_css].to_s.first(OpenProject::Thematiq::CustomCss::MAX_BYTES)
+        @custom_css_errors = result.errors
+        flash.now[:error] = t("thematiq.custom_css.error")
+        show
+        render :show, status: :unprocessable_entity
+      end
+    end
+
+    # A planned switch: a design system that becomes the one in use at a date and time, or the cancelling of one.
+    # The time is read in the administrator's own time zone.
+    def update_schedule
+      if params[:cancel].present?
+        @store.cancel_switch(params[:cancel].to_i)
+        record_change("schedule", "cancelled")
+        flash[:notice] = t("thematiq.schedule.notice_cancelled")
+      else
+        at = begin
+          Time.zone.parse(params[:at].to_s)
+        rescue ArgumentError
+          nil
+        end
+        code = at ? @store.plan_switch(set_id: params[:set_id], at:) : "time"
+        if code
+          flash[:error] = t("thematiq.schedule.errors.#{code}")
+        else
+          record_change("schedule", "#{params[:set_id].to_s.first(64)} at #{at.utc.iso8601}")
+          flash[:notice] = t("thematiq.schedule.notice_planned", name: @store.find_set(params[:set_id].to_s).name, time: helpers.format_time(at))
+        end
+      end
+      redirect_to action: :show, anchor: "thematiq-schedule"
+    end
+
+    # The footer's legal links.
+    def update_footer_links
+      given = OpenProject::Thematiq::Store::FOOTER_LINKS.to_h { |kind| [kind, params.dig(:footer_links, kind).to_s] }
+      if @store.save_footer_links(given)
+        record_change("footer_links")
+        flash[:notice] = t("thematiq.footer.notice_saved")
+      else
+        flash[:error] = t("thematiq.footer.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-footer"
+    end
+
+    # An own token, --thematiq-org-<name>, or its removal.
+    def update_own_token
+      if params[:remove].present?
+        @store.delete_own_token(params[:remove].to_s)
+        record_change("own_token", params[:remove].to_s.first(40))
+        flash[:notice] = t("thematiq.own_tokens.notice_removed")
+      elsif (code = @store.save_own_token(name: params[:name], label: params[:label], kind: params[:kind], value: params[:value], dark: params[:dark]))
+        flash[:error] = t("thematiq.own_tokens.errors.#{code}")
+      else
+        record_change("own_token", params[:name].to_s.first(40))
+        flash[:notice] = t("thematiq.own_tokens.notice_saved", name: "--thematiq-org-#{params[:name].to_s.strip}")
+      end
+      redirect_to action: :show, anchor: "thematiq-own-tokens"
+    end
+
+    # A deprecation of one token, or its removal. It changes no value: it is a notice for the people who use the tokens.
+    def update_deprecation
+      if params[:remove].present?
+        @store.delete_deprecation(params[:remove].to_s)
+        record_change("deprecation", params[:remove].to_s.first(80))
+        flash[:notice] = t("thematiq.deprecations.notice_removed")
+      elsif (code = @store.save_deprecation(key: params[:key], severity: params[:severity], replacement: params[:replacement],
+                                            removal: params[:removal], message: params[:message]))
+        flash[:error] = t("thematiq.deprecations.errors.#{code}")
+      else
+        record_change("deprecation", params[:key].to_s.first(80))
+        flash[:notice] = t("thematiq.deprecations.notice_saved")
+      end
+      redirect_to action: :show, anchor: "thematiq-deprecations"
+    end
+
     # Design systems per project and module: whether projects may choose, from which, and one per module.
     def update_scopes
       return refuse_scopes("not_ready") unless Thematiq::Scope.ready?
@@ -196,9 +291,12 @@ module Thematiq
     # of the file to remove. Every upload is hostile input: the Inspector decides what it is by its content.
     def update_files
       id = params[:id].to_s
-      return render_404 unless @store.custom_draft(id)
+      library = id == OpenProject::Thematiq::Assets::LIBRARY_ID
+      return render_404 unless library || @store.custom_draft(id)
 
       kind = OpenProject::Thematiq::Uploads.kind(params[:kind])
+      # The library holds fonts only.
+      raise OpenProject::Thematiq::Uploads::Refused, "unknown_kind" if library && params[:remove].blank? && kind&.name != "font"
       raise OpenProject::Thematiq::Uploads::Refused, "not_ready" unless Thematiq::Upload.ready?
 
       if params[:remove].present?
@@ -218,10 +316,16 @@ module Thematiq
         flash[:notice] = t(stored.cleaned ? "thematiq.uploads.notice_stored_cleaned" : "thematiq.uploads.notice_stored",
                            kind: t("thematiq.uploads.kinds.#{kind.name}.label"))
       end
-      redirect_to action: :edit, id:
+      redirect_after_files(id)
     rescue OpenProject::Thematiq::Uploads::Refused, ActiveRecord::RecordInvalid => e
       code = e.respond_to?(:code) ? e.code : "broken"
       flash[:error] = t("thematiq.uploads.errors.#{upload_error_key(code)}", **upload_limits(kind))
+      redirect_after_files(id)
+    end
+
+    def redirect_after_files(id)
+      return redirect_to action: :show, anchor: "thematiq-font-library" if id == OpenProject::Thematiq::Assets::LIBRARY_ID
+
       redirect_to action: :edit, id:
     end
 
@@ -278,6 +382,49 @@ module Thematiq
       send_data OpenProject::Thematiq::Figma.export(token_set, format:),
                 filename: OpenProject::Thematiq::Figma.file_name(token_set, format),
                 type: "application/json", disposition: "attachment"
+    end
+
+    # Reads a CSS file of design tokens, the way thematiq writes a token set, as a new custom design system, and shows
+    # what was read. Hostile input: CssTokens reads declarations only and checks every value. It never replaces one.
+    def css_upload
+      file = params[:file]
+      text = file.respond_to?(:read) ? file.read(OpenProject::Thematiq::CssTokens::MAX_BYTES + 1).to_s : nil
+      result = OpenProject::Thematiq::CssTokens.read(text)
+      new_id = @store.next_custom_id
+      raise OpenProject::Thematiq::CssTokens::Refused, "too_many_designs" unless new_id
+
+      name = params[:name].to_s.strip.presence || t("thematiq.css_upload.default_name")
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: name.first(80), overrides: result.tokens, id: new_id,
+                                                      dark: result.dark, vocabulary: result.vocabulary, dark_vocabulary: result.dark_vocabulary)
+      raise OpenProject::Thematiq::CssTokens::Refused, "name" unless save_draft(@draft, new: true)
+
+      record_change("import", @draft.name)
+      @css_result = result
+      render :css_report
+    rescue OpenProject::Thematiq::CssTokens::Refused => e
+      flash[:error] = t("thematiq.css_upload.errors.#{CSS_ERRORS.include?(e.code) ? e.code : 'not_css'}")
+      redirect_to action: :show, anchor: "thematiq-css-upload"
+    end
+
+    # Converts an NL Design System theme by thematiq's table into a new custom design system, and shows the report.
+    def nlds_upload
+      file = params[:file]
+      text = file.respond_to?(:read) ? file.read(OpenProject::Thematiq::CssTokens::MAX_BYTES + 1).to_s.force_encoding(Encoding::UTF_8) : nil
+      result = OpenProject::Thematiq::NldsConverter.convert(text, prefix: params[:prefix].to_s.first(31))
+      new_id = @store.next_custom_id
+      raise OpenProject::Thematiq::CssTokens::Refused, "too_many_designs" unless new_id
+
+      name = params[:name].to_s.strip.presence || t("thematiq.nlds.default_name")
+      @draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: name.first(80), overrides: result.tokens, id: new_id,
+                                                      vocabulary: result.vocabulary)
+      raise OpenProject::Thematiq::CssTokens::Refused, "name" unless save_draft(@draft, new: true)
+
+      record_change("import", @draft.name)
+      @nlds_result = result
+      render :nlds_report
+    rescue OpenProject::Thematiq::CssTokens::Refused => e
+      flash[:error] = t("thematiq.nlds.errors.#{NLDS_ERRORS.include?(e.code) ? e.code : 'not_css'}")
+      redirect_to action: :show, anchor: "thematiq-nlds-upload"
     end
 
     # Reads an uploaded Figma token set as a new custom design system and shows what was read.
@@ -340,6 +487,18 @@ module Thematiq
       render json: report, status: report["status"] == "ok" ? :ok : :service_unavailable
     end
 
+    # Evidence of contrast for an audit: every design system in use, light and dark. HTML to read or print, JSON to keep.
+    def compliance
+      @report = OpenProject::Thematiq::Compliance.report(design_systems_in_use, generated_at: Time.current.utc.iso8601)
+      respond_to do |format|
+        format.html
+        format.json do
+          send_data JSON.pretty_generate(@report), filename: "openproject-thematiq-contrast-#{Time.current.strftime('%Y-%m-%d')}.json",
+                                                   type: "application/json", disposition: "attachment"
+        end
+      end
+    end
+
     # The history as a CSV file, for an auditor. Every row, newest first; the setup itself stays in OpenProject.
     def history_export
       rows = Thematiq::Change.ready? ? Thematiq::Change.order(id: :desc).to_a : []
@@ -376,6 +535,22 @@ module Thematiq
     end
 
     private
+
+    # [[token set, where]] for the instance, every project and every module with a design system of its own.
+    def design_systems_in_use
+      list = [[@store.active_token_set, "instance"]]
+      return list unless Thematiq::Scope.ready?
+
+      names = Project.where(id: Thematiq::Scope.where.not(project_id: nil).select(:project_id)).pluck(:id, :identifier).to_h
+      Thematiq::Scope.find_each do |row|
+        token_set = @store.find_set(row.design_system_id)
+        next unless token_set
+
+        place = row.project_id ? "project #{names[row.project_id]}" : "instance"
+        list << [token_set, row.module_name.blank? ? place : "#{place}, module #{row.module_name}"]
+      end
+      list
+    end
 
     def table_states
       { "uploads" => Thematiq::Upload.ready?, "scopes" => Thematiq::Scope.ready?, "changes" => Thematiq::Change.ready? }
@@ -449,7 +624,8 @@ module Thematiq
     end
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
-                       nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared].freeze
+                       nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
+                       deprecations custom_css own_tokens locks planned_switches footer_links].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
@@ -482,6 +658,8 @@ module Thematiq
       Thematiq::Change.record(action, detail:, store: @store)
     end
 
+    CSS_ERRORS = %w[empty too_large not_css too_many nothing_usable too_many_designs name].freeze
+    NLDS_ERRORS = %w[empty too_large not_css too_many too_deep nothing_usable too_many_designs name prefix].freeze
     FIGMA_ERRORS = %w[empty too_large too_many_files invalid_json not_an_object too_deep too_many_tokens nothing_usable too_many].freeze
 
     def figma_refused(code)
@@ -586,11 +764,11 @@ module Thematiq
 
       @confirm = { title: t("thematiq.uploads.confirm_remove.title"),
                    question: t("thematiq.uploads.confirm_remove.question", file: upload_description(record),
-                                                                           name: @store.custom_draft(id).name),
+                                                                           name: id == OpenProject::Thematiq::Assets::LIBRARY_ID ? t("thematiq.library.title") : @store.custom_draft(id).name),
                    consequence: t("thematiq.uploads.confirm_remove.consequence"),
                    button: t("thematiq.uploads.confirm_remove.confirm"),
                    url: admin_thematiq_custom_files_path, fields: { id:, remove: token },
-                   back: admin_thematiq_custom_path(id:) }
+                   back: id == OpenProject::Thematiq::Assets::LIBRARY_ID ? admin_thematiq_path(anchor: "thematiq-font-library") : admin_thematiq_custom_path(id:) }
       render :confirm
     end
 
@@ -625,7 +803,8 @@ module Thematiq
                                              logo: stored&.definition&.dig("logo"),
                                              dark:, dark_errors: true,
                                              # The editor has dark fields for colours only. Other dark values an import brought stay.
-                                             dark_vocabulary: kept_dark_vocabulary(stored).merge(dark))
+                                             dark_vocabulary: kept_dark_vocabulary(stored).merge(dark),
+                                             lock_primary: params[:lock_primary] == "1")
     end
 
     # The dark fields: one per colour, roles and vocabulary in one list. Reset clears the dark value with the light one.

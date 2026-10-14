@@ -1,3 +1,18 @@
+<%# The environment marker: a label on every page, so nobody works in the wrong OpenProject. Its text and colour are checked. %>
+<% marker = (OpenProject::Thematiq::Store.new.environment_marker rescue nil) %>
+<% if marker %>
+  <div class="thematiq-environment" role="note" aria-label="<%= t("thematiq.marker.region") %>" data-test-selector="thematiq-environment-marker"
+       style="--tq-environment: <%= marker["colour"] %>; --tq-environment-text: <%= marker["text"] %>"><%= marker["label"] %></div>
+<% end %>
+<%# The organisation's legal links, at the end of every page and on the sign-in page. %>
+<% footer_links = (OpenProject::Thematiq::Store.new.footer_links rescue {}) %>
+<% if footer_links.any? %>
+  <nav class="thematiq-footer" aria-label="<%= t("thematiq.footer.region") %>" data-test-selector="thematiq-footer">
+    <% footer_links.each do |kind, address| %>
+      <%= link_to t("thematiq.footer.links.#{kind}"), address, rel: "noopener", target: "_blank" %>
+    <% end %>
+  </nav>
+<% end %>
 <%# The banner of a trial, for the administrator who started it. Nobody else has a trial in their session. %>
 <% if OpenProject::Thematiq::PageScope.trial? %>
   <% trial_set = OpenProject::Thematiq::PageScope.current.page_set %>

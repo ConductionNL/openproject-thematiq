@@ -1,0 +1,44 @@
+<% title = t("thematiq.css_upload.report_title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+<% label = ->(key) { OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.key?(key) ? t("thematiq.tokens.#{key}.label") : key } %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.css_upload.report_description", name: @draft.name) }
+  end
+%>
+
+<div data-test-selector="thematiq-css-report">
+  <p><strong><%= t("thematiq.css_upload.imported", count: @css_result.imported) %></strong></p>
+  <% [["light", @css_result.tokens.merge(@css_result.vocabulary)], ["dark", @css_result.dark.merge(@css_result.dark_vocabulary)]].each do |theme, values| %>
+    <% next if values.empty? %>
+    <h3 class="thematiq-editor__legend"><%= t("thematiq.css_upload.#{theme}") %></h3>
+    <table class="thematiq-history">
+      <tbody>
+        <% values.each do |key, value| %>
+          <tr><th scope="row"><%= label.call(key) %></th><td><code><%= value %></code></td></tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.css_upload.skipped_title") %></h3>
+  <% if @css_result.skipped.empty? %>
+    <p><%= t("thematiq.css_upload.skipped_none") %></p>
+  <% else %>
+    <ul data-test-selector="thematiq-css-skipped">
+      <% @css_result.skipped.each do |name, reason| %>
+        <li><code><%= name %></code>: <%= t("thematiq.css_upload.reasons.#{reason}") %></li>
+      <% end %>
+    </ul>
+  <% end %>
+  <p>
+    <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(id: @draft.id))) { t("thematiq.admin.edit_tokens") } %>
+    <%= link_to t("thematiq.editor.back"), admin_thematiq_path %>
+  </p>
+</div>

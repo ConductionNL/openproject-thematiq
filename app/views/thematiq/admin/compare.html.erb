@@ -30,6 +30,8 @@
     <div class="thematiq-compare__preview">
       <h3 class="thematiq-editor__legend"><%= t("thematiq.compare.after", name: @chosen.name) %></h3>
       <div data-thematiq-after><%= thematiq_shell_preview(@chosen) %></div>
+      <h4 class="thematiq-editor__label"><%= t("thematiq.editor.signin_title") %></h4>
+      <%= thematiq_signin_preview(@chosen) %>
       <p class="thematiq-editor__hint"><%= t("thematiq.compare.after_hint") %></p>
     </div>
   </div>

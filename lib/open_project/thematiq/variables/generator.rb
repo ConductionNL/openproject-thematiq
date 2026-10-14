@@ -131,6 +131,8 @@ module OpenProject
         # text variable; the status colour itself fills and draws the strong border. Primer's "accent" scale is
         # the link and the primary here, so the info colour is carried and not drawn.
         VOCABULARY_COLORS = {
+          # The plugin's footer with the legal links (sur-footer-links): thematiq's footer colours.
+          "--thematiq-v-footer-bg" => %w[color-footer-background], "--thematiq-v-footer-text" => %w[color-footer-text],
           "--fgColor-danger" => %w[component-status-badge-error-color color-error],
           "--bgColor-danger-emphasis" => %w[color-error],
           "--borderColor-danger-emphasis" => %w[color-error],
@@ -207,12 +209,14 @@ module OpenProject
           "--h3-size" => %w[component-heading-3-font-size], "--h4-size" => %w[component-heading-4-font-size],
           "--h5-size" => %w[component-heading-5-font-size], "--h6-size" => %w[component-heading-6-font-size],
           # The body text's own font, where thematiq gives one apart from the font of the whole set.
-          "--body-font-family" => %w[body-font-family]
+          "--body-font-family" => %w[body-font-family],
+          # Motion. OpenProject has no variable for it, so these reach the plugin's own animations only.
+          "--thematiq-v-animation-quick" => %w[animation-quick], "--thematiq-v-animation-slow" => %w[animation-slow]
         }.freeze
 
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
         def self.drawn_keys
-          VOCABULARY_COLORS.merge(VOCABULARY_SHAPE).values.flatten.uniq.sort
+          (VOCABULARY_COLORS.merge(VOCABULARY_SHAPE).values.flatten + STRIPE_KEYS).uniq.sort
         end
 
         PRIMER_SHAPE = {
@@ -240,13 +244,33 @@ module OpenProject
             block(":root", declarations(@early ? ROOT_ALIASES : ROOT_SHAPE)),
             block(@early ? EARLY_MODE_SCOPE : MODE_SCOPE,
                   (@early ? declarations(BODY_FONT) : []) + without_drawn(declarations(PRIMER_SHAPE), VOCABULARY_SHAPE) +
-                  fallback_aliases + vocabulary_declarations(VOCABULARY_SHAPE)),
+                  fallback_aliases + vocabulary_declarations(VOCABULARY_SHAPE) + brand_stripe_declarations),
             block(LIGHT_SCOPE, without_drawn(declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS), VOCABULARY_COLORS) +
                                light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS))
           ]
           blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"] && !@content
           blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
           blocks.join("\n")
+        end
+
+        # thematiq's brand stripe (x-brand-stripe): three colours in their ratios, as one gradient under the top bar and on
+        # the sign-in page. Only a set that gives all three colours has one. Each value has passed its validator.
+        STRIPE_VARIABLES = %w[--thematiq-v-brand-stripe --thematiq-v-brand-stripe-height].freeze
+        STRIPE_KEYS = %w[brand-stripe-color-1 brand-stripe-color-2 brand-stripe-color-3 brand-stripe-height
+                         brand-stripe-ratio-1 brand-stripe-ratio-2 brand-stripe-ratio-3].freeze
+
+        def brand_stripe_declarations
+          vocabulary = @token_set.vocabulary
+          colours = (1..3).map { |index| vocabulary["brand-stripe-color-#{index}"] }
+          return [] if colours.any?(&:nil?)
+
+          ratios = (1..3).map { |index| (vocabulary["brand-stripe-ratio-#{index}"] || "1").to_f }
+          ratios = [1.0, 1.0, 1.0] unless ratios.all?(&:positive?)
+          total = ratios.sum
+          first = (ratios[0] / total * 100).round(2)
+          second = ((ratios[0] + ratios[1]) / total * 100).round(2)
+          gradient = "linear-gradient(to right, #{colours[0]} 0 #{first}%, #{colours[1]} #{first}% #{second}%, #{colours[2]} #{second}% 100%)"
+          ["  --thematiq-v-brand-stripe: #{gradient};", "  --thematiq-v-brand-stripe-height: #{vocabulary['brand-stripe-height'] || '4px'};"]
         end
 
         private

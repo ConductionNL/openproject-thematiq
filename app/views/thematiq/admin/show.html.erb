@@ -194,6 +194,31 @@ end %>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.transfer.import") } %>
 <% end %>
 
+<%# A CSS file of design tokens, the way thematiq writes a token set. %>
+<%= form_with(url: admin_thematiq_css_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-css-upload",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-css-file"><%= t("thematiq.css_upload.file") %></label>
+  <input type="file" name="file" id="thematiq-css-file" accept="text/css,.css" required aria-describedby="thematiq-css-hint">
+  <p class="thematiq-editor__hint" id="thematiq-css-hint"><%= t("thematiq.css_upload.hint") %></p>
+  <label class="thematiq-editor__label" for="thematiq-css-name"><%= t("thematiq.editor.name") %></label>
+  <input type="text" name="name" id="thematiq-css-name" class="FormControl-input FormControl-medium" maxlength="80">
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.css_upload.submit") } %>
+<% end %>
+
+<%# An NL Design System theme, converted by thematiq's table. %>
+<%= form_with(url: admin_thematiq_nlds_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-nlds-upload",
+              class: "thematiq-picker__import") do %>
+  <label class="thematiq-editor__label" for="thematiq-nlds-file"><%= t("thematiq.nlds.file") %></label>
+  <input type="file" name="file" id="thematiq-nlds-file" accept="text/css,application/json,.css,.json" required aria-describedby="thematiq-nlds-hint">
+  <p class="thematiq-editor__hint" id="thematiq-nlds-hint"><%= t("thematiq.nlds.hint") %></p>
+  <label class="thematiq-editor__label" for="thematiq-nlds-prefix"><%= t("thematiq.nlds.prefix") %></label>
+  <input type="text" name="prefix" id="thematiq-nlds-prefix" class="FormControl-input FormControl-medium" maxlength="31" aria-describedby="thematiq-nlds-prefix-hint">
+  <p class="thematiq-editor__hint" id="thematiq-nlds-prefix-hint"><%= t("thematiq.nlds.prefix_hint") %></p>
+  <label class="thematiq-editor__label" for="thematiq-nlds-name"><%= t("thematiq.editor.name") %></label>
+  <input type="text" name="name" id="thematiq-nlds-name" class="FormControl-input FormControl-medium" maxlength="80">
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.nlds.submit") } %>
+<% end %>
+
 <p class="thematiq-editor__hint">
   <%= t("thematiq.figma.from_figma") %>
   <%= link_to t("thematiq.figma.upload"), admin_thematiq_figma_path, data: { test_selector: "thematiq-figma-link" } %>
@@ -207,6 +232,7 @@ end %>
 <p>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_bundle_path, data: { test_selector: "thematiq-bundle-download" })) { t("thematiq.bundle.download") } %>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_history_export_path, scheme: :invisible)) { t("thematiq.history.download") } %>
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_compliance_path, scheme: :invisible, data: { test_selector: "thematiq-compliance-link" })) { t("thematiq.compliance.link") } %>
 </p>
 <%= form_with(url: admin_thematiq_bundle_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-bundle-form",
               class: "thematiq-picker__import") do %>
@@ -319,4 +345,259 @@ end %>
     </div>
   </fieldset>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.scopes.admin.save") } %>
+<% end %>
+
+<% marker = @store.environment_marker %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-marker") { t("thematiq.marker.title") }
+end %>
+<%= form_with(url: admin_thematiq_marker_path, method: :post, data: { turbo: false }, id: "thematiq-marker-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.marker.hint", variable: OpenProject::Thematiq::Store::ENVIRONMENT_LABEL_KEY) %></p>
+  <% if marker && marker["from_environment"] %>
+    <p class="thematiq-editor__hint" data-test-selector="thematiq-marker-environment"><%= t("thematiq.marker.from_environment", variable: OpenProject::Thematiq::Store::ENVIRONMENT_LABEL_KEY) %></p>
+  <% end %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-marker-label"><%= t("thematiq.marker.label") %></label>
+    <input type="text" name="environment_label" id="thematiq-marker-label" class="FormControl-input FormControl-medium" maxlength="30"
+           value="<%= marker && !marker["from_environment"] ? marker["label"] : "" %>" aria-describedby="thematiq-marker-label-hint">
+    <p class="thematiq-editor__hint" id="thematiq-marker-label-hint"><%= t("thematiq.marker.label_hint") %></p>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-marker-colour"><%= t("thematiq.marker.colour") %></label>
+    <input type="color" name="environment_colour" id="thematiq-marker-colour" value="<%= marker && marker["colour"].to_s.match?(/\A#\h{6}\z/) ? marker["colour"] : OpenProject::Thematiq::Store::MARKER_COLOUR %>">
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.marker.save") } %>
+<% end %>
+
+<% deprecations = @store.deprecations %>
+<% key_label = ->(key) { OpenProject::Thematiq::Tokens::Vocabulary.key?(key) ? "#{t("thematiq.vocabulary.#{key}")} (#{key})" : "#{t("thematiq.tokens.#{key}.label")} (#{key})" } %>
+<% key_options = OpenProject::Thematiq::Editor::KINDS.keys.map { |key| [key_label.call(key), key] } %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-deprecations") { t("thematiq.deprecations.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.deprecations.hint") %></p>
+<% if deprecations.any? %>
+  <table class="thematiq-history" data-test-selector="thematiq-deprecations">
+    <thead><tr><th scope="col"><%= t("thematiq.deprecations.key") %></th><th scope="col"><%= t("thematiq.deprecations.severity") %></th>
+      <th scope="col"><%= t("thematiq.deprecations.replacement") %></th><th scope="col"><%= t("thematiq.deprecations.removal") %></th>
+      <th scope="col"><span class="sr-only"><%= t("thematiq.deprecations.remove") %></span></th></tr></thead>
+    <tbody>
+      <% deprecations.each do |entry| %>
+        <tr data-thematiq-deprecation="<%= entry["key"] %>">
+          <td><%= key_label.call(entry["key"]) %><% if entry["message"] %><br><span class="color-fg-muted"><%= entry["message"] %></span><% end %></td>
+          <td><%= t("thematiq.deprecations.severities.#{entry["severity"]}") %></td>
+          <td><%= entry["replacement"] ? key_label.call(entry["replacement"]) : "" %></td>
+          <td><%= entry["removal"] %><% if entry["due"] %> <strong><%= t("thematiq.deprecations.due") %></strong><% end %></td>
+          <td>
+            <%= form_with(url: admin_thematiq_deprecations_path, method: :post, data: { turbo: false }) do %>
+              <input type="hidden" name="remove" value="<%= entry["key"] %>">
+              <%= render(Primer::Beta::Button.new(type: :submit, size: :small, "aria-label": t("thematiq.deprecations.remove_label", key: entry["key"]))) { t("thematiq.deprecations.remove") } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+<%= form_with(url: admin_thematiq_deprecations_path, method: :post, data: { turbo: false }, id: "thematiq-deprecation-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-key"><%= t("thematiq.deprecations.key") %></label>
+    <select name="key" id="thematiq-deprecation-key" class="FormControl-select FormControl-medium"><%= options_for_select(key_options) %></select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-severity"><%= t("thematiq.deprecations.severity") %></label>
+    <select name="severity" id="thematiq-deprecation-severity" class="FormControl-select FormControl-medium">
+      <%= options_for_select(OpenProject::Thematiq::Store::SEVERITIES.map { |severity| [t("thematiq.deprecations.severities.#{severity}"), severity] }, "warning") %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-replacement"><%= t("thematiq.deprecations.replacement") %></label>
+    <select name="replacement" id="thematiq-deprecation-replacement" class="FormControl-select FormControl-medium">
+      <%= options_for_select([[t("thematiq.deprecations.no_replacement"), ""]] + key_options) %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-removal"><%= t("thematiq.deprecations.removal") %></label>
+    <input type="date" name="removal" id="thematiq-deprecation-removal" class="FormControl-input FormControl-medium" min="<%= Date.today.iso8601 %>">
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-deprecation-message"><%= t("thematiq.deprecations.message") %></label>
+    <input type="text" name="message" id="thematiq-deprecation-message" class="FormControl-input FormControl-medium" maxlength="200">
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.deprecations.save") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-custom-css") { t("thematiq.custom_css.title") }
+end %>
+<%= form_with(url: admin_thematiq_custom_css_path, method: :post, data: { turbo: false }, id: "thematiq-custom-css-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.custom_css.hint", size: OpenProject::Thematiq::Uploads.human_size(OpenProject::Thematiq::CustomCss::MAX_BYTES)) %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="custom_css_enabled" value="1" id="thematiq-custom-css-enabled" <%= "checked" if @store.custom_css_enabled? %>>
+    <%= t("thematiq.custom_css.enabled") %>
+  </label>
+  <label class="thematiq-editor__label" for="thematiq-custom-css-text"><%= t("thematiq.custom_css.label") %></label>
+  <textarea name="custom_css" id="thematiq-custom-css-text" class="FormControl-textarea thematiq-custom-css__text" rows="12" spellcheck="false"
+            aria-describedby="thematiq-custom-css-errors" <%= 'aria-invalid="true"'.html_safe if @custom_css_errors %>><%= @custom_css_text || @store.custom_css %></textarea>
+  <% if @custom_css_errors %>
+    <ul class="thematiq-editor__error" id="thematiq-custom-css-errors" data-test-selector="thematiq-custom-css-errors">
+      <% @custom_css_errors.each do |code, part| %>
+        <li><%= t("thematiq.custom_css.errors.#{code}", default: code) %><% if part.present? %>: <code><%= part %></code><% end %></li>
+      <% end %>
+    </ul>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.custom_css.save") } %>
+<% end %>
+
+<% own = @store.own_tokens %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-own-tokens") { t("thematiq.own_tokens.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.own_tokens.hint") %></p>
+<% if own.any? %>
+  <table class="thematiq-history" data-test-selector="thematiq-own-tokens">
+    <thead><tr><th scope="col"><%= t("thematiq.own_tokens.css_name") %></th><th scope="col"><%= t("thematiq.own_tokens.label") %></th>
+      <th scope="col"><%= t("thematiq.own_tokens.value") %></th><th scope="col"><%= t("thematiq.own_tokens.dark") %></th>
+      <th scope="col"><span class="sr-only"><%= t("thematiq.deprecations.remove") %></span></th></tr></thead>
+    <tbody>
+      <% own.each do |token| %>
+        <tr data-thematiq-own-token="<%= token["name"] %>">
+          <td><code><%= token["css_name"] %></code></td><td><%= token["label"] %></td><td><code><%= token["value"] %></code></td><td><code><%= token["dark"] %></code></td>
+          <td>
+            <%= form_with(url: admin_thematiq_own_tokens_path, method: :post, data: { turbo: false }) do %>
+              <input type="hidden" name="remove" value="<%= token["name"] %>">
+              <%= render(Primer::Beta::Button.new(type: :submit, size: :small, "aria-label": t("thematiq.own_tokens.remove_label", name: token["css_name"]))) { t("thematiq.deprecations.remove") } %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>
+<%= form_with(url: admin_thematiq_own_tokens_path, method: :post, data: { turbo: false }, id: "thematiq-own-token-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-own-name"><%= t("thematiq.own_tokens.name") %></label>
+    <input type="text" name="name" id="thematiq-own-name" class="FormControl-input FormControl-medium" maxlength="41" required aria-describedby="thematiq-own-name-hint">
+    <p class="thematiq-editor__hint" id="thematiq-own-name-hint"><%= t("thematiq.own_tokens.name_hint") %></p>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-own-label"><%= t("thematiq.own_tokens.label") %></label>
+    <input type="text" name="label" id="thematiq-own-label" class="FormControl-input FormControl-medium" maxlength="80">
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-own-kind"><%= t("thematiq.own_tokens.kind") %></label>
+    <select name="kind" id="thematiq-own-kind" class="FormControl-select FormControl-medium">
+      <%= options_for_select(OpenProject::Thematiq::Store::OWN_TOKEN_KINDS.map { |kind| [t("thematiq.own_tokens.kinds.#{kind}"), kind] }) %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-own-value"><%= t("thematiq.own_tokens.value") %></label>
+    <input type="text" name="value" id="thematiq-own-value" class="FormControl-input FormControl-medium" maxlength="400" required>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-own-dark"><%= t("thematiq.own_tokens.dark") %></label>
+    <input type="text" name="dark" id="thematiq-own-dark" class="FormControl-input FormControl-medium" maxlength="400" aria-describedby="thematiq-own-dark-hint">
+    <p class="thematiq-editor__hint" id="thematiq-own-dark-hint"><%= t("thematiq.own_tokens.dark_hint") %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.own_tokens.save") } %>
+<% end %>
+
+<% library = Thematiq::Upload.ready? ? OpenProject::Thematiq::Assets.library_fonts : [] %>
+<% font_kind = OpenProject::Thematiq::Uploads.kind("font") %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-font-library") { t("thematiq.library.title") }
+end %>
+<%= form_with(url: admin_thematiq_custom_files_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-library-form",
+              class: "thematiq-short-form") do %>
+  <input type="hidden" name="id" value="<%= OpenProject::Thematiq::Assets::LIBRARY_ID %>">
+  <input type="hidden" name="kind" value="font">
+  <p class="thematiq-editor__hint"><%= t("thematiq.library.hint", count: OpenProject::Thematiq::Uploads::MAX_FONTS) %></p>
+  <% if library.any? %>
+    <ul class="thematiq-files__fonts" data-test-selector="thematiq-library-fonts">
+      <% library.each do |record| %>
+        <li class="thematiq-files__font">
+          <span><strong><%= record.face.family %></strong>,
+            <%= t("thematiq.uploads.font_face", weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"), style: t("thematiq.uploads.styles.#{record.face.style}")) %></span>
+          <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, size: :small, name: "remove", value: record.token, formnovalidate: true,
+                                              "aria-label": t("thematiq.uploads.remove_font_label", family: record.face.family,
+                                                                                                    weight: t("thematiq.uploads.weights.w#{record.face.weight.tr(' ', '_')}"),
+                                                                                                    style: t("thematiq.uploads.styles.#{record.face.style}")))) { t("thematiq.uploads.remove") } %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="color-fg-muted"><%= t("thematiq.library.empty") %></p>
+  <% end %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-library-file"><%= t("thematiq.uploads.choose_font") %></label>
+    <input type="file" name="file" id="thematiq-library-file" accept="<%= font_kind.formats.map { |format| ".#{format}" }.join(",") %>">
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-library-family"><%= t("thematiq.uploads.font_family") %></label>
+    <input type="text" name="font_family" id="thematiq-library-family" class="FormControl-input FormControl-medium" maxlength="60" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-library-weight"><%= t("thematiq.uploads.font_weight") %></label>
+    <select name="font_weight" id="thematiq-library-weight" class="FormControl-select FormControl-medium">
+      <% OpenProject::Thematiq::Uploads::FontFace::WEIGHTS.each do |weight| %>
+        <option value="<%= weight %>" <%= "selected" if weight == "400" %>><%= t("thematiq.uploads.weights.w#{weight.tr(' ', '_')}") %></option>
+      <% end %>
+    </select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-library-style"><%= t("thematiq.uploads.font_style") %></label>
+    <select name="font_style" id="thematiq-library-style" class="FormControl-select FormControl-medium">
+      <% OpenProject::Thematiq::Uploads::FontFace::STYLES.each do |style| %>
+        <option value="<%= style %>"><%= t("thematiq.uploads.styles.#{style}") %></option>
+      <% end %>
+    </select>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.library.upload") } %>
+<% end %>
+
+<% switches = @store.planned_switches %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-schedule") { t("thematiq.schedule.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.schedule.hint") %></p>
+<% if switches.any? %>
+  <ul data-test-selector="thematiq-schedule">
+    <% switches.each_with_index do |entry, index| %>
+      <li>
+        <%= t("thematiq.schedule.entry", name: entry["name"], time: format_time(entry["at"])) %>
+        <%= form_with(url: admin_thematiq_schedule_path, method: :post, data: { turbo: false }, class: "thematiq-inline-form") do %>
+          <input type="hidden" name="cancel" value="<%= index %>">
+          <%= render(Primer::Beta::Button.new(type: :submit, size: :small, "aria-label": t("thematiq.schedule.cancel_label", name: entry["name"]))) { t("thematiq.schedule.cancel") } %>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+<%= form_with(url: admin_thematiq_schedule_path, method: :post, data: { turbo: false }, id: "thematiq-schedule-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-schedule-set"><%= t("thematiq.schedule.set") %></label>
+    <select name="set_id" id="thematiq-schedule-set" class="FormControl-select FormControl-medium"><%= options_for_select(every_option) %></select>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-schedule-at"><%= t("thematiq.schedule.at") %></label>
+    <input type="datetime-local" name="at" id="thematiq-schedule-at" class="FormControl-input FormControl-medium" required aria-describedby="thematiq-schedule-at-hint">
+    <p class="thematiq-editor__hint" id="thematiq-schedule-at-hint"><%= t("thematiq.schedule.at_hint", zone: Time.zone.name) %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.schedule.save") } %>
+<% end %>
+
+<% links = @store.footer_links %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-footer") { t("thematiq.footer.title") }
+end %>
+<%= form_with(url: admin_thematiq_footer_path, method: :post, data: { turbo: false }, id: "thematiq-footer-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.footer.hint") %></p>
+  <% OpenProject::Thematiq::Store::FOOTER_LINKS.each do |kind| %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-footer-<%= kind %>"><%= t("thematiq.footer.links.#{kind}") %></label>
+      <input type="url" name="footer_links[<%= kind %>]" id="thematiq-footer-<%= kind %>" class="FormControl-input FormControl-medium" maxlength="500"
+             value="<%= links[kind] %>" placeholder="https://www.example.org/<%= kind %>">
+    </div>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.footer.save") } %>
 <% end %>

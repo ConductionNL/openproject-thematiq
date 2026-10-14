@@ -18,6 +18,13 @@ module Thematiq
 
     # One form: the project's own choice and one per module. An empty value inherits.
     def update
+      # A locked project: only an instance admin changes it, and only an instance admin locks or unlocks.
+      return render_403 if @store.locked?(@project.identifier) && !User.current.admin?
+
+      if User.current.admin? && params.key?(:lock)
+        @store.lock_project(@project.identifier, params[:lock] == "1")
+        Change.record("lock", detail: "#{@project.identifier}: #{params[:lock] == '1' ? 'locked' : 'unlocked'}", store: @store)
+      end
       chosen = { "" => params[:design_system].to_s }
       OpenProject::Thematiq::Scopes::MODULES.each_key { |name| chosen[name] = params.dig(:modules, name).to_s }
 

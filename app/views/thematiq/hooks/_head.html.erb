@@ -20,5 +20,24 @@
 </style>
 <% end %>
 <%= render partial: "thematiq/shell/head" %>
+<%# The sign-in page's background, when the design system has one uploaded. %>
+<% login_background = (OpenProject::Thematiq::Assets.bundled.login_background_css(OpenProject::Thematiq.active_token_set, root: OpenProject::Configuration["rails_relative_url_root"].to_s) rescue "") %>
+<% if login_background.present? %>
+<style id="openproject-thematiq-login-background" data-turbo-track="reload"><%= raw login_background %></style>
+<% end %>
+<%# The organisation's own tokens, --thematiq-org-*, from checked values. %>
+<% own_tokens_css = (OpenProject::Thematiq::Store.new.own_tokens_css rescue nil) %>
+<% if own_tokens_css %>
+<style id="openproject-thematiq-own-tokens" data-turbo-track="reload">
+<%= raw own_tokens_css %>
+</style>
+<% end %>
+<%# The administrator's own CSS, last, so it wins. Off by default; written anew from checked parts (CustomCss). %>
+<% own_css = (OpenProject::Thematiq::Store.new.served_custom_css rescue nil) %>
+<% if own_css %>
+<style id="openproject-thematiq-custom" data-turbo-track="reload">
+<%= raw own_css %>
+</style>
+<% end %>
 <%# After OpenProject's own favicon link, so a browser that takes the last one takes this. %>
 <%= render partial: "thematiq/hooks/icons" %>

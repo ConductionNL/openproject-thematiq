@@ -1,0 +1,40 @@
+<% title = t("thematiq.nlds.report_title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.nlds.report_description", name: @draft.name) }
+  end
+%>
+
+<div data-test-selector="thematiq-nlds-report">
+  <p><%= t("thematiq.nlds.read", kind: @nlds_result.format, prefix: @nlds_result.prefix || t("thematiq.nlds.no_prefix")) %></p>
+  <table class="thematiq-history">
+    <thead><tr><th scope="col"><%= t("thematiq.nlds.target") %></th><th scope="col"><%= t("thematiq.nlds.value") %></th><th scope="col"><%= t("thematiq.nlds.how") %></th></tr></thead>
+    <tbody>
+      <% @nlds_result.report.each do |entry| %>
+        <tr data-thematiq-nlds-target="<%= entry.target %>">
+          <td><code><%= entry.target %></code></td>
+          <td><code><%= entry.value %></code></td>
+          <td><%= t("thematiq.nlds.hows.#{entry.how}", default: entry.how) %><% if entry.source %>: <code><%= entry.source %></code><% end %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @nlds_result.skipped.any? %>
+    <h3 class="thematiq-editor__legend"><%= t("thematiq.nlds.skipped_title") %></h3>
+    <ul data-test-selector="thematiq-nlds-skipped">
+      <% @nlds_result.skipped.each do |name, reason| %><li><code><%= name %></code>: <%= reason %></li><% end %>
+    </ul>
+  <% end %>
+  <p>
+    <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(id: @draft.id))) { t("thematiq.admin.edit_tokens") } %>
+    <%= link_to t("thematiq.editor.back"), admin_thematiq_path %>
+  </p>
+</div>

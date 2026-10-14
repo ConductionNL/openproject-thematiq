@@ -91,10 +91,28 @@ class UploadsLocaleTest < Minitest::Test
     codes = controller[/UPLOAD_ERRORS = %w\[(.*?)\]/m, 1].split
     sources = Dir[File.join(ROOT, "{lib/open_project/thematiq/uploads,app/models/thematiq,app/controllers/thematiq}/**/*.rb")] +
               [File.join(ROOT, "lib/open_project/thematiq/uploads.rb")]
-    raised = sources.flat_map { |file| File.read(file).scan(/(?<!Transfer::)Refused, "([a-z_]+)"/).flatten }.uniq
+    raised = sources.flat_map { |file| File.read(file).scan(/(?<!Transfer::)(?<!CssTokens::)Refused, "([a-z_]+)"/).flatten }.uniq
 
     assert_operator raised.size, :>, 10
     assert_empty raised - codes
+  end
+
+  def test_every_error_of_the_css_upload_has_a_message
+    controller = File.read(File.join(ROOT, "app/controllers/thematiq/admin_controller.rb"))
+    codes = controller[/CSS_ERRORS = %w\[(.*?)\]/m, 1].split
+    raised = File.read(File.join(ROOT, "lib/open_project/thematiq/css_tokens.rb")).scan(/Refused, "([a-z_]+)"/).flatten.uniq
+
+    assert_empty raised - codes
+    codes.each { |code| assert_kind_of String, lookup("thematiq.css_upload.errors.#{code}"), code }
+  end
+
+  def test_every_error_of_the_nlds_converter_has_a_message
+    controller = File.read(File.join(ROOT, "app/controllers/thematiq/admin_controller.rb"))
+    codes = controller[/NLDS_ERRORS = %w\[(.*?)\]/m, 1].split
+    raised = %w[css_tokens nlds_converter].flat_map { |file| File.read(File.join(ROOT, "lib/open_project/thematiq/#{file}.rb")).scan(/Refused, "([a-z_]+)"/).flatten }.uniq
+
+    assert_empty raised - codes
+    codes.each { |code| assert_kind_of String, lookup("thematiq.nlds.errors.#{code}"), code }
   end
 
   def test_every_key_the_files_partial_picks_between_exists

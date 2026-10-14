@@ -3,6 +3,7 @@
 <% preview_set = @draft.token_set %>
 <% editor = OpenProject::Thematiq::Editor %>
 <% dark_error = ->(key) { OpenProject::Thematiq::CustomDraft.dark_error(key) } %>
+<% deprecated = @store.deprecations.index_by { |entry| entry["key"] } %>
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
@@ -41,6 +42,16 @@
         <% end %>
       </select>
       <p class="thematiq-editor__hint" id="thematiq-based-on-hint"><%= t("thematiq.editor.based_on_hint") %></p>
+    </div>
+
+    <%# thematiq's primary lock: the main button follows the primary colour, or keeps a colour of its own. %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__toggle" for="thematiq-lock-primary">
+        <input type="checkbox" name="lock_primary" value="1" id="thematiq-lock-primary" data-thematiq-lock-primary
+               aria-describedby="thematiq-lock-primary-hint" <%= "checked" if @draft.lock_primary? %>>
+        <%= t("thematiq.editor.lock_primary.label") %>
+      </label>
+      <p class="thematiq-editor__hint" id="thematiq-lock-primary-hint"><%= t("thematiq.editor.lock_primary.hint") %></p>
     </div>
 
     <div class="thematiq-editor__tokens">
@@ -120,6 +131,14 @@
                   <span class="Button-content"><span class="Button-label"><%= t("thematiq.editor.reset_token") %></span></span>
                 </button>
               </div>
+              <% if (entry = deprecated[key]) %>
+                <p class="thematiq-editor__deprecated" data-thematiq-deprecated="<%= key %>">
+                  <strong><%= entry["due"] ? t("thematiq.deprecations.due") : t("thematiq.deprecations.badge", severity: t("thematiq.deprecations.severities.#{entry["severity"]}")) %></strong>
+                  <% if entry["replacement"] %><%= t("thematiq.deprecations.badge_replacement", replacement: entry["replacement"]) %><% end %>
+                  <% if entry["removal"] %><%= t("thematiq.deprecations.badge_removal", date: entry["removal"]) %><% end %>
+                  <%= entry["message"] %>
+                </p>
+              <% end %>
               <p class="thematiq-editor__hint" id="<%= field_id %>-hint">
                 <%= t("thematiq.editor.kind_hint.#{kind}") %>
                 <% if @draft.base[key] %><%= t("thematiq.editor.base_value", name: @draft.base.name, value: @draft.base[key]) %><% end %>
@@ -195,6 +214,8 @@
     </div>
     <%= thematiq_shell_preview(preview_set) %>
     <p class="thematiq-editor__hint"><%= t("thematiq.editor.preview_hint") %></p>
+    <h4 class="thematiq-editor__label"><%= t("thematiq.editor.signin_title") %></h4>
+    <%= thematiq_signin_preview(preview_set) %>
     <% used = @stored && Thematiq::Scope.ready? ? Thematiq::Scope.where(design_system_id: @draft.id).to_a : [] %>
     <% if used.any? %>
       <% projects = Project.where(id: used.filter_map(&:project_id)).index_by(&:id) %>

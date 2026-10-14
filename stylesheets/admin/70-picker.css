@@ -70,3 +70,9 @@
 /* The short form. */
 .thematiq-short-form { max-width: 480px; }
 .thematiq-short-form input[type="color"] { width: 64px; height: 40px; padding: 2px; }
+/* The contrast report. */
+.thematiq-compliance__system { margin: 24px 0; }
+.thematiq-compliance__fail td { font-weight: 600; color: var(--fgColor-danger, currentColor); }
+/* Your own CSS. */
+.thematiq-custom-css__text { width: 100%; max-width: 960px; font-family: monospace; font-size: 13px; }
+.thematiq-inline-form { display: inline; }
