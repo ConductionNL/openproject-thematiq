@@ -12,7 +12,7 @@ module Thematiq
       base = "#{request.base_url}#{OpenProject::Configuration['rails_relative_url_root']}"
       logo = assets.logo_variant_url(token_set, "logo", root: base)
       inverse = assets.logo_variant_url(token_set, "logo_inverse", root: base)
-      body = OpenProject::Thematiq::ReadApi.shell_tokens(token_set, logo_urls: [logo.presence, inverse.presence])
+      body = OpenProject::Thematiq::ReadAPI.shell_tokens(token_set, logo_urls: [logo.presence, inverse.presence])
       headers["Content-Type"] = "application/json; charset=utf-8"
       headers["Cache-Control"] = "public, max-age=60"
       headers["X-Content-Type-Options"] = "nosniff"
