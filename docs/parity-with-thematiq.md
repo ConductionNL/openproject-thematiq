@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 103 |
+| in plugin | 108 |
 | being built | 0 |
-| to build, as is | 19 |
-| to build, adapted | 40 |
+| to build, as is | 16 |
+| to build, adapted | 38 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **59 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 40 S, 16 M and 3 L.
+1. **54 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 36 S, 15 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -82,7 +82,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `cat-starter-templates` | Start from a ready-made template or example theme and adapt it instead of starting blank | `specs/admin-settings` | in plugin | #8: "Customise" takes any set as the base. #71 adds "Start from your colours" |  |
 | `cat-marketplace` | Download additional themes from a marketplace or gallery maintained by the vendor or community | `specs/upstream-freshness` | to build, adapted | #5 removed every connection, so a gallery means a file you fetch yourself and import (#10). See question 2 | M |
 | `cat-provincial-sets` | Apply a house style for a province or water board (thematiq has this in part) | `specs/extended-token-sets` | in plugin | The same catalogue (#13) |  |
-| `cat-living-token-docs` | Generate living documentation of the house style's tokens as a core feature | `specs/token-reference` | to build, as is | Generate `docs/tokens.md` from the role list | S |
+| `cat-living-token-docs` | Generate living documentation of the house style's tokens as a core feature | `specs/token-reference` | in plugin | #78: `docs/token-reference.md`, generated from the code; a test fails when it is out of date |  |
 
 ### Applying and switching a theme
 
@@ -219,13 +219,13 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `acc-contrast-on-upload` | Get a warning about insufficient colour contrast when you upload a house style | `specs/custom-token-sets` | in plugin | The picker names the pairs with too little contrast for every design system, an imported one included (#14); the editor shows each ratio (#35) |  |
 | `acc-contrast-evaluate` | Check any pair of colours against WCAG contrast from within an app | `specs/app-token-set-selection` | in plugin | #77: `GET /thematiq/api/v1/contrast` checks any pair of colours |  |
 | `acc-shipped-audit` | Rely on every shipped house style having been checked automatically for WCAG contrast | `specs/token-set-contrast-audit` | in plugin | #14: `test/contrast_test.rb` checks every set of the catalogue |  |
-| `acc-contrast-report-doc` | Read a published contrast report per house style | `specs/token-set-contrast-audit` | to build, as is | After `acc-shipped-audit` | S |
-| `acc-compliance-report` | Download an evidence report of the contrast of your active configuration for an audit | `specs/compliance-evidence` | to build, as is |  | M |
-| `acc-compliance-cli` | Produce that compliance report from the command line | `specs/compliance-evidence` | to build, adapted | A rake task instead of an `occ` command | S |
+| `acc-contrast-report-doc` | Read a published contrast report per house style | `specs/token-set-contrast-audit` | in plugin | #78: `docs/contrast-report.md`, generated from the catalogue; a test fails when it is out of date |  |
+| `acc-compliance-report` | Download an evidence report of the contrast of your active configuration for an audit | `specs/compliance-evidence` | in plugin | #78: "Contrast report for an audit": every design system in use, each pair light and dark, against WCAG 2.1 SC 1.4.3; printable, and as JSON |  |
+| `acc-compliance-cli` | Produce that compliance report from the command line | `specs/compliance-evidence` | in plugin | #78: `rake thematiq:compliance[file]`, `STRICT=1` exits 1 when a pair fails |  |
 | `acc-high-contrast-set` | Apply a maximum-contrast (WCAG AAA) theme instance-wide | `specs/high-contrast-token-set` | in plugin | `hoog-contrast` is in the catalogue (#13). OpenProject's own high contrast themes keep OpenProject's colours |  |
 | `acc-forced-colors` | Cooperate with the operating system's forced colours and high-contrast modes (thematiq has this in part) | `specs/high-contrast-token-set` | in plugin | The plugin's own top bar and menus have `forced-colors` rules (`stylesheets/shell/`) |  |
 | `acc-dark-mode` | Offer a dark mode of the house style | `specs/dark-mode` | in plugin | #27, #66: the dark block of a set reaches OpenProject's dark theme |  |
-| `acc-dark-generate-cli` | Regenerate the dark variants from the command line after changing sets | `specs/dark-mode` | to build, adapted | A rake task instead of an `occ` command | S |
+| `acc-dark-generate-cli` | Regenerate the dark variants from the command line after changing sets | `specs/dark-mode` | in plugin | #78: `rake thematiq:dark` checks every dark block. The plugin generates no dark values itself: they come with the catalogue |  |
 | `acc-focus-indicators` | Show visible focus indicators in the house style's colours | `specs/css-architecture` | in plugin | #58: the focus ring takes the set's focus colour, checked in `vocabulary.spec.js` |  |
 | `acc-reduced-motion` | Respect a user's preference for reduced motion | `specs/dark-mode` | in plugin | The plugin's one animation, the nested menu, stops under reduced motion (`stylesheets/shell/30-nested-menu.css`) |  |
 | `acc-keyboard-admin` | Operate the whole theming settings page with the keyboard alone | `specs/admin-panel-accessibility` | in plugin | Native controls throughout. Checked with axe and by keyboard in the end-to-end suite (#37, #49) |  |

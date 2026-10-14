@@ -340,6 +340,18 @@ module Thematiq
       render json: report, status: report["status"] == "ok" ? :ok : :service_unavailable
     end
 
+    # Evidence of contrast for an audit: every design system in use, light and dark. HTML to read or print, JSON to keep.
+    def compliance
+      @report = OpenProject::Thematiq::Compliance.report(design_systems_in_use, generated_at: Time.current.utc.iso8601)
+      respond_to do |format|
+        format.html
+        format.json do
+          send_data JSON.pretty_generate(@report), filename: "openproject-thematiq-contrast-#{Time.current.strftime('%Y-%m-%d')}.json",
+                                                   type: "application/json", disposition: "attachment"
+        end
+      end
+    end
+
     # The history as a CSV file, for an auditor. Every row, newest first; the setup itself stays in OpenProject.
     def history_export
       rows = Thematiq::Change.ready? ? Thematiq::Change.order(id: :desc).to_a : []
@@ -376,6 +388,22 @@ module Thematiq
     end
 
     private
+
+    # [[token set, where]] for the instance, every project and every module with a design system of its own.
+    def design_systems_in_use
+      list = [[@store.active_token_set, "instance"]]
+      return list unless Thematiq::Scope.ready?
+
+      names = Project.where(id: Thematiq::Scope.where.not(project_id: nil).select(:project_id)).pluck(:id, :identifier).to_h
+      Thematiq::Scope.find_each do |row|
+        token_set = @store.find_set(row.design_system_id)
+        next unless token_set
+
+        place = row.project_id ? "project #{names[row.project_id]}" : "instance"
+        list << [token_set, row.module_name.blank? ? place : "#{place}, module #{row.module_name}"]
+      end
+      list
+    end
 
     def table_states
       { "uploads" => Thematiq::Upload.ready?, "scopes" => Thematiq::Scope.ready?, "changes" => Thematiq::Change.ready? }

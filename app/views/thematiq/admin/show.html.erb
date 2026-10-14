@@ -207,6 +207,7 @@ end %>
 <p>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_bundle_path, data: { test_selector: "thematiq-bundle-download" })) { t("thematiq.bundle.download") } %>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_history_export_path, scheme: :invisible)) { t("thematiq.history.download") } %>
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_compliance_path, scheme: :invisible, data: { test_selector: "thematiq-compliance-link" })) { t("thematiq.compliance.link") } %>
 </p>
 <%= form_with(url: admin_thematiq_bundle_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-bundle-form",
               class: "thematiq-picker__import") do %>

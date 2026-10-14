@@ -134,3 +134,41 @@ namespace :thematiq do
     exit(1) unless report["status"] == "ok"
   end
 end
+
+namespace :thematiq do
+  desc "Writes the contrast report of every design system in use as JSON: rake thematiq:compliance[report.json]. STRICT=1 exits 1 when a pair fails"
+  task :compliance, [:file] => :environment do |_task, args|
+    store = OpenProject::Thematiq::Store.new
+    in_use = [[store.active_token_set, "instance"]]
+    if Thematiq::Scope.ready?
+      names = Project.where(id: Thematiq::Scope.where.not(project_id: nil).select(:project_id)).pluck(:id, :identifier).to_h
+      Thematiq::Scope.find_each do |row|
+        token_set = store.find_set(row.design_system_id)
+        place = row.project_id ? "project #{names[row.project_id]}" : "instance"
+        in_use << [token_set, row.module_name.blank? ? place : "#{place}, module #{row.module_name}"] if token_set
+      end
+    end
+    report = OpenProject::Thematiq::Compliance.report(in_use, generated_at: Time.current.utc.iso8601)
+    text = JSON.pretty_generate(report)
+    if args[:file].to_s.empty?
+      puts text
+    else
+      File.write(args[:file], text)
+      $stderr.puts "Written: #{args[:file]}"
+    end
+    $stderr.puts(report["passes"] ? "Every pair reaches 4.5 to 1." : "Some pairs stay under 4.5 to 1.")
+    exit(1) if !report["passes"] && %w[1 true yes].include?(ENV["STRICT"].to_s.downcase)
+  end
+
+  desc "Checks the dark blocks of every design system: which pairs stay under 4.5 to 1 in the dark theme"
+  task dark: :environment do
+    store = OpenProject::Thematiq::Store.new
+    store.all_sets.each do |token_set|
+      next puts("#{token_set.id}\tno dark block") unless token_set.dark?
+
+      failures = OpenProject::Thematiq::Contrast.dark_failures(token_set)
+      used = OpenProject::Thematiq::Contrast.dark_usable?(token_set) ? "used" : "not used"
+      puts "#{token_set.id}\t#{used}\t#{failures.empty? ? 'all pass' : "under 4.5: #{failures.join(', ')}"}"
+    end
+  end
+end
