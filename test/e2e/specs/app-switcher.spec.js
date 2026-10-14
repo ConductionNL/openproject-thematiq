@@ -49,14 +49,17 @@ test.describe("app switcher", () => {
     await expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("without a Nextcloud address there is one column", async ({ page }) => {
+  test("without a Nextcloud address there is one group, its entries in three columns", async ({ page }) => {
     await setNextcloud(page, "");
     await page.goto("/projects");
     await page.getByRole("button", { name: "All apps and modules" }).click();
     const list = page.getByRole("dialog", { name: "All apps and modules" });
     await expect(list.getByRole("heading", { name: "Nextcloud" })).toHaveCount(0);
     await expect(list.locator('[aria-current="page"]')).toContainText("Projects");
-    const width = await list.evaluate((el) => el.getBoundingClientRect().width);
-    expect(width).toBe(340);
+    await expect(list.getByRole("heading", { name: "OpenProject" })).toHaveCount(0);
+    await expect(list.getByText(/of them (is|are) in the bar/)).toHaveCount(0);
+    const columns = await list.locator(".thematiq-apps--list").first()
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+    expect(columns).toBe(3);
   });
 });
