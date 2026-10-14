@@ -979,6 +979,26 @@ begin
     admin.response.status == 200 && admin.response.media_type == "application/json" && health["status"] == "ok" &&
       health["version"] == OpenProject::Thematiq::VERSION && health["tables"].values.all?
   end
+
+  # 15. The read endpoints (docs/api.md)
+  api_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  api_member.get "/thematiq/api/v1/sets", headers: { "Accept" => "application/json" }
+  sets_answer = JSON.parse(api_member.response.body) rescue {}
+  check("a member reads the catalogue") { api_member.response.status == 200 && sets_answer["sets"].to_a.size >= 60 }
+  api_anonymous = session_for
+  api_anonymous.get "/thematiq/api/v1/sets", headers: { "Accept" => "application/json" }
+  check("without a session the catalogue answers 401") { api_anonymous.response.status == 401 }
+  api_member.get "/thematiq/api/v1/sets/zuiddrecht/stylesheet.css"
+  check("a style sheet answers CSS") { api_member.response.status == 200 && api_member.response.media_type == "text/css" }
+  api_member.get "/thematiq/api/v1/sets/../../etc/passwd"
+  check("a path in the id does not reach the endpoint") { api_member.response.status == 404 }
+  api_member.get "/thematiq/api/v1/contrast", params: { foreground: "red; } body {", background: "#fff" }
+  check("a hostile colour gives an unknown verdict") { JSON.parse(api_member.response.body)["verdict"] == "unknown" }
+  api_anonymous.get "/thematiq/api/shell-tokens"
+  shell = JSON.parse(api_anonymous.response.body) rescue {}
+  check("shell-tokens answers without a session, eighteen roles, no cookie") do
+    api_anonymous.response.status == 200 && shell["tokens"].to_h.size == 18 && api_anonymous.response.headers["Set-Cookie"].blank?
+  end
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 97 |
+| in plugin | 103 |
 | being built | 0 |
-| to build, as is | 22 |
-| to build, adapted | 43 |
+| to build, as is | 19 |
+| to build, adapted | 40 |
 | no counterpart | 3 |
 | Total | 165 |
 
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **65 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 46 S, 16 M and 3 L.
+1. **59 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 40 S, 16 M and 3 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -209,7 +209,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sco-user-choice` | Let each user choose a theme (light, dark, high contrast) for themselves | Nextcloud core Appearance settings | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (light, dark, high contrast in `app/models/user_preference.rb`). The plugin leaves it alone |  |
 | `sco-user-follow-os` | Follow the user's operating system preference for dark mode and high contrast | `specs/dark-mode` | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`sync_with_os`) |  |
 | `sco-per-site` | Give each site, portal or department its own theme (thematiq has this in part) | `specs/per-group-theming` | in plugin | #67: a design system per project, inherited by subprojects, chosen by a project admin when the instance allows it |  |
-| `sco-app-token-catalogue` | Let another app on the instance list the available house styles for its own picker without admin rights | `specs/app-token-set-selection` | to build, as is | A read endpoint that lists the sets | S |
+| `sco-app-token-catalogue` | Let another app on the instance list the available house styles for its own picker without admin rights | `specs/app-token-set-selection` | in plugin | #77: `GET /thematiq/api/v1/sets` for anyone signed in (`docs/api.md`) |  |
 | `sco-suite-wide-appearance` | Respect a user's light or dark choice from the central portal in every application of the suite (thematiq has this in part) | `specs/dark-mode` | to build, adapted | Needs one stored light or dark choice that both products read. No such link exists. See question 1 | L |
 
 ### Accessibility and contrast
@@ -217,7 +217,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `acc-contrast-on-upload` | Get a warning about insufficient colour contrast when you upload a house style | `specs/custom-token-sets` | in plugin | The picker names the pairs with too little contrast for every design system, an imported one included (#14); the editor shows each ratio (#35) |  |
-| `acc-contrast-evaluate` | Check any pair of colours against WCAG contrast from within an app | `specs/app-token-set-selection` | to build, as is |  | S |
+| `acc-contrast-evaluate` | Check any pair of colours against WCAG contrast from within an app | `specs/app-token-set-selection` | in plugin | #77: `GET /thematiq/api/v1/contrast` checks any pair of colours |  |
 | `acc-shipped-audit` | Rely on every shipped house style having been checked automatically for WCAG contrast | `specs/token-set-contrast-audit` | in plugin | #14: `test/contrast_test.rb` checks every set of the catalogue |  |
 | `acc-contrast-report-doc` | Read a published contrast report per house style | `specs/token-set-contrast-audit` | to build, as is | After `acc-shipped-audit` | S |
 | `acc-compliance-report` | Download an evidence report of the contrast of your active configuration for an audit | `specs/compliance-evidence` | to build, as is |  | M |
@@ -271,9 +271,9 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
-| `int-capability-api` | Let clients and other apps read the active house style through the platform capabilities API | `specs/theming-capability` | to build, adapted | OpenProject has no capabilities document. Serve the active set as JSON in the shape of thematiq's `shell-tokens` version 1 | S |
-| `int-token-set-api` | Let other apps list the house style catalogue through an API | `specs/app-token-set-selection` | to build, as is | With `sco-app-token-catalogue` | S |
-| `int-stylesheet-manifest` | Let a page fetch the stylesheets a house style needs, in cascade order, to swap it in place | `specs/css-architecture` | to build, adapted | The plugin writes one inline style. Serve the CSS of a set from an endpoint | S |
+| `int-capability-api` | Let clients and other apps read the active house style through the platform capabilities API | `specs/theming-capability` | in plugin | #77: OpenProject has no capabilities document; `GET /thematiq/api/shell-tokens` answers thematiq's shape, version 1, without a session |  |
+| `int-token-set-api` | Let other apps list the house style catalogue through an API | `specs/app-token-set-selection` | in plugin | #77: the list and one design system in the set shape |  |
+| `int-stylesheet-manifest` | Let a page fetch the stylesheets a house style needs, in cascade order, to swap it in place | `specs/css-architecture` | in plugin | #77: `GET /thematiq/api/v1/sets/<id>/manifest` and the style sheet it names |  |
 | `int-metrics` | Monitor theming through Prometheus metrics (active set, overrides, syncs) | `specs/prometheus-metrics` | to build, adapted | The Prometheus client is in OpenProject's Gemfile. Not checked how a plugin adds a metric | M |
 | `int-health` | Check that the theming app is healthy from a monitoring system | `specs/prometheus-metrics` | in plugin | #73: `GET /admin/thematiq/health` for administrators, 200 or 503 with the problems, and `rake thematiq:health` |  |
 | `int-tokens-for-other-apps` | Let other apps style themselves with the same CSS variables, with no build step | `specs/css-architecture` | in plugin | `lib/open_project/thematiq/variables/generator.rb`: the `--thematiq-*` aliases |  |
@@ -281,7 +281,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `int-cli-set-theme` | Set the active theme from the command line | `specs/theme-cli` | in plugin | #73: `rake thematiq:apply[id]` |  |
 | `int-docs-site` | Read end-user and admin documentation for every theming feature | `specs/docs-content` | in plugin | `docs/` in the repository. Markdown, no site |  |
 | `int-sovereign-bundle` | Ship as part of a sovereign workplace bundle with one brand across all its components (thematiq has this in part) | `specs/token-sets` | in plugin | This is what the plugin is for (`README.md`) |  |
-| `x-shell-tokens-api` | Let another product read the active house style as 18 values and a logo (newer than thematiq's list) | `docs/features/shell-tokens-api.md` | to build, adapted | #5 removed the client and every connection: network only for what an admin turns on. A set moves by file instead (#10). See question 1 | S |
+| `x-shell-tokens-api` | Let another product read the active house style as 18 values and a logo (newer than thematiq's list) | `docs/features/shell-tokens-api.md` | in plugin | #77: the plugin answers thematiq's shell-tokens shape itself, so the two products read each other. It opens no connection (#5) |  |
 
 ## The reverse table
 
