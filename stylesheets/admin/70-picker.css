@@ -76,3 +76,6 @@
 /* Your own CSS. */
 .thematiq-custom-css__text { width: 100%; max-width: 960px; font-family: monospace; font-size: 13px; }
 .thematiq-inline-form { display: inline; }
+/* The playground. */
+.thematiq-playground__row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 20px; }
+.thematiq-playground__row--fields { align-items: flex-start; }
