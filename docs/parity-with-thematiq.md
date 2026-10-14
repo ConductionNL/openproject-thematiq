@@ -16,9 +16,9 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 119 |
+| in plugin | 120 |
 | being built | 0 |
-| to build, as is | 12 |
+| to build, as is | 11 |
 | to build, adapted | 31 |
 | no counterpart | 3 |
 | Total | 165 |
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **43 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 30 S, 11 M and 2 L.
+1. **42 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 29 S, 11 M and 2 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -152,7 +152,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `typ-font-login` | Show your own font on the login page, before anyone has signed in | `specs/custom-fonts` | in plugin | #16: the sign-in page and the logo-only layout get the fonts |  |
 | `typ-marianne-gated` | Enable the French State Marianne typeface only after confirming you are entitled to it | `specs/claim-accuracy` | to build, as is |  | S |
 | `typ-font-tokens` | Set font family, size and weight through tokens per house style | `specs/token-editor-ui` | in plugin | #64: heading sizes and the body font from the vocabulary. Weights are carried |  |
-| `typ-org-font-library` | Offer site owners a central library of approved organisation fonts to choose from (thematiq has this in part) | `specs/custom-fonts` | to build, as is | Fonts are uploaded per custom design system (#32). No shared library | S |
+| `typ-org-font-library` | Offer site owners a central library of approved organisation fonts to choose from (thematiq has this in part) | `specs/custom-fonts` | in plugin | #85: a font library: fonts uploaded once, used by every design system whose font names the family, with the same content checks |  |
 
 ### Logos, icons and imagery
 

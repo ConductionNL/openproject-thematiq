@@ -255,9 +255,12 @@ module Thematiq
     # of the file to remove. Every upload is hostile input: the Inspector decides what it is by its content.
     def update_files
       id = params[:id].to_s
-      return render_404 unless @store.custom_draft(id)
+      library = id == OpenProject::Thematiq::Assets::LIBRARY_ID
+      return render_404 unless library || @store.custom_draft(id)
 
       kind = OpenProject::Thematiq::Uploads.kind(params[:kind])
+      # The library holds fonts only.
+      raise OpenProject::Thematiq::Uploads::Refused, "unknown_kind" if library && params[:remove].blank? && kind&.name != "font"
       raise OpenProject::Thematiq::Uploads::Refused, "not_ready" unless Thematiq::Upload.ready?
 
       if params[:remove].present?
@@ -277,10 +280,16 @@ module Thematiq
         flash[:notice] = t(stored.cleaned ? "thematiq.uploads.notice_stored_cleaned" : "thematiq.uploads.notice_stored",
                            kind: t("thematiq.uploads.kinds.#{kind.name}.label"))
       end
-      redirect_to action: :edit, id:
+      redirect_after_files(id)
     rescue OpenProject::Thematiq::Uploads::Refused, ActiveRecord::RecordInvalid => e
       code = e.respond_to?(:code) ? e.code : "broken"
       flash[:error] = t("thematiq.uploads.errors.#{upload_error_key(code)}", **upload_limits(kind))
+      redirect_after_files(id)
+    end
+
+    def redirect_after_files(id)
+      return redirect_to action: :show, anchor: "thematiq-font-library" if id == OpenProject::Thematiq::Assets::LIBRARY_ID
+
       redirect_to action: :edit, id:
     end
 
@@ -719,11 +728,11 @@ module Thematiq
 
       @confirm = { title: t("thematiq.uploads.confirm_remove.title"),
                    question: t("thematiq.uploads.confirm_remove.question", file: upload_description(record),
-                                                                           name: @store.custom_draft(id).name),
+                                                                           name: id == OpenProject::Thematiq::Assets::LIBRARY_ID ? t("thematiq.library.title") : @store.custom_draft(id).name),
                    consequence: t("thematiq.uploads.confirm_remove.consequence"),
                    button: t("thematiq.uploads.confirm_remove.confirm"),
                    url: admin_thematiq_custom_files_path, fields: { id:, remove: token },
-                   back: admin_thematiq_custom_path(id:) }
+                   back: id == OpenProject::Thematiq::Assets::LIBRARY_ID ? admin_thematiq_path(anchor: "thematiq-font-library") : admin_thematiq_custom_path(id:) }
       render :confirm
     end
 

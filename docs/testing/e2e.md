@@ -22,6 +22,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `top-bar.spec.js` | The field for the tiles of the top bar: an own row shows in its order, no row shows no tiles, an empty own row is refused |
 | `api.spec.js` | The read endpoints for a signed-in person, and thematiq's shell-tokens answer without a session |
 | `app-switcher.spec.js` | The list under the nine-dot button: heading, two columns, a second line, the current entry, Manage apps, `aria-expanded`, arrow keys and Escape; one column without a Nextcloud address |
+| `library.spec.js` | A font in the library loads for a design system that names its family |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `metrics.spec.js` | `/thematiq/metrics` answers 404 without `THEMATIQ_METRICS_TOKEN`; with it, 401 without the token and the text format with it. Set `THEMATIQ_E2E_METRICS_TOKEN` to check the second |
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
