@@ -1060,6 +1060,21 @@ begin
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
 
+  # Create work package as a dialog (Shell::CreateDialog): the script on the pages, and core's own dialog behind it.
+  dialog_admin = session_for("admin", ADMIN_PASSWORD)
+  dialog_admin.get "/projects/demo-project/work_packages"
+  check("a project page carries the create dialog script") { dialog_admin.response.body.include?("window.thematiqCreateDialog") }
+  dialog_admin.get "/projects/demo-project/work_packages/dialog/new", params: { type_id: Type.first.id },
+                                                                      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+  check("core answers the create dialog as a Turbo stream") do
+    dialog_admin.response.status == 200 && dialog_admin.response.media_type == "text/vnd.turbo-stream.html" &&
+      dialog_admin.response.body.include?('id="create-work-package-dialog"') && dialog_admin.response.body.include?('id="create-work-package-form"')
+  end
+  manager_session.get "/projects/demo-project/work_packages/dialog/new", headers: { "Accept" => "text/vnd.turbo-stream.html" }
+  check("a user who may not add work packages there gets no dialog") do
+    manager_session.response.status != 200 && !manager_session.response.body.include?("create-work-package-form")
+  end
+
   # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
   scraper = session_for
   scraper.get "/thematiq/metrics"
