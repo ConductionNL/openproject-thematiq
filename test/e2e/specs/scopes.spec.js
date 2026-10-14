@@ -38,7 +38,9 @@ test.describe("scopes", () => {
 
     // Leave the project by a link, the way Turbo moves, and come back by a link.
     await page.getByRole("button", { name: "All apps and modules" }).click();
-    await page.getByRole("dialog", { name: "All apps and modules" }).locator("[data-thematiq-switcher-entry]").filter({ hasText: "Projects" }).first().click();
+    const switcher = page.getByRole("dialog", { name: "All apps and modules" });
+    // "Portfolios" has "Projects grouped as portfolios" as its second line, so the name must match whole.
+    await switcher.locator("[data-thematiq-switcher-entry]").filter({ has: page.locator(".thematiq-apps--name", { hasText: /^Projects$/ }) }).click();
     await page.waitForURL(/\/projects\/?$/);
     await expect.poll(() => bar(page)).toBe(instanceBar);
     await expect(page.locator("style#openproject-thematiq")).toHaveCount(1);

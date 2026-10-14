@@ -49,7 +49,9 @@ test.describe("visitor", () => {
   test("a missing page is themed and answers 404", async ({ page }) => {
     const response = await page.goto("/thematiq-e2e-no-such-page");
     expect(response.status()).toBe(404);
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(bar));
+    // An error page has OpenProject's plain layout: the early variable layer and core's header in the primary colour,
+    // without the shell (docs/layouts.md).
+    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(tokens.primary));
   });
 
   test("the admin page sends a visitor to the sign-in page", async ({ page }) => {
