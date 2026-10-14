@@ -30,6 +30,8 @@ test.describe("uploads", () => {
   test.afterEach(async ({ page }) => { await restore(page, saved); });
 
   test("each kind appears where it should", async ({ page }) => {
+    // Six uploads and some fifteen page loads: it took 46 s to 1.6 min across runs, against a limit of 90 s.
+    test.slow();
     const logo = await upload(page, id, "logo", { name: "logo.png", mimeType: "image/png", buffer: png(240, 60) });
     await expect(page.getByText("The logo is uploaded and in use.").filter({ visible: true }).first()).toBeVisible();
     const logoUrl = await shown(logo);

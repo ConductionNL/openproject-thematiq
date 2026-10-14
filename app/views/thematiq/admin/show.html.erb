@@ -223,6 +223,9 @@ end %>
 
 <% module_rows = Thematiq::Scope.ready? ? Thematiq::Scope.rows.select { |r| r.project_id.nil? }.to_h { |r| [r.module_name, r.design_system_id] } : {} %>
 <% chosen_for_projects = @store.project_choices %>
+<%# Built once: every custom design system is checked again on the way out, and there are eleven lists. %>
+<% every_set = @store.all_sets %>
+<% every_option = every_set.map { |token_set| [token_set.name, token_set.id] } %>
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium, id: "thematiq-scopes") { t("thematiq.scopes.admin.title") }
 end %>
@@ -241,7 +244,7 @@ end %>
       <legend class="sr-only"><%= t("thematiq.scopes.admin.choices") %></legend>
       <p class="thematiq-editor__hint"><%= t("thematiq.scopes.admin.choices_hint") %></p>
       <div class="thematiq-top-bar__list">
-        <% @store.all_sets.each do |token_set| %>
+        <% every_set.each do |token_set| %>
           <label class="thematiq-editor__toggle">
             <input type="checkbox" name="project_choices[]" value="<%= token_set.id %>" <%= "checked" if chosen_for_projects.include?(token_set.id) %>>
             <%= token_set.name %>
@@ -258,7 +261,7 @@ end %>
         <div class="thematiq-top-bar__place">
           <label class="thematiq-editor__label" for="thematiq-module-<%= name %>"><%= t("thematiq.scopes.modules.#{name}") %></label>
           <select name="modules[<%= name %>]" id="thematiq-module-<%= name %>" class="FormControl-select FormControl-medium">
-            <%= options_for_select([[t("thematiq.scopes.admin.module_inherit"), ""]] + @store.all_sets.map { |s| [s.name, s.id] }, module_rows[name].to_s) %>
+            <%= options_for_select([[t("thematiq.scopes.admin.module_inherit"), ""]] + every_option, module_rows[name].to_s) %>
           </select>
         </div>
       <% end %>
