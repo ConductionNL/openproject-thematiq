@@ -230,7 +230,7 @@ begin
                                                  tokens: { "primary" => "#aa0055" }, authenticity_token: token }
   check("reset all clears every field") { admin.response.status == 200 && !admin.response.body.include?('value="#aa0055"') }
 
-  admin.post "/admin/thematiq", params: { set_id: default.id, authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  admin.post "/admin/thematiq", params: { set_id: default.id, authenticity_token: form_token(admin, "/admin/thematiq/compare?set_id=#{default.id}", "thematiq-compare-form") }
   check("picking a catalogue set turns the custom one off and keeps it") do
     s = OpenProject::Thematiq::Store.new
     !s.custom_active? && s.custom_draft&.name == "Check style"
@@ -914,10 +914,12 @@ begin
       admin.response.body.include?('data-test-selector="thematiq-trial-banner"')
   end
   check("a trial changes nothing for anyone else") { OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham" }
-  switch_member.get "/projects"
+  # A session of its own: a refused CSRF token signs a session out.
+  other_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  other_member.get "/projects"
   check("another person sees the design system in use and no banner") do
-    head_style(switch_member).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
-      !switch_member.response.body.include?("thematiq-trial-banner")
+    other_member.response.status == 200 && head_style(other_member).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
+      !other_member.response.body.include?("thematiq-trial-banner")
   end
   publish_token = CGI.unescapeHTML(admin.response.body[%r{<form[^>]*action="/admin/thematiq/trial/publish".*?name="authenticity_token" value="([^"]+)"}m, 1].to_s)
   admin.post "/admin/thematiq/trial/publish", params: { authenticity_token: publish_token }

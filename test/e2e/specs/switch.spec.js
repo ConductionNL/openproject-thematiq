@@ -37,7 +37,7 @@ test.describe("switch safely", () => {
     // A marker on the window survives only when the page does not load again.
     await page.evaluate(() => { window.__thematiqSamePage = true; });
     await page.locator("#thematiq-compare-form").getByRole("button", { name: "Apply", exact: true }).click();
-    await expect(page.locator('[data-test-selector="thematiq-applied"]')).toContainText(`${target.name} is now the active design system`);
+    await expect(page.locator('[data-test-selector="thematiq-applied"]')).toContainText(`"${target.name}" is now the active design system`);
     expect(await page.evaluate(() => window.__thematiqSamePage)).toBe(true);
     await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(target.tokens.primary));
     expect(await activeSetId(page)).toBe("zuiddrecht");
