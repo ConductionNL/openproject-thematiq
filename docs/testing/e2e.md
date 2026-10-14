@@ -7,6 +7,8 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | Spec | What |
 |---|---|
 | `signin.spec.js` | The sign-in page and a missing page carry the active design system; the admin page sends a visitor to sign in |
+| `bundle.spec.js` | The whole setup downloads as a file and comes back after a dry run; a hostile file is refused; the history downloads as CSV |
+| `operations.spec.js` | The health report answers JSON for an administrator |
 | `picker.spec.js` | The bundled design systems are listed, the search narrows, Apply changes the colour of the top bar for everyone |
 | `editor.spec.js` | The live preview follows typing in each group, the colour picker and Reset work, a bad colour blocks saving; a value of the full vocabulary is found by search, checked, saved and exported |
 | `transfer.spec.js` | A custom design system survives export, delete and import; a broken file is refused; each Figma format uploads again with the same values |

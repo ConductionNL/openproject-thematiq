@@ -229,6 +229,41 @@ Use this to move a design system from one OpenProject to another.
 
 An import never replaces a design system that is there. Uploaded files do not travel in the file: upload them again on the other OpenProject. [docs/admin-page.md](docs/admin-page.md) has the details.
 
+## Run it in production
+
+### Move the whole setup
+
+**The whole setup** on Thematiq design downloads one file with everything: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Read it on the other OpenProject under the same heading: a page shows what it changes, and nothing changes until you select **Import this setup**. Projects are matched by identifier. Uploaded logos, icons and fonts are not in the file.
+
+### The history for an auditor
+
+**Download the history as CSV**, next to the setup download, gives every change with its time, who made it, what and whether it can still be restored.
+
+### From the command line
+
+Run these in OpenProject's directory. In the compose instance: `docker compose -f docker/compose.yml exec openproject bash -lc 'cd /app && bundle exec rake thematiq:status'`.
+
+| Task | What it does |
+|---|---|
+| `rake thematiq:status` | The design system in use and the counts |
+| `rake thematiq:list` | Every design system, id and name |
+| `rake "thematiq:apply[zuiddrecht]"` | Makes a design system the one in use |
+| `rake "thematiq:bundle:export[setup.json]"` | Writes the setup to a file, or to the screen without one |
+| `rake "thematiq:bundle:import[setup.json]"` | Makes a configuration file the setup. With `DRY_RUN=1` it only lists the changes |
+| `rake thematiq:history` | The newest 50 changes |
+| `rake "thematiq:restore[42]"` | Restores a version of the history. `DRY_RUN=1` works here too |
+| `rake thematiq:health` | The health report as JSON; exits 1 when something is degraded |
+
+A task that changes the setup leaves a row in the history.
+
+### The design system as code
+
+Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design system, for example `zuiddrecht`. It wins over the admin page, which then says so and turns Apply off. An id that is not there is ignored, and the admin page and the health report say so. `docker/compose.yml` passes the variable through: `THEMATIQ_DESIGN_SYSTEM=zuiddrecht docker compose -f docker/compose.yml up -d`.
+
+### Health
+
+`GET /admin/thematiq/health`, for an administrator, answers JSON: the version, the catalogue, the design system in use, whether the plugin's tables are there and whether a core file the shell leans on changed. The status is 200 when all is well and 503 with a list of problems otherwise. `rake thematiq:health` gives the same without a session.
+
 ## What is in this repository now
 
 - The plugin gem at the repository root: `openproject-thematiq.gemspec`, `lib/`, `app/`, `config/` and `stylesheets/`.
