@@ -146,6 +146,18 @@ module OpenProject
         # text variable; the status colour itself fills and draws the strong border. Primer's "accent" scale is
         # the link and the primary here, so the info colour is carried and not drawn.
         VOCABULARY_COLORS = {
+          # Form controls (sur-component-bridge): thematiq's text field and select tokens on Primer's control variables.
+          "--control-borderColor-rest" => %w[component-textbox-border-color component-form-select-border-color],
+          "--control-borderColor-emphasis" => %w[component-textbox-hover-border-color],
+          "--control-borderColor-danger" => %w[component-textbox-invalid-border-color],
+          "--control-bgColor-rest" => %w[component-textbox-background-color],
+          "--control-bgColor-disabled" => %w[component-textbox-disabled-background-color],
+          "--control-fgColor-rest" => %w[component-textbox-color],
+          "--control-fgColor-disabled" => %w[component-textbox-disabled-color],
+          # The secondary button: thematiq's secondary action on Primer's outline button.
+          "--button-outline-fgColor-rest" => %w[component-button-secondary-action-color],
+          "--button-outline-bgColor-hover" => %w[component-button-secondary-action-hover-background-color],
+          "--button-outline-borderColor-hover" => %w[component-button-secondary-action-border-color],
           # The plugin's footer with the legal links (sur-footer-links): thematiq's footer colours.
           "--thematiq-v-footer-bg" => %w[color-footer-background], "--thematiq-v-footer-text" => %w[color-footer-text],
           "--fgColor-danger" => %w[component-status-badge-error-color color-error],

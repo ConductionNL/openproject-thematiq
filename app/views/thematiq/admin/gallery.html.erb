@@ -1,0 +1,64 @@
+<% title = t("thematiq.gallery.title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+<% status = @store.gallery_status %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.gallery.description") }
+  end
+%>
+
+<%= form_with(url: admin_thematiq_gallery_path, method: :post, data: { turbo: false }, id: "thematiq-gallery-form", class: "thematiq-short-form") do %>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="gallery_enabled" value="1" id="thematiq-gallery-enabled" <%= "checked" if @store.gallery_enabled? %>>
+    <%= t("thematiq.gallery.enabled") %>
+  </label>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-gallery-url"><%= t("thematiq.gallery.url") %></label>
+    <input type="url" name="gallery_url" id="thematiq-gallery-url" class="FormControl-input FormControl-medium" maxlength="500" value="<%= @store.gallery_url %>"
+           aria-describedby="thematiq-gallery-url-hint">
+    <p class="thematiq-editor__hint" id="thematiq-gallery-url-hint"><%= t("thematiq.gallery.url_hint") %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit, name: "save", value: "1")) { t("thematiq.gallery.save") } %>
+  <% if @store.gallery_enabled? %>
+    <%= render(Primer::Beta::Button.new(type: :submit, name: "check", value: "1", ml: 2)) { t("thematiq.gallery.check") } %>
+  <% end %>
+<% end %>
+
+<p data-test-selector="thematiq-gallery-status">
+  <% if status["checked_at"] %>
+    <%= t("thematiq.gallery.status_checked", time: format_time(Time.at(status["checked_at"].to_i))) %>
+    <% if status["error"] %>
+      <%= t("thematiq.gallery.status_error", code: status["error"]) %>
+    <% else %>
+      <%= t("thematiq.gallery.status_found", sets: status["sets"].to_i, count: status["new"].to_i, published: status["generated_from"]) %>
+    <% end %>
+  <% else %>
+    <%= t("thematiq.gallery.status_never") %>
+  <% end %>
+</p>
+
+<% if @gallery_sets %>
+  <% if @gallery_sets.empty? %>
+    <p><%= t("thematiq.gallery.nothing_new") %></p>
+  <% else %>
+    <%= form_with(url: admin_thematiq_gallery_path, method: :post, data: { turbo: false }, id: "thematiq-gallery-sets") do %>
+      <ul class="thematiq-gallery" data-test-selector="thematiq-gallery-sets">
+        <% @gallery_sets.each do |token_set| %>
+          <li class="thematiq-picker__option">
+            <%= thematiq_thumbnail(token_set) %>
+            <span class="thematiq-picker__text"><span class="thematiq-picker__name"><%= token_set.name %></span>
+              <span class="thematiq-picker__meta"><%= @store.catalogue.find(token_set.id) ? t("thematiq.gallery.changed") : t("thematiq.gallery.new") %></span></span>
+            <%= render(Primer::Beta::Button.new(type: :submit, name: "add", value: token_set.id, "aria-label": t("thematiq.gallery.add_label", name: token_set.name))) { t("thematiq.gallery.add") } %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  <% end %>
+<% end %>

@@ -40,10 +40,12 @@ class AssetsTest < Minitest::Test
     Dir[File.join(Assets::FONT_DIRECTORY, "*.woff2")].each { |file| assert_equal "wOF2", File.binread(file, 4), file }
   end
 
-  def test_nothing_but_logos_fonts_and_licence_texts_is_served
+  def test_nothing_but_logos_fonts_licence_texts_and_icons_is_served
     served = Dir[File.join(Assets::PUBLIC_DIRECTORY, "**", "*")].select { |path| File.file?(path) }
 
-    served.each { |path| assert_match(%r{/public/thematiq/(?:logos/[a-z0-9-]+\.svg|fonts/[a-z0-9-]+\.woff2|fonts/[A-Za-z0-9.-]+\.txt)\z}, path) }
+    served.each do |path|
+      assert_match(%r{/public/thematiq/(?:logos/[a-z0-9-]+\.svg|fonts/[a-z0-9-]+\.woff2|fonts/[A-Za-z0-9.-]+\.txt|icons/[a-z-]+/[a-z0-9-]+\.svg)\z}, path)
+    end
   end
 
   # --- fonts ---

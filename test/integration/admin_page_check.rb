@@ -1233,6 +1233,68 @@ begin
   end
   OpenProject::Thematiq::Store.new.save_email_settings(styled: false, footer: "")
   OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  # 28. The playground
+  play_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  play_member.get "/admin/thematiq/playground"
+  check("a non-admin cannot open the playground") { play_member.response.status == 403 }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  admin.get "/admin/thematiq/playground", params: { set_id: "zuiddrecht" }
+  check("the playground draws the chosen design system in the content area only") do
+    body = admin.response.body
+    admin.response.status == 200 && body.include?('<style id="openproject-thematiq-content"') &&
+      head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
+  end
+
+  # 29. The icon library
+  icon_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  icon_member.get "/thematiq/api/v1/icons", headers: { "Accept" => "application/json" }
+  icon_list = JSON.parse(icon_member.response.body) rescue {}
+  check("a member reads the icon library") { icon_member.response.status == 200 && icon_list["sets"].to_h.key?("rvo") }
+  icon_view = session_for
+  icon_view.get "/thematiq/icons/rvo/#{icon_list.dig('sets', 'rvo', 'names')&.first}.svg"
+  check("an icon is a static file without a session") { icon_view.response.status == 200 && icon_view.response.media_type == "image/svg+xml" }
+  icon_view.get "/thematiq/icons/../../config/database.yml"
+  check("the icon path does not leave its folder") { icon_view.response.status != 200 || !icon_view.response.body.include?("adapter") }
+
+  # 30. The gallery: off by default, https only; and the shared light or dark choice
+  check("the gallery is off by default and opens nothing") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  gallery_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  gallery_member.get "/admin/thematiq/gallery"
+  check("a non-admin cannot open the gallery") { gallery_member.response.status == 403 }
+  gallery_token = form_token(admin, "/admin/thematiq/gallery", "thematiq-gallery-form")
+  admin.post "/admin/thematiq/gallery", params: { save: "1", gallery_enabled: "1", gallery_url: "http://169.254.169.254/latest", authenticity_token: gallery_token }
+  check("a gallery address that is not https is refused") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  appearance_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "/" }
+  check("the appearance link answers 404 while it is off") { appearance_member.response.status == 404 }
+  OpenProject::Thematiq::Store.new.save_appearance_link(true)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "https://evil.example/" }
+  check("the appearance link sets the person's choice and only goes back to a safe place") do
+    appearance_member.response.redirect? && !appearance_member.response.location.include?("evil.example") && member.reload.pref.theme == "dark"
+  end
+  appearance_member.get "/thematiq/appearance", params: { mode: "light", return_to: "/projects" }
+  check("light, and back to a path here") { appearance_member.response.location.end_with?("/projects") && member.reload.pref.theme == "light" }
+  OpenProject::Thematiq::Store.new.save_appearance_link(false)
+
+  # 31. A design system per group
+  check_group = Group.create!(lastname: "Thematiq check group #{SecureRandom.hex(3)}")
+  check_group.group_users.create!(user_id: member.id)
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  groups_token = form_token(admin, "/admin/thematiq", "thematiq-groups-form")
+  admin.post "/admin/thematiq/groups", params: { groups: [{ group_id: check_group.id.to_s, design_system_id: "zuiddrecht" }], authenticity_token: groups_token }
+  check("the design system of a group is saved") { OpenProject::Thematiq::Store.new.group_choices.first.to_h["group_id"] == check_group.id }
+  group_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  group_session.get "/my/account"
+  check("a member of the group sees its design system") { head_style(group_session).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") }
+  admin.get "/my/account"
+  check("someone outside the group keeps the instance's") { head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  group_view = session_for
+  group_view.get "/login"
+  check("the sign-in page keeps the instance's") { head_style(group_view).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  OpenProject::Thematiq::Store.new.save_group_choices([])
+  check_group.destroy
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
