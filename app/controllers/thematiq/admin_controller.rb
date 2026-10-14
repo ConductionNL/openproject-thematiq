@@ -815,13 +815,19 @@ module Thematiq
                OpenProject::Thematiq::Uploads::FontFace.clean(family: params[:font_family], weight: params[:font_weight],
                                                               style: params[:font_style])
              end
+      # The French State's Marianne typeface is reserved for its administrations (typ-marianne-gated): the uploader
+      # confirms the entitlement first.
+      if face && OpenProject::Thematiq::Uploads::FontFace.gated?(face.family) && params[:marianne_entitled] != "1"
+        raise OpenProject::Thematiq::Uploads::Refused, "font_not_entitled"
+      end
       result = OpenProject::Thematiq::Uploads::Inspector.inspect_upload(kind.name, bytes)
       Thematiq::Upload.store!(set_id:, result:, face:, label: file.respond_to?(:original_filename) ? file.original_filename.to_s : nil)
       result
     end
 
     UPLOAD_ERRORS = %w[empty too_large unknown_type wrong_type broken too_small too_wide svg_declares svg_not_svg svg_too_complex
-                       font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind].freeze
+                       font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind
+                       font_not_entitled].freeze
 
     def upload_error_key(code)
       UPLOAD_ERRORS.include?(code) ? code : "broken"

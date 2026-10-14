@@ -132,6 +132,9 @@
             <% end %>
           </select>
         </div>
+        <label class="thematiq-editor__toggle">
+          <input type="checkbox" name="marianne_entitled" value="1"> <%= t("thematiq.uploads.marianne_entitled") %>
+        </label>
       </div>
       <p class="thematiq-editor__hint" id="thematiq-file-font-limits">
         <%= t("thematiq.uploads.limit_font", types: type_names.call(font_kind), size: uploads.human_size(font_kind.max_bytes), count: uploads::MAX_FONTS) %>

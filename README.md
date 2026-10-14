@@ -307,6 +307,26 @@ Set the environment variable `THEMATIQ_DESIGN_SYSTEM` to the id of a design syst
 
 Set `THEMATIQ_BUNDLE_FILE` to the path of a configuration file inside the container, mounted from your deployment. When OpenProject starts, the plugin makes it the setup, once per version of the file: an unchanged file is not applied again, so later changes on the admin page stay until the file changes. A file that does not read is refused whole and the log says why; OpenProject starts anyway. Each application is a row in the history.
 
+### An environment marker
+
+Under **Environment marker**, give a label such as Test and a colour: it shows at the top of every page, the sign-in page included, so nobody works in the wrong OpenProject. `THEMATIQ_ENVIRONMENT_LABEL` sets it as code and wins over the field.
+
+### Deprecated tokens
+
+Under **Deprecated tokens**, mark a token your organisation is moving away from: a severity, what to use instead and by when. Nothing changes value; the editor shows the notice next to the token and other apps read the list at `/thematiq/api/v1/deprecations`. Past its date it says "Due for removal" and still works.
+
+### A brand manager who is not an administrator
+
+Give someone a global role with the permission **Manage the design**. They see **Thematiq design** in the administration and can do everything on it, and nothing else of the administration. Their changes carry their name in the history.
+
+### A contrast report for an audit
+
+**Contrast report for an audit**, on **Thematiq design**, lists every design system in use, for the instance, each project and each module, with each pair of text and background the shell draws, light and dark, against WCAG 2.1 success criterion 1.4.3. Print it or download it as JSON; `rake thematiq:compliance[report.json]` writes the same, and `STRICT=1` makes it fail on a pair under 4.5 to 1. `docs/contrast-report.md` and `docs/token-reference.md` are generated from the code by `script/generate-docs.rb`.
+
+### Read endpoints for other apps
+
+Other apps on this OpenProject read the catalogue, one design system, its style sheets, own tokens, deprecations, the icon list and a contrast check; another product reads the design system in use in thematiq's shell-tokens shape. [docs/api.md](docs/api.md) lists them.
+
 ### Metrics
 
 Set `THEMATIQ_METRICS_TOKEN` to a secret of 24 characters or more, and `GET /thematiq/metrics` answers Prometheus' text format to a scraper that sends `Authorization: Bearer <token>`: whether the plugin is healthy, the design system in use, the counts of custom design systems, scopes and history rows. Without the variable the address answers 404. It opens no connection itself: the scraper comes to it.

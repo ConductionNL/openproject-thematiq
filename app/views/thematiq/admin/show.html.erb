@@ -148,6 +148,7 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+              <span class="thematiq-picker__meta" data-test-selector="thematiq-completeness"><%= t("thematiq.admin.completeness", filled: token_set.vocabulary.size, total: OpenProject::Thematiq::Tokens::Vocabulary.keys.size, dark: token_set.dark? ? t("thematiq.admin.completeness_dark") : t("thematiq.admin.completeness_no_dark")) %></span>
               <% low = OpenProject::Thematiq::Contrast.failures(token_set) %>
               <% if low.any? %>
                 <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
@@ -563,6 +564,9 @@ end %>
       <% end %>
     </select>
   </div>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="marianne_entitled" value="1"> <%= t("thematiq.uploads.marianne_entitled") %>
+  </label>
   <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.library.upload") } %>
 <% end %>
 

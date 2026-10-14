@@ -4,7 +4,7 @@ This page maps what thematiq does against what this plugin does, so the work to 
 
 First read on 12 October 2026. Brought up to date on 14 October 2026 from:
 
-- This repository: the pull requests merged into `development`, #1 to #75, and since then each pull request updates the rows it builds. A row in an open pull request says "being built" and names it.
+- This repository: the pull requests merged into `development`, #1 to #89, and the open pull requests #91 to #95 of wave 6 and 7, which name themselves in the rows they build. Each pull request updates the rows it builds.
 - thematiq `development`, for the reverse table only. thematiq's capability list was not read again: it is the one of 26 September (`openspec/parity/capabilities.json`).
 - OpenProject 17.9.1 and the end-to-end suite of this repository, run on a live instance.
 
@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 139 |
+| in plugin | 143 |
 | being built | 0 |
-| to build, as is | 10 |
-| to build, adapted | 10 |
+| to build, as is | 7 |
+| to build, adapted | 9 |
 | no counterpart | 6 |
 | Total | 165 |
 
@@ -49,8 +49,8 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **20 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 15 S, 4 M and 1 L.
-2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
+1. **16 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 11 S, 4 M and 1 L.
+2. **Waves 2, 4 and the wave 3, 5, 6 and 7 rows that need no frontend build are done** (#68 to #95). What is left: seven small rows of wave 1, the groups of wave 5, an icon pack (it needs a frontend build of OpenProject), the choice of whole design systems, mobile clients, federated sharing, stored references, and PDF export styling, which the owner stopped. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
 5. **Only 3 rows have no counterpart.** 4 of the "in plugin" rows are things OpenProject core already does, just as Nextcloud core does them for thematiq.
@@ -75,7 +75,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `cat-searchable-picker` | Find a house style by typing its name in a searchable picker that scales to hundreds of entries (thematiq has this in part) | `specs/token-set-dropdown` | in plugin | #7: a search field on the picker, run on the server. It finds custom design systems too (#43) |  |
 | `cat-swatch-preview` | See a colour swatch and the primary colour of each house style before choosing it | `specs/token-set-dropdown` | in plugin | #7: a small picture of the shell per design system |  |
 | `cat-stock-option` | Switch back to stock Nextcloud styling with one choice, removing every added stylesheet | `specs/theming-sync` | to build, adapted | #24 lists OpenProject's own three themes as design systems. A choice that emits no stylesheet at all is not built | S |
-| `cat-completeness-badge` | See how complete a house style's token vocabulary is before you rely on it | `changes/archive/2026-10-09-token-set-vocabulary-audit` | to build, adapted | Count how many of the 18 roles a set fills. The store already keeps the refused keys | S |
+| `cat-completeness-badge` | See how complete a house style's token vocabulary is before you rely on it | `changes/archive/2026-10-09-token-set-vocabulary-audit` | in plugin | #98: each shipped design system says how many of thematiq's 185 vocabulary values it fills, and whether it has a dark block |  |
 | `cat-design-system-choice` | Choose between whole design systems (NL Design System, La Suite, high contrast, a soft light theme), not only colour sets | `specs/css-architecture` | to build, adapted | The plugin has one geometry layer for every set. A design system would bring its own layer. Unclear how far this should go | M |
 | `cat-design-system-docs` | Follow a link from the settings page to the design system's own documentation (thematiq has this in part) | `specs/admin-settings` | to build, as is |  | S |
 | `cat-community-sets` | Use community-maintained brand sets for organisations that are not a municipality | `specs/extended-token-sets` | in plugin | The same catalogue (#13) |  |
@@ -150,7 +150,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `typ-font-validate` | Have an uploaded font checked for format and size before it is accepted | `specs/custom-fonts` | in plugin | #30: checked by their content |  |
 | `typ-font-list-delete` | List and delete the fonts you uploaded | `specs/custom-fonts` | in plugin | #32, #44 |  |
 | `typ-font-login` | Show your own font on the login page, before anyone has signed in | `specs/custom-fonts` | in plugin | #16: the sign-in page and the logo-only layout get the fonts |  |
-| `typ-marianne-gated` | Enable the French State Marianne typeface only after confirming you are entitled to it | `specs/claim-accuracy` | to build, as is |  | S |
+| `typ-marianne-gated` | Enable the French State Marianne typeface only after confirming you are entitled to it | `specs/claim-accuracy` | in plugin | #98: the plugin does not ship Marianne; an upload of that family asks the uploader to confirm the entitlement first |  |
 | `typ-font-tokens` | Set font family, size and weight through tokens per house style | `specs/token-editor-ui` | in plugin | #64: heading sizes and the body font from the vocabulary. Weights are carried |  |
 | `typ-org-font-library` | Offer site owners a central library of approved organisation fonts to choose from (thematiq has this in part) | `specs/custom-fonts` | in plugin | #85: a font library: fonts uploaded once, used by every design system whose font names the family, with the same content checks |  |
 
@@ -185,13 +185,13 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-email-footer` | Add a compliance footer (organisation name, address, legal text) to every email | `specs/email-theming` | in plugin | #91: the organisation's own text and the legal links under every e-mail |  |
 | `sur-component-bridge` | Map community component tokens (Utrecht) onto the workspace's own components | `specs/component-tokens` | in plugin | #57 to #64, #92: thematiq's component tokens reach Primer's variables where Primer has one: buttons, text fields and selects, the outline button, the table, the navigation, headings. Others are carried |  |
 | `sur-nc-variable-mapping` | Map every Nextcloud colour variable to a design token, so no stock colour leaks through | `specs/nextcloud-variable-mapping` | in plugin | `lib/open_project/thematiq/variables/generator.rb` maps the roles and the vocabulary onto OpenProject's and Primer's variables, light and dark (#27, #57 to #66) |  |
-| `sur-error-contrast` | Keep error and status messages readable in every house style | `specs/css-architecture` | to build, as is | #57 draws the status colours of a set. Their contrast is not checked | S |
+| `sur-error-contrast` | Keep error and status messages readable in every house style | `specs/css-architecture` | in plugin | #98: the contrast report measures a set's error, warning and success colours on its page background and on white |  |
 | `sur-status-tokens` | Colour success, warning and error states from the house style's status tokens | `specs/css-architecture` | in plugin | #57: the status colours of the vocabulary reach Primer's danger, success and attention |  |
 | `sur-mobile-desktop-clients` | Carry the brand into the desktop and mobile sync clients (thematiq has this in part) | Nextcloud core theming capability | to build, adapted | Not checked whether OpenProject's mobile app reads any theme value | M |
 | `sur-custom-domain` | Serve the branded workspace on the organisation's own domain name | Nextcloud core | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (host name setting) |  |
 | `sur-footer-links` | Add legal links (privacy statement, imprint, accessibility statement) to the footer and login page | Nextcloud core Theming page | in plugin | #87: a privacy statement, an imprint and an accessibility statement as links at the end of every page and on the sign-in page |  |
 | `sur-web-app-name` | Change the product name, slogan and web address shown to users | Nextcloud core Theming page | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`Setting.app_title`). Since #29 the top bar shows app tiles instead of the name |  |
-| `sur-selection-colour` | Have selected and highlighted text take the brand colour in a readable, translucent form | `specs/token-editor-ui` | to build, as is |  | S |
+| `sur-selection-colour` | Have selected and highlighted text take the brand colour in a readable, translucent form | `specs/token-editor-ui` | in plugin | #98: selected text gets the primary colour, translucent; forced colours keep the system's selection |  |
 | `sur-generated-documents` | Have documents the system generates (letters, PDF exports, reports) carry the house style: logo, cover, footer and fonts (thematiq has this in part) | `specs/document-house-style` | to build, adapted | OpenProject's PDF exports read `CustomStyle` only, which the plugin never touches. A draft request for an extension point is in `docs/upstream/pdf-export-extension-point.md`, not sent | M |
 | `sur-assistant-logo` | Show the organisation's logo as an approved mark inside the AI assistant, so users can see the assistant is the one their organisation sanctioned (thematiq has this in part) | `specs/assistant-approved-mark` | no counterpart | An AI assistant panel. The OpenProject 17.9.1 image has none in its controllers, views or modules |  |
 | `sur-per-app-brand` | Give a collaboration or social app of the suite its own brand name, large and small logo and theme colour from a central brand center | `specs/per-app-theming` | to build, adapted | #67 gives each project and module its own design system, its logo included. A brand name per project is not built. See question 5 | S |
@@ -352,7 +352,7 @@ Each wave can be built and released without the next one. Sizes count the rows o
 | 7. Keep both products in step | A nightly regenerated catalogue, upstream notices, a gallery, a shared light or dark choice, OpenProject's own design values. | 11 | 8 S, 2 M, 1 L | Questions 1, 2 and 6. Do not start this wave before they are answered. |
 | T. thematiq catches up | The reverse table: touch icon, mobile logo, the set file, the canon check, the app switcher column, the pixel-diff check, the picker search | 7 | 5 S, 2 M | Runs beside any wave. The set file comes first: it is what lets a set move between the products without a link. |
 
-**Status on 14 October 2026.** Wave 0: done, apart from PDF export styling (`sur-generated-documents`, blocked by OpenProject) and the cards of `x-workplace-layout`. Wave 1: done, apart from `cat-stock-option`, `cat-completeness-badge`, `cat-design-system-docs`, `typ-marianne-gated`, `ast-icon-contrast`, `sur-error-contrast` and `sur-selection-colour`; `aut-light-dark-values` is in #68. Wave 2: done (#68 to #71, #76). Wave 3: 9 of 17 rows are in, the Figma upload and the font uploads among them; free CSS, own tokens and the NL Design System converter are not. Wave 4: 9 of 26 rows are in (#69, #72 to #74) (audit, configuration file, command line, environment, health, release); the compliance report, metrics, read endpoints and a delegated role are not started. Wave 5: 2 of 9 rows are in (#67, a design system per project); groups, locks and a planned switch are not. Waves 6 and 7: not started.
+**Status on 15 October 2026.** Wave 0: done, apart from PDF export styling (`sur-generated-documents`, stopped by the owner, blocked by OpenProject) and the cards of `x-workplace-layout`. Wave 1: done, apart from `cat-stock-option`, `cat-completeness-badge`, `cat-design-system-docs`, `typ-marianne-gated`, `ast-icon-contrast`, `sur-error-contrast` and `sur-selection-colour`. Wave 2: done (#68 to #71, #76). Wave 3: done apart from `aut-semantic-aliases` (#83 to #85). Wave 4: done (#69, #72 to #82). Wave 5: done apart from the groups (`sco-per-group`, `sco-group-priority`, `sco-login-unaffected`), `sco-per-app-exclude` and `sur-per-app-brand` (#67, #86). Wave 6: done apart from the icon pack and its indicator, which need a frontend build, and `cat-design-system-choice` (#87, #91 to #94). Wave 7: done apart from `sur-mobile-desktop-clients` and `gov-federated-share`; `app-reset-core` and the two `syn-nc-theming` rows have no counterpart, since the plugin never touches `CustomStyle` (#95).
 
 **Wave 0, finish what is started:** `cat-rijkshuisstijl`, `cat-municipal-sets`, `cat-bigcity-systems`, `cat-vng`, `cat-lasuite`, `cat-searchable-picker`, `cat-swatch-preview`, `cat-community-sets`, `cat-starter-templates`, `cat-provincial-sets`, `app-one-click`, `app-live-preview-shell`, `app-runtime-no-deploy`, `app-simple-theme-switch`, `aut-upload-validate`, `aut-custom-list-delete`, `aut-custom-export`, `aut-token-editor`, `aut-token-reset`, `aut-overrides-persist`, `aut-overrides-import-export`, `aut-multi-brand-themes`, `aut-git-sync`, `typ-air-gapped`, `ast-logo-sync`, `ast-upload-logo`, `ast-favicon`, `ast-org-logos`, `ast-dark-logo`, `acc-high-contrast-set`, `gov-licence-clarity`, `syn-upstream-generated`, `sur-generated-documents`, `gov-no-public-cdn`, `x-workplace-layout`
 
