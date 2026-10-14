@@ -1130,6 +1130,20 @@ begin
       OpenProject::Thematiq::Store.new.custom_drafts.any? { |draft| draft.name == "Check NLDS" && draft.token_set["link"] == "#9b0c23" }
   end
   OpenProject::Thematiq::Store.new.custom_drafts.select { |draft| draft.name == "Check NLDS" }.each { |draft| OpenProject::Thematiq::Store.new.delete_custom(draft.id) }
+
+  # 24. The font library
+  check("a library font can be stored") do
+    stored = Thematiq::Upload.store!(set_id: "library", result: OpenProject::Thematiq::Uploads::Inspector.inspect_upload("font", UploadSamples.woff2),
+                                     face: OpenProject::Thematiq::Uploads::FontFace.clean(family: "Check Library", weight: "400", style: "normal"), label: "x.woff2")
+    stored.to_record&.set_id == "library"
+  end
+  library_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  library_member.post "/admin/thematiq/custom/files", params: { id: "library", kind: "font", file: upload.call("x") }
+  check("a non-admin cannot add to the library") { [403, 422].include?(library_member.response.status) }
+  library_token = form_token(admin, "/admin/thematiq", "thematiq-library-form")
+  admin.post "/admin/thematiq/custom/files", params: { id: "library", kind: "logo", file: upload.call("<svg/>"), authenticity_token: library_token }
+  check("the library takes fonts only") { Thematiq::Upload.where(set_id: "library", kind: "logo").none? }
+  Thematiq::Upload.remove_set("library")
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy

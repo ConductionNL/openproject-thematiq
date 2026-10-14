@@ -111,6 +111,11 @@ en:
         property: "A property the plugin does not accept"
         value: "A value the plugin does not accept, such as url() or an unclosed quote"
         too_many_rules: "More than 1,000 rules"
+    library:
+      title: "Font library"
+      hint: "Fonts of your organisation, uploaded once. Every design system whose font names the family uses them, the shipped ones too. A design system's own upload of the same family wins. Up to %{count} files."
+      empty: "No font in the library yet."
+      upload: "Add to the library"
     nlds:
       file: "An NL Design System theme"
       hint: "A built theme CSS (custom properties in a theme class), a W3C Design Tokens JSON or a Style Dictionary tokens.json. thematiq's converter table decides what each token becomes; what the theme lacks is worked out the way thematiq does. Component tokens are not carried. It becomes a new custom design system; nothing is applied."
