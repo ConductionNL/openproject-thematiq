@@ -28,7 +28,9 @@ module OpenProject
 
       # Never raises: a design plugin must not be the reason a page fails. Then the instance's design system is used.
       def compute(project:, controller:, store: Store.new)
-        instance = store.active_token_set
+        # A group's design system takes the instance's place for its members (sco-per-group). Projects and modules still
+        # win over it. The sign-in page has no person, so it keeps the instance's (sco-login-unaffected).
+        instance = group_set(store) || store.active_token_set
         module_name = Scopes.module_of(menu_item(controller))
         # A trial wins everywhere, for the administrator who started it. Nobody else has it in their session.
         trial = Trial.token_set(session: session_of(controller), user: current_user, store:)
@@ -47,6 +49,16 @@ module OpenProject
       end
 
       TRIAL = Scopes::Source.new(kind: :trial).freeze
+
+      # The first group choice, in the order the administrator set, whose group the signed-in person is in.
+      def group_set(store, user = current_user)
+        choices = store.group_choices
+        return nil if choices.empty? || !user.respond_to?(:logged?) || !user.logged?
+
+        member_of = user.groups.pluck(:id)
+        choice = choices.find { |entry| member_of.include?(entry["group_id"]) }
+        choice && store.find_set(choice["design_system_id"])
+      end
 
       def trial?
         current&.resolution&.page&.last == TRIAL

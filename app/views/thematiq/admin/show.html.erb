@@ -669,3 +669,31 @@ end %>
   </label>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.appearance.save") } %>
 <% end %>
+
+<% chosen_groups = @store.group_choices %>
+<% all_groups = Group.order(:lastname).limit(500).pluck(:id, :lastname) %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-groups") { t("thematiq.groups.title") }
+end %>
+<%= form_with(url: admin_thematiq_groups_path, method: :post, data: { turbo: false }, id: "thematiq-groups-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.groups.hint") %></p>
+  <% if all_groups.empty? %>
+    <p class="color-fg-muted"><%= t("thematiq.groups.none") %></p>
+  <% else %>
+    <ol class="thematiq-top-bar__list">
+      <% (chosen_groups + [{}] * 3).first([chosen_groups.size + 3, 10].max).each_with_index do |entry, index| %>
+        <li class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-group-<%= index %>"><%= t("thematiq.groups.place", number: index + 1) %></label>
+          <select name="groups[][group_id]" id="thematiq-group-<%= index %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.groups.no_group"), ""]] + all_groups.map { |id, name| [name, id] }, entry["group_id"]) %>
+          </select>
+          <label class="sr-only" for="thematiq-group-set-<%= index %>"><%= t("thematiq.groups.design_system", number: index + 1) %></label>
+          <select name="groups[][design_system_id]" id="thematiq-group-set-<%= index %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.groups.none_chosen"), ""]] + every_option, entry["design_system_id"]) %>
+          </select>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.groups.save") } %>
+<% end %>

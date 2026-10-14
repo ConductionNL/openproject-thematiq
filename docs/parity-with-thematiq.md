@@ -16,9 +16,9 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 143 |
+| in plugin | 146 |
 | being built | 0 |
-| to build, as is | 7 |
+| to build, as is | 4 |
 | to build, adapted | 9 |
 | no counterpart | 6 |
 | Total | 165 |
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **16 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 11 S, 4 M and 1 L.
+1. **13 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 9 S, 3 M and 1 L.
 2. **Waves 2, 4 and the wave 3, 5, 6 and 7 rows that need no frontend build are done** (#68 to #95). What is left: seven small rows of wave 1, the groups of wave 5, an icon pack (it needs a frontend build of OpenProject), the choice of whole design systems, mobile clients, federated sharing, stored references, and PDF export styling, which the owner stopped. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -203,9 +203,9 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `sco-per-app-exclude` | Exclude individual apps from the house style and leave them stock while you test | `specs/per-app-theming` | to build, adapted | #67 gives a module its own design system, not none. See question 5 | S |
-| `sco-per-group` | Give a group of users a different house style on a shared instance | `specs/admin-settings` | to build, as is | OpenProject has groups. Resolve the set per user in the head hook | M |
-| `sco-group-priority` | Decide which house style wins for a user who is in several themed groups | `specs/admin-settings` | to build, as is | With `sco-per-group` | S |
-| `sco-login-unaffected` | Keep the login page on the instance-wide style while groups have their own | `specs/admin-settings` | to build, as is | With `sco-per-group` | S |
+| `sco-per-group` | Give a group of users a different house style on a shared instance | `specs/admin-settings` | in plugin | #99: a design system per OpenProject group, in place of the instance's for its members; projects and modules still win |  |
+| `sco-group-priority` | Decide which house style wins for a user who is in several themed groups | `specs/admin-settings` | in plugin | #99: the groups are in an order; a person in several gets the first one's design system |  |
+| `sco-login-unaffected` | Keep the login page on the instance-wide style while groups have their own | `specs/admin-settings` | in plugin | #99: the sign-in page has no person, so it keeps the instance's design system |  |
 | `sco-user-choice` | Let each user choose a theme (light, dark, high contrast) for themselves | Nextcloud core Appearance settings | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (light, dark, high contrast in `app/models/user_preference.rb`). The plugin leaves it alone |  |
 | `sco-user-follow-os` | Follow the user's operating system preference for dark mode and high contrast | `specs/dark-mode` | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`sync_with_os`) |  |
 | `sco-per-site` | Give each site, portal or department its own theme (thematiq has this in part) | `specs/per-group-theming` | in plugin | #67: a design system per project, inherited by subprojects, chosen by a project admin when the instance allows it |  |

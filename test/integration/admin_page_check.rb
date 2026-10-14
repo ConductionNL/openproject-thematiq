@@ -1244,6 +1244,24 @@ begin
   appearance_member.get "/thematiq/appearance", params: { mode: "light", return_to: "/projects" }
   check("light, and back to a path here") { appearance_member.response.location.end_with?("/projects") && member.reload.pref.theme == "light" }
   OpenProject::Thematiq::Store.new.save_appearance_link(false)
+
+  # 31. A design system per group
+  check_group = Group.create!(lastname: "Thematiq check group #{SecureRandom.hex(3)}")
+  check_group.group_users.create!(user_id: member.id)
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  groups_token = form_token(admin, "/admin/thematiq", "thematiq-groups-form")
+  admin.post "/admin/thematiq/groups", params: { groups: [{ group_id: check_group.id.to_s, design_system_id: "zuiddrecht" }], authenticity_token: groups_token }
+  check("the design system of a group is saved") { OpenProject::Thematiq::Store.new.group_choices.first.to_h["group_id"] == check_group.id }
+  group_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  group_session.get "/my/account"
+  check("a member of the group sees its design system") { head_style(group_session).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") }
+  admin.get "/my/account"
+  check("someone outside the group keeps the instance's") { head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  group_view = session_for
+  group_view.get "/login"
+  check("the sign-in page keeps the instance's") { head_style(group_view).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  OpenProject::Thematiq::Store.new.save_group_choices([])
+  check_group.destroy
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
