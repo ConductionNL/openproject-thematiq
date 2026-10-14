@@ -1203,6 +1203,9 @@ en:
           tasks: "Tasks"
           talk: "Talk"
           contacts: "Contacts"
+      create_dialog:
+        title: "Create work package"
+        submit: "Create work package"
       home:
         greeting: "Hello %{name}"
         welcome: "Welcome message"
