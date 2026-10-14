@@ -4,7 +4,9 @@ const { test, expect } = require("@playwright/test");
 const { config } = require("../support/env");
 
 const dialog = (page) => page.locator("#create-work-package-dialog[open]");
-const created = [];
+const SUBJECT_PREFIX = "E2E dialog";
+// OpenProject renders data-test-selector only in its test environment, so the quick add button goes by its id.
+const quickAdd = (page) => page.locator("#op-app-header--quick-add-menu-button");
 
 async function expectBoardDialog(page) {
   await expect(dialog(page)).toBeVisible();
@@ -16,9 +18,13 @@ async function expectBoardDialog(page) {
   expect(await dialog(page).evaluate((node) => Math.round(node.getBoundingClientRect().width))).toBeLessThanOrEqual(640);
 }
 
+// Every work package a run made, also those of an interrupted run, goes by its subject.
 test.afterAll(async ({ request }) => {
-  for (const id of created) {
-    await request.delete(`/api/v3/work_packages/${id}`, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+  const headers = { "X-Requested-With": "XMLHttpRequest" };
+  const filters = encodeURIComponent(JSON.stringify([{ subject: { operator: "~", values: [SUBJECT_PREFIX] } }, { status: { operator: "*", values: [] } }]));
+  const found = await request.get(`/api/v3/work_packages?pageSize=100&filters=${filters}`, { headers });
+  for (const element of (await found.json())._embedded.elements) {
+    if (element.subject.startsWith(SUBJECT_PREFIX)) await request.delete(`/api/v3/work_packages/${element.id}`, { headers });
   }
 });
 
@@ -50,14 +56,14 @@ test.describe("Create work package as a dialog", () => {
 
   test("a type in the quick add menu opens the dialog with that type", async ({ page }) => {
     await page.goto(`/projects/${config.project}`);
-    await page.locator("[data-test-selector=quick-add-menu-button]").click();
+    await quickAdd(page).click();
     const item = page.locator('#op-app-header--quick-add-menu-list a[href*="/work_packages/new?type="]').first();
     const type = (await item.innerText()).trim();
     await item.click();
     await expect(dialog(page)).toBeVisible();
     await expect(dialog(page).locator("[data-test-selector=work_package_create_dialog_type]")).toContainText(new RegExp(type, "i"));
     await page.keyboard.press("Escape");
-    await expect(page.locator("[data-test-selector=quick-add-menu-button]")).toBeFocused();
+    await expect(quickAdd(page)).toBeFocused();
   });
 
   test("core validates in the dialog, and saving refreshes the view with the new work package", async ({ page }) => {
@@ -70,18 +76,13 @@ test.describe("Create work package as a dialog", () => {
     await dialog(page).getByRole("button", { name: "Create work package" }).click();
     await expect(dialog(page)).toContainText("Subject can't be blank");
 
-    const subject = `E2E dialog ${Date.now().toString(36)}`;
+    const subject = `${SUBJECT_PREFIX} ${Date.now().toString(36)}`;
     await page.locator("#work_package_subject").fill(subject);
     await dialog(page).getByRole("button", { name: "Create work package" }).click();
     await expect(dialog(page)).toHaveCount(0);
-    await expect(page.getByText("Successful creation.")).toBeVisible();
+    await expect(page.getByText("Successful creation.").first()).toBeVisible();
     expect(new URL(page.url()).pathname).toBe(start);
     await expect(page.locator("td.subject", { hasText: subject })).toBeVisible();
-
-    const found = await page.request.get(`/api/v3/work_packages?filters=${encodeURIComponent(JSON.stringify([{ subject: { operator: "~", values: [subject] } }]))}`,
-      { headers: { "X-Requested-With": "XMLHttpRequest" } });
-    for (const element of (await found.json())._embedded.elements) created.push(element.id);
-    expect(created.length).toBeGreaterThan(0);
   });
 
   test("a click with a modifier key still opens core's page", async ({ page, context }) => {
@@ -90,8 +91,7 @@ test.describe("Create work package as a dialog", () => {
       context.waitForEvent("page"),
       page.locator("a.thematiq-nav-create").click({ modifiers: ["ControlOrMeta"] }),
     ]);
-    await tab.waitForLoadState();
-    expect(new URL(tab.url()).pathname).toBe(`/projects/${config.project}/work_packages/new`);
+    await tab.waitForURL(new RegExp(`/projects/${config.project}/work_packages/new`));
     await expect(dialog(page)).toHaveCount(0);
     await tab.close();
   });
