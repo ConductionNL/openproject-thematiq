@@ -35,16 +35,9 @@ test.describe("visitor", () => {
     expect(family.split(",")[0].replace(/["']/g, "").trim()).toBe(tokens["font-family"].split(",")[0].replace(/["']/g, "").trim());
   });
 
-  // First full test, finding 20: core's triangle and the shell's chevron both showed next to "Sign in".
-  // The sign-in page has no bar now; a missing page has, with the button for a visitor.
-  test("the sign-in button has one arrow", async ({ page }) => {
-    await page.goto("/thematiq-e2e-no-such-page");
-    const button = page.locator(".op-app-header--end > button.op-app-menu--item");
-    await expect(button).toContainText("Sign in");
-    await expect(button.locator(".Button-trailingVisual")).toBeHidden();
-    const chevron = await button.locator(".Button-label").evaluate((label) => getComputedStyle(label, "::after").content);
-    expect(chevron).not.toBe("none");
-  });
+  // First full test, finding 20 checked that the bar's "Sign in" button had one arrow. A visitor no longer meets that
+  // button: the sign-in page has no bar and an error page has core's plain layout. The rule that hides core's triangle
+  // stays in stylesheets/shell/10-top-bar.css for an instance that lets visitors in without signing in.
 
   test("a missing page is themed and answers 404", async ({ page }) => {
     const response = await page.goto("/thematiq-e2e-no-such-page");
