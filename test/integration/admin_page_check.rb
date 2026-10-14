@@ -1079,6 +1079,23 @@ begin
     check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
   end
 
+  # 19b. The account menu: a dropdown with core's entries instead of core's sheet
+  menu_admin = session_for("admin", ADMIN_PASSWORD)
+  menu_admin.get "/projects"
+  admin_panel = menu_admin.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  check("the account menu is the plugin's dropdown with core's entries") do
+    body = menu_admin.response.body
+    body.include?('id="thematiq-account-button"') && !body.include?('id="op-app-header--user-menu-list"') &&
+      admin_panel.include?('href="/admin"') && admin_panel.include?('data-turbo="false"')
+  end
+  menu_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  menu_member.get "/my/account"
+  member_panel = menu_member.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  check("a member's account menu has no Administration") { member_panel.include?("/my/account") && !member_panel.include?('href="/admin"') }
+  signed_out = session_for
+  signed_out.get "/thematiq-check-no-such-page"
+  check("signed out, core's sign-in menu renders") { !signed_out.response.body.include?('id="thematiq-account-button"') }
+
   # 20. A CSS file of design tokens
   css_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
   css_member.post "/admin/thematiq/css", params: { file: upload.call(":root { --nldesign-color-primary: #aa0055; }") }
