@@ -31,11 +31,13 @@ module OpenProject
 
         # The brand block of the dossiq bar: the design system's emblem, its name over the name of this
         # OpenProject, as one link home. A design system without an emblem shows its logo and the name of
-        # OpenProject. The logo itself is core's element with core's class, so the logo rule of Shell::Logo and
-        # core's theme switcher keep working on it.
+        # OpenProject. Without a logo of its own the logo is OpenProject's, which already says the name, so the
+        # name is kept for screen readers only. The logo itself is core's element with core's class, so the logo
+        # rule of Shell::Logo and core's theme switcher keep working on it.
         def render_logo
           token_set = OpenProject::Thematiq.active_token_set
           emblem = Logo.emblem_url(token_set).present?
+          named = emblem || Assets.bundled.logo_url(token_set).present?
           mode_class = "op-logo--link_high_contrast" if User.current.pref.light_high_contrast_theme?
           tag.div(class: ["op-logo", "thematiq-brand", ("thematiq-brand--has-emblem" if emblem)].compact) do
             link_to(configurable_home_url, class: "thematiq-brand--link", data: { test_selector: "thematiq-brand" }) do
@@ -43,7 +45,7 @@ module OpenProject
                               data: { auto_theme_switcher_target: "desktopLogo" })
               concat(tag.span(class: "thematiq-brand--text") do
                 concat tag.span(token_set.name, class: "thematiq-brand--organisation") if emblem
-                concat tag.strong(Setting.app_title, class: "thematiq-brand--app")
+                concat tag.strong(Setting.app_title, class: ["thematiq-brand--app", ("sr-only" unless named)].compact)
               end)
             end
           end
