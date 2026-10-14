@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   post "admin/thematiq/shell", to: "thematiq/admin#update_shell", as: :admin_thematiq_shell
   post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
   post "admin/thematiq/scopes", to: "thematiq/admin#update_scopes", as: :admin_thematiq_scopes
+  get "admin/thematiq/history", to: "thematiq/admin#history", as: :admin_thematiq_history
+  get "admin/thematiq/history/:id", to: "thematiq/admin#history_version", as: :admin_thematiq_history_version, constraints: { id: /\d{1,12}/ }
+  post "admin/thematiq/history/:id", to: "thematiq/admin#restore", constraints: { id: /\d{1,12}/ }
 
   # The design system of one project and of its modules. For a project admin with "Choose design system".
   get "projects/:project_id/settings/design", to: "thematiq/project_design#show", as: :project_settings_thematiq_design

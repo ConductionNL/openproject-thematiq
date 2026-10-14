@@ -22,6 +22,7 @@ module Thematiq
       token_set = @store.activate(params[:set_id].to_s)
 
       if token_set
+        record_change("apply", token_set.name)
         flash[:notice] = t("thematiq.admin.notice_applied", name: token_set.name)
       else
         flash[:error] = t("thematiq.admin.error_unknown_set")
@@ -57,6 +58,7 @@ module Thematiq
         Thematiq::Upload.remove_set(deleted)
         # So do the choices that named it: those projects and modules inherit again.
         Thematiq::Scope.where(design_system_id: deleted).delete_all if Thematiq::Scope.ready?
+        record_change("delete_custom", deleted)
         flash[:notice] = t("thematiq.editor.notice_deleted")
         return redirect_to action: :show
       end
@@ -68,6 +70,7 @@ module Thematiq
         render :edit
       elsif save_draft(@draft, new: !@stored)
         @store.activate(@draft.id)
+        record_change("save_custom", @draft.name)
         flash[:notice] = t("thematiq.admin.notice_applied", name: @draft.name)
         redirect_to action: :show
       elsif @draft.valid?
@@ -82,6 +85,7 @@ module Thematiq
     # The Nextcloud address for the app switcher links. Empty is fine: then the switcher shows OpenProject only.
     def update_shell
       if @store.save_nextcloud_url(params[:nextcloud_url])
+        record_change("shell")
         flash[:notice] = t(@store.nextcloud_url ? "thematiq.shell.settings.notice_saved" : "thematiq.shell.settings.notice_cleared")
       else
         flash[:error] = t("thematiq.shell.settings.error_invalid")
@@ -93,6 +97,7 @@ module Thematiq
     def update_top_bar
       keys = Array(params[:tiles]).first(OpenProject::Thematiq::Shell::AppRow::MAX + 1)
       if @store.save_top_bar_apps(params[:top_bar_mode].to_s, keys)
+        record_change("top_bar")
         flash[:notice] = t("thematiq.shell.top_bar.notice_saved")
       else
         flash[:error] = t("thematiq.shell.top_bar.error_invalid", max: OpenProject::Thematiq::Shell::AppRow::MAX)
@@ -110,6 +115,7 @@ module Thematiq
                                                                                    choices: Array(params[:project_choices]))
 
       modules.each { |name, id| Thematiq::Scope.choose(project: nil, module_name: name, design_system_id: id.presence) }
+      record_change("scopes")
       flash[:notice] = t("thematiq.scopes.admin.notice_saved")
       redirect_to action: :show, anchor: "thematiq-scopes"
     end
@@ -130,11 +136,14 @@ module Thematiq
         removed = Thematiq::Upload.remove(set_id: id, token: params[:remove].to_s)
         raise OpenProject::Thematiq::Uploads::Refused, "not_stored" unless removed.positive?
 
+        record_change("remove_upload", id)
+
         flash[:notice] = t("thematiq.uploads.notice_removed")
       else
         raise OpenProject::Thematiq::Uploads::Refused, "unknown_kind" unless kind
 
         stored = store_upload(id, kind)
+        record_change("upload", "#{id}: #{kind.name}")
         flash[:notice] = t(stored.cleaned ? "thematiq.uploads.notice_stored_cleaned" : "thematiq.uploads.notice_stored",
                            kind: t("thematiq.uploads.kinds.#{kind.name}.label"))
       end
@@ -170,6 +179,7 @@ module Thematiq
                                                      logo: { "file" => imported.logo_file, "inverse_file" => imported.logo_inverse_file })
       raise OpenProject::Thematiq::Transfer::Refused, "token_invalid" unless save_draft(draft, new: true)
 
+      record_change("import", draft.name)
       left_behind = OpenProject::Thematiq::Transfer.left_behind(text)
       flash[:notice] = if left_behind.any?
                          t("thematiq.transfer.notice_imported_without_files", name: draft.name,
@@ -211,6 +221,7 @@ module Thematiq
                                                     vocabulary: result.vocabulary, dark_vocabulary: result.dark_vocabulary)
       raise figma_refused("nothing_usable") unless save_draft(@draft, new: true)
 
+      record_change("figma_upload", @draft.name)
       @result = result
       render :figma_report
     rescue OpenProject::Thematiq::Figma::Reader::Refused => e
@@ -218,7 +229,74 @@ module Thematiq
       redirect_to action: :figma
     end
 
+    # --- the history: every change with who made it, and the setup after it, to restore ---
+
+    def history
+      @changes = Thematiq::Change.ready? ? Thematiq::Change.order(id: :desc).limit(200).to_a : []
+      @ready = Thematiq::Change.ready?
+    end
+
+    # What restoring one version changes, before anything is written. A version that no longer reads is refused whole.
+    def history_version
+      @change = find_change
+      return render_404 unless @change
+
+      @checked, @refusal = checked_version(@change)
+      @changes_list = @checked ? OpenProject::Thematiq::Bundle.changes(Thematiq::Change.current_bundle(@store), @checked) : []
+      @names = design_system_names(@checked)
+    end
+
+    def restore
+      change = find_change
+      return render_404 unless change
+
+      checked, refusal = checked_version(change)
+      if checked
+        Thematiq::Change.apply!(checked, store: @store)
+        record_change("restore", "##{change.id}")
+        flash[:notice] = t("thematiq.history.notice_restored", time: helpers.format_time(change.created_at))
+        redirect_to action: :history
+      else
+        flash[:error] = t("thematiq.bundle.errors.#{bundle_error_key(refusal)}")
+        redirect_to action: :history_version, id: change.id
+      end
+    end
+
     private
+
+    BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
+                       nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared].freeze
+
+    def bundle_error_key(code)
+      BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
+    end
+
+    def find_change
+      Thematiq::Change.ready? ? Thematiq::Change.find_by(id: params[:id].to_i) : nil
+    end
+
+    # [checked bundle, nil] or [nil, refusal code].
+    def checked_version(change)
+      document = change.bundle_document
+      return [nil, "cleared"] unless document
+
+      [OpenProject::Thematiq::Bundle.read(document, catalogue: @store.catalogue,
+                                                     project_exists: ->(identifier) { Project.exists?(identifier:) }), nil]
+    rescue OpenProject::Thematiq::Bundle::Refused => e
+      [nil, e.code]
+    end
+
+    # Design system id to name, from what is here now and from the version.
+    def design_system_names(checked)
+      names = @store.all_sets.to_h { |token_set| [token_set.id, token_set.name] }
+      (checked&.settings&.dig("customs") || {}).each { |id, definition| names[id] ||= definition["name"].to_s }
+      names
+    end
+
+    # One row of the history. Never fails the action that called it.
+    def record_change(action, detail = nil)
+      Thematiq::Change.record(action, detail:, store: @store)
+    end
 
     FIGMA_ERRORS = %w[empty too_large too_many_files invalid_json not_an_object too_deep too_many_tokens nothing_usable too_many].freeze
 

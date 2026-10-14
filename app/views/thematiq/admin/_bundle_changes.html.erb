@@ -1,0 +1,25 @@
+<%# What a bundle changes on top of the setup now: from a version of the history or a configuration file. %>
+<% name = ->(id) { id.nil? ? t("thematiq.bundle.changes.default") : (names[id] || id) } %>
+<ul class="thematiq-bundle-changes" data-test-selector="thematiq-bundle-changes">
+  <% changes.each do |code, details| %>
+    <li>
+      <% case code
+         when "active" %>
+        <%= t("thematiq.bundle.changes.active", from: name.call(details[:from]), to: name.call(details[:to])) %>
+      <% when "custom_added", "custom_removed", "custom_changed" %>
+        <%= t("thematiq.bundle.changes.#{code}", name: details[:name]) %>
+      <% when "projects_may_choose" %>
+        <%= t(details[:to] ? "thematiq.bundle.changes.projects_may_choose_on" : "thematiq.bundle.changes.projects_may_choose_off") %>
+      <% when "nextcloud_url" %>
+        <%= details[:to] ? t("thematiq.bundle.changes.nextcloud_url", url: details[:to]) : t("thematiq.bundle.changes.nextcloud_url_cleared") %>
+      <% when "scope" %>
+        <% place = details[:project] || t("thematiq.editor.scope.instance") %>
+        <% where = details[:module_name].to_s.empty? ? place : t("thematiq.editor.scope.used_module", place:, module: t("thematiq.scopes.modules.#{details[:module_name]}", default: details[:module_name])) %>
+        <%= t("thematiq.bundle.changes.scope", where:, from: details[:from] ? name.call(details[:from]) : t("thematiq.bundle.changes.inherit"),
+                                               to: details[:to] ? name.call(details[:to]) : t("thematiq.bundle.changes.inherit")) %>
+      <% else %>
+        <%= t("thematiq.bundle.changes.#{code}") %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>

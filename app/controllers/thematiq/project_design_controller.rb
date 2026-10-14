@@ -24,6 +24,7 @@ module Thematiq
       # A value the instance admin set may stay, even when it is not on the project's list.
       allowed = ->(module_name, id) { id.empty? || id == @rows[module_name] || @sets.any? { |token_set| token_set.id == id } }
       if chosen.all? { |module_name, id| allowed.call(module_name, id) } && save(chosen)
+        Change.record("project_design", detail: @project.identifier, store: @store)
         flash[:notice] = t("thematiq.scopes.project.notice_saved")
       else
         flash[:error] = t("thematiq.scopes.project.error_invalid")

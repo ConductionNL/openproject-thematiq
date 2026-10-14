@@ -27,6 +27,7 @@
 <p class="thematiq-picker__status" data-test-selector="thematiq-active">
   <%= t("thematiq.admin.active_now_html", name: active.name) %>
 </p>
+<p><%= link_to t("thematiq.history.link"), admin_thematiq_history_path, data: { test_selector: "thematiq-history-link" } %></p>
 
 <% assets = OpenProject::Thematiq::Assets.bundled %>
 <% named_font = assets.named_family(active) %>
