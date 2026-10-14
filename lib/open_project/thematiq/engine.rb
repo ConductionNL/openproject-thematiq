@@ -38,6 +38,34 @@ module OpenProject
                            headers: { "Cache-Control" => "public, max-age=86400" }
       end
 
+      # A branding package that applies itself at start, when THEMATIQ_BUNDLE_FILE names one. See BootBundle.
+      config.after_initialize do
+        next if ENV[OpenProject::Thematiq::BootBundle::FILE_KEY].to_s.strip.empty?
+
+        begin
+          store = OpenProject::Thematiq::Store.new
+          outcome = OpenProject::Thematiq::BootBundle.run(
+            env: ENV, store:,
+            ready: -> { ::Thematiq::Change.ready? && ::Thematiq::Scope.ready? },
+            read: ->(text) { OpenProject::Thematiq::Bundle.read(text, catalogue: store.catalogue, project_exists: ->(identifier) { ::Project.exists?(identifier:) }) },
+            apply: lambda do |checked, digest|
+              ::Thematiq::Change.transaction do
+                # Web and worker start together: the first to take the lock applies, the other finds the digest stored.
+                locked = ::Thematiq::Change.connection.select_value("SELECT pg_try_advisory_xact_lock(#{OpenProject::Thematiq::BootBundle::LOCK})")
+                next unless locked && store.bundle_file_digest != digest
+
+                ::Thematiq::Change.apply!(checked, store:)
+                store.remember_bundle_file_digest(digest)
+                ::Thematiq::Change.record("environment", user: nil, detail: "bundle file applied at start", store:)
+              end
+            end
+          )
+          Rails.logger.info("[openproject-thematiq] THEMATIQ_BUNDLE_FILE: #{outcome.status} #{outcome.detail}")
+        rescue StandardError => e
+          Rails.logger.error("[openproject-thematiq] THEMATIQ_BUNDLE_FILE was not applied: #{e.class}: #{e.message}")
+        end
+      end
+
       config.to_prepare do
         # A project admin may choose the design system of a project, from the list the instance admin allows,
         # once the instance admin lets projects choose. No role has it until an administrator gives it.

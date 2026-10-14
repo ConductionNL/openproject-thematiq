@@ -346,6 +346,16 @@ module OpenProject
         @backend.write(kept.merge(settings.slice(*Bundle::SETTING_KEYS)))
       end
 
+      # The digest of the configuration file BootBundle applied last, so an unchanged file is not applied again.
+      def bundle_file_digest
+        value = data["bundle_file_digest"]
+        value.is_a?(String) ? value : nil
+      end
+
+      def remember_bundle_file_digest(digest)
+        write("bundle_file_digest" => digest)
+      end
+
       # --- settings left by the version that fetched from thematiq ---
 
       LEGACY_KEYS = %w[base_url token_set fetched_at checked_at last_error last_error_detail].freeze
