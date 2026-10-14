@@ -8,6 +8,7 @@ require "open_project/thematiq/contrast"
 require "date"
 require "time"
 require "open_project/thematiq/custom_css"
+require "open_project/thematiq/email"
 require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
@@ -161,6 +162,27 @@ module OpenProject
           cleaned[kind] = address
         end
         write("footer_links" => cleaned)
+        true
+      end
+
+      # --- e-mail in the house style: off until an admin turns it on ---
+
+      def email_styled?
+        data["email_styled"] == true
+      end
+
+      # The organisation's text under every e-mail: name, address, legal text. Plain text, lines kept.
+      def email_footer
+        text = data["email_footer"]
+        text.is_a?(String) && text.length <= Email::MAX_FOOTER && !text.match?(/[<>]/) ? text : ""
+      end
+
+      # false: the text is too long or holds markup characters.
+      def save_email_settings(styled:, footer:)
+        footer = footer.to_s.gsub("\r\n", "\n").strip
+        return false if footer.length > Email::MAX_FOOTER || footer.match?(/[<>]/)
+
+        write("email_styled" => styled == true, "email_footer" => footer)
         true
       end
 
