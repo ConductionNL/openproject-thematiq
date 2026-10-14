@@ -111,6 +111,15 @@ en:
         property: "A property the plugin does not accept"
         value: "A value the plugin does not accept, such as url() or an unclosed quote"
         too_many_rules: "More than 1,000 rules"
+    email:
+      title: "E-mail"
+      hint: "E-mail in the house style: a band in the primary colour with the app's title and the logo at the top, and your organisation's text and the legal links at the end. OpenProject's own header and footer texts stay. Off until you turn it on."
+      styled: "Send e-mail in the house style"
+      footer: "Text under every e-mail"
+      footer_hint: "For example the organisation's name, address and legal text. Plain text, at most %{count} characters; lines are kept."
+      save: "Save e-mail settings"
+      notice_saved: "The e-mail settings are saved."
+      error_invalid: "The text may hold at most %{count} characters and no < or >. Nothing was saved."
     footer:
       title: "Legal links"
       hint: "A privacy statement, an imprint and an accessibility statement, as links at the end of every page and on the sign-in page. They open in a new tab. Leave a field empty for no link. The footer takes the design system's footer colours."
@@ -335,6 +344,7 @@ en:
         schedule: "Planned or cancelled a switch"
         lock: "Locked or unlocked a project's design system"
         footer_links: "Changed the legal links"
+        email: "Changed the e-mail settings"
     bundle:
       title: "The whole setup"
       hint: "One file with the whole setup: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Use it to move the setup from a test to a production OpenProject. Uploaded logos, icons and fonts are not in it."
@@ -387,6 +397,7 @@ en:
         locks: "The locked projects in the configuration file cannot be read. Nothing was changed."
         planned_switches: "The planned switches in the configuration file cannot be read. Nothing was changed."
         footer_links: "The legal links in the configuration file cannot be read. Nothing was changed."
+        email: "The e-mail settings in the configuration file cannot be read. Nothing was changed."
     editor:
       title: "Custom design system"
       description: "Start from a design system and change single values. The result is a custom design system, kept in OpenProject."

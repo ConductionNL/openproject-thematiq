@@ -1,0 +1,8 @@
+<%# The band at the top of an e-mail in the house style. Inline styles only: mail clients drop style sheets. %>
+<% store = (OpenProject::Thematiq::Store.new rescue nil) %>
+<% if store&.email_styled? %>
+  <% token_set = store.active_token_set %>
+  <% base = "#{Setting.protocol}://#{Setting.host_name}#{OpenProject::Configuration['rails_relative_url_root']}" %>
+  <% logo = OpenProject::Thematiq::Assets.bundled.logo_url(token_set, root: base) rescue nil %>
+<%= raw OpenProject::Thematiq::Email.header_html(token_set, title: Setting.app_title, logo_url: logo) %>
+<% end %>

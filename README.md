@@ -162,7 +162,7 @@ This was tested on the Docker route with OpenProject 17.9.1, on the compose inst
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look. Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
@@ -183,6 +183,10 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 - **Legal links.** Under **Legal links**, give the addresses of a privacy statement, an imprint and an accessibility statement. They show at the end of every page and on the sign-in page, in the design system's footer colours.
 - **Brand stripe.** A design system with thematiq's three stripe colours draws them under the top bar, in their ratios.
 - **Sign-in background.** A custom design system can carry a photo for behind the sign-in page: upload it under **Logo, icons and fonts**.
+
+### E-mail in the house style
+
+Under **E-mail**, tick **Send e-mail in the house style**: every e-mail OpenProject sends gets a band in the primary colour with the app's title and the logo at the top, and your organisation's text and the legal links at the end. Mail clients drop style sheets, so all of it is inline. OpenProject's own header and footer texts stay. It is off until you turn it on.
 
 ### Plan a switch
 
