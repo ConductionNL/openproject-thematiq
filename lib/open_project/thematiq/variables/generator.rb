@@ -111,6 +111,21 @@ module OpenProject
           "--thematiq-bar-current" => [0.16, "color-mix(in srgb, var(--thematiq-on-primary) 16%, transparent)"]
         }.freeze
 
+        # The top bar of the shell, as Nextcloud with thematiq draws it (the dossiq bar): thematiq's header colours
+        # where the set gives them, the primary colour and its text otherwise. Zuiddrecht's header is white with
+        # ink. The fill of the app button and the search field and the bar's lines follow the bar: the set's ground
+        # and line on a light bar, a layer of the bar's text on a coloured one. The second value is the fallback
+        # outside the light theme.
+        BAR_ALIASES = {
+          "--thematiq-bar" => "var(--header-bg-color)",
+          "--thematiq-on-bar" => "var(--header-item-font-color)",
+          "--thematiq-bar-fill" => "color-mix(in srgb, var(--thematiq-on-bar) 12%, var(--thematiq-bar))",
+          "--thematiq-bar-line" => "color-mix(in srgb, var(--thematiq-on-bar) 25%, var(--thematiq-bar))",
+          "--thematiq-bar-edge" => "var(--thematiq-bar)",
+          "--thematiq-bar-muted" => "var(--thematiq-on-bar)"
+        }.freeze
+        BAR_KEYS = %w[color-header-background color-header-text].freeze
+
         ROOT_SHAPE = {
           "--thematiq-radius" => :radius,
           "--thematiq-radius-lg" => :"radius-lg",
@@ -214,9 +229,29 @@ module OpenProject
           "--thematiq-v-animation-quick" => %w[animation-quick], "--thematiq-v-animation-slow" => %w[animation-slow]
         }.freeze
 
+        # The colour of the shell's top bar: thematiq's header background when it is a plain colour, the primary
+        # otherwise. nil when neither can be measured. The logo follows the same rule (Shell::Logo).
+        def self.bar_colour(tokens, vocabulary)
+          header = vocabulary && vocabulary["color-header-background"]
+          bar = header if header && Contrast.rgba(header)&.last == 1.0
+          bar ||= tokens["primary"]
+          bar if bar && Contrast.rgba(bar)
+        end
+
+        # The text on the bar: thematiq's header text when it reads on the bar, else white or the darkest that reads.
+        def self.on_bar(tokens, vocabulary)
+          bar = bar_colour(tokens, vocabulary)
+          return nil unless bar
+
+          wanted = vocabulary && vocabulary["color-header-text"]
+          return wanted if wanted && (Contrast.ratio(wanted, bar) || 0) >= Contrast::MINIMUM
+
+          Contrast.best_on(bar, [WHITE, tokens["ink"], "#1b1c1d"].compact)
+        end
+
         # The vocabulary keys this layer draws. Tokens::Vocabulary::DRAWN must name the same, a test holds them together.
         def self.drawn_keys
-          (VOCABULARY_COLORS.merge(VOCABULARY_SHAPE).values.flatten + STRIPE_KEYS).uniq.sort
+          (VOCABULARY_COLORS.merge(VOCABULARY_SHAPE).values.flatten + STRIPE_KEYS + BAR_KEYS).uniq.sort
         end
 
         PRIMER_SHAPE = {
@@ -246,7 +281,8 @@ module OpenProject
                   (@early ? declarations(BODY_FONT) : []) + without_drawn(declarations(PRIMER_SHAPE), VOCABULARY_SHAPE) +
                   fallback_aliases + vocabulary_declarations(VOCABULARY_SHAPE) + brand_stripe_declarations),
             block(LIGHT_SCOPE, without_drawn(declarations(OPENPROJECT_COLORS) + declarations(PRIMER_COLORS), VOCABULARY_COLORS) +
-                               light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS))
+                               light_aliases + menu_color_declarations + vocabulary_declarations(VOCABULARY_COLORS) +
+                               bar_declarations(@token_set, @token_set.vocabulary))
           ]
           blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"] && !@content
           blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
@@ -317,7 +353,30 @@ module OpenProject
         end
 
         def fallback_aliases
-          COLOR_ALIASES.merge(BAR_TINTS).map { |variable, (_token, fallback)| "  #{variable}: #{fallback};" }
+          COLOR_ALIASES.merge(BAR_TINTS).map { |variable, (_token, fallback)| "  #{variable}: #{fallback};" } +
+            BAR_ALIASES.map { |variable, fallback| "  #{variable}: #{fallback};" }
+        end
+
+        # The quiet text of the bar (the organisation's name, the role, the search placeholder): the set's muted
+        # colour where it reads on the bar, the bar's own text otherwise.
+        def muted_on_bar(tokens, bar, text)
+          muted = tokens["muted"]
+          muted && (Contrast.ratio(muted, bar) || 0) >= Contrast::MINIMUM ? muted : text
+        end
+
+        # The colours of the shell's top bar for one set of tokens and its vocabulary. A header colour that is not a
+        # plain colour the plugin can measure, or a header text that does not read on it, is not used.
+        def bar_declarations(tokens, vocabulary)
+          bar = self.class.bar_colour(tokens, vocabulary)
+          return [] unless bar
+
+          text = self.class.on_bar(tokens, vocabulary)
+          light = text.to_s.downcase != WHITE
+          fill = (light && tokens["ground"]) || Contrast.tint(bar, text, 0.12) || bar
+          line = (light && tokens["line"]) || Contrast.tint(bar, text, 0.25) || bar
+          { "--thematiq-bar" => bar, "--thematiq-on-bar" => text, "--thematiq-bar-fill" => fill,
+            "--thematiq-bar-line" => line, "--thematiq-bar-edge" => light ? line : bar,
+            "--thematiq-bar-muted" => muted_on_bar(tokens, bar, text) }.map { |variable, value| "  #{variable}: #{value};" }
         end
 
         def light_aliases
@@ -386,7 +445,8 @@ module OpenProject
           vocabulary = @token_set.dark_vocabulary
           without_drawn(colours, VOCABULARY_COLORS, vocabulary) +
             bar_tint_declarations(dark["primary"] && [dark["primary"], Contrast.on(dark, "primary")]) +
-            dark_selected_declarations(dark) + vocabulary_declarations(VOCABULARY_COLORS, vocabulary)
+            dark_selected_declarations(dark) + vocabulary_declarations(VOCABULARY_COLORS, vocabulary) +
+            bar_declarations(dark, vocabulary)
         end
 
         # The selected menu item in the dark theme: its text from the contrast rule, written last so it decides.

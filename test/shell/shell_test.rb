@@ -32,22 +32,32 @@ class ShellTest < Minitest::Test
     end
   end
 
-  def test_logo_prefers_the_logo_for_dark_backgrounds
-    css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht"))
+  def test_logo_prefers_the_logo_for_dark_backgrounds_on_a_coloured_bar
+    css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("dinkelland"))
+    token_set = OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht")
+    blue = OpenProject::Thematiq::Tokens::TokenSet.from_set(token_set.to_set.merge("vocabulary" => {}))
 
-    assert_includes css, %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); })
+    assert_includes Shell::Logo.css(blue), %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); })
+    refute_empty css
   end
 
-  # First full test, finding 12: the dark theme of Zuiddrecht has a light blue bar (#84aad7), and the white
-  # logo on it was about 2.3 to 1. Finding 5: the light high contrast bar is OpenProject's pale grey.
+  # The dossiq bar: Zuiddrecht's header colour is white, so the bar gets the plain logo, and the brand block and the
+  # narrow screen get the emblem. The dark theme's bar is light blue (first full test, finding 12), also the plain logo.
   def test_logo_on_a_light_bar_is_the_plain_logo
     css = Shell::Logo.css(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht")).lines.map(&:strip)
 
     assert_equal [
-      %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); }),
-      %(body[data-color-mode="dark"][data-dark-theme="dark"] .op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
-      %(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("/thematiq/logos/zuiddrecht.svg"); })
+      %(.op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
+      %(.op-app-header .thematiq-brand--has-emblem .op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); }),
+      %(.op-app-header .op-logo .op-logo--link.op-logo--link_high_contrast { background-image: url("/thematiq/logos/zuiddrecht.svg"); }),
+      %(.op-app-header .op-logo--icon.op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); })
     ], css
+  end
+
+  def test_only_a_bundled_logo_with_an_emblem_file_has_an_emblem
+    assert_equal "/thematiq/logos/zuiddrecht-emblem.svg", Shell::Logo.emblem_url(OpenProject::Thematiq::Catalogue.bundled.find("zuiddrecht"))
+    assert_nil Shell::Logo.emblem_url(OpenProject::Thematiq::Catalogue.bundled.find("dinkelland"))
+    assert_nil Shell::Logo.emblem_url(OpenProject::Thematiq::Catalogue.bundled.find("amsterdam"))
   end
 
   def test_a_dark_bar_in_the_dark_theme_keeps_the_logo_for_dark_backgrounds
@@ -55,7 +65,8 @@ class ShellTest < Minitest::Test
     dark = token_set.to_set.merge("dark" => { "tokens" => token_set.dark_tokens.merge("primary" => "#1b2a3d") })
     css = Shell::Logo.css(OpenProject::Thematiq::Tokens::TokenSet.from_set(dark))
 
-    refute_includes css, "data-dark-theme", "the same logo as the light theme, so no rule of its own"
+    assert_includes css, %(body[data-color-mode="dark"][data-dark-theme="dark"] .op-app-header .op-logo .op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("/thematiq/logos/zuiddrecht-dark.svg"); }),
+                    "the white bar has the plain logo, the dark bar its own rule"
   end
 
   def test_every_bundled_logo_on_a_light_bar_reads_on_it
@@ -93,7 +104,7 @@ class ShellTest < Minitest::Test
       css = Shell::Logo.css(token_set)
 
       css.lines.each do |line|
-        assert_match(%r{\A(?:body\[data-color-mode="dark"\]\[data-dark-theme="dark"\] )?\.op-app-header \.op-logo \.op-logo--link(?::not\(\.op-logo--link_high_contrast\)|\.op-logo--link_high_contrast) \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \}\n?\z}, line, token_set.id)
+        assert_match(%r{\A(?:(?:body\[data-color-mode="dark"\]\[data-dark-theme="dark"\] )?\.op-app-header \.op-logo \.op-logo--link(?::not\(\.op-logo--link_high_contrast\)|\.op-logo--link_high_contrast)|\.op-app-header \.thematiq-brand--has-emblem \.op-logo--link|\.op-app-header \.op-logo--icon\.op-logo--link) \{ background-image: url\("/thematiq/logos/[a-z0-9-]+\.svg"\); \}\n?\z}, line, token_set.id)
       end
     end
   end
@@ -149,9 +160,10 @@ class ShellTest < Minitest::Test
     modules = %w[home my_page projects work_packages gantt boards meetings news]
 
     assert_equal %w[files mail calendar work_packages boards gantt meetings],
-                 row.pick(row::DEFAULT, %w[files mail calendar tasks talk contacts] + modules)
-    assert_equal %w[work_packages boards gantt meetings home my_page projects], row.pick(row::DEFAULT, modules)
-    assert_equal %w[home], row.pick(row::DEFAULT, %w[home])
+                 row.pick(row::OPHEADER, %w[files mail calendar tasks talk contacts] + modules)
+    assert_equal %w[work_packages boards gantt meetings home my_page projects], row.pick(row::OPHEADER, modules)
+    assert_equal %w[home], row.pick(row::OPHEADER, %w[home])
+    assert_empty row.pick(row::DEFAULT, modules), "the dossiq bar has no tiles"
     assert_empty row.pick([], modules)
   end
 

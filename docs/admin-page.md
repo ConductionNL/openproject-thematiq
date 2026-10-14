@@ -83,7 +83,7 @@ An uploaded file wins over the file of the design system yours is based on. Dele
 
 **Tiles in the top bar**, at the bottom of the page, picks which apps and modules show as tiles after the logo, and in which order.
 
-1. Choose **The row of the design**, **My own row** or **No tiles**.
+1. Choose **The bar of the design, without tiles**, **My own row** or **No tiles**. The design is Nextcloud's dossiq bar, which has no tiles: the app switcher holds every app and module. The places start with the row of the earlier OpenProject design, for an own row.
 2. For your own row, pick a tile for each place, from left to right. Empty places are skipped. At most twelve.
 3. Select **Save tiles**. Everyone sees the new row on their next page.
 

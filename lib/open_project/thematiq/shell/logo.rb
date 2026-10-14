@@ -2,6 +2,7 @@
 
 require "open_project/thematiq/assets"
 require "open_project/thematiq/contrast"
+require "open_project/thematiq/variables/generator"
 
 module OpenProject
   module Thematiq
@@ -32,21 +33,42 @@ module OpenProject
         # where the bar is light (first full test, findings 5 and 12). Three bars: the primary colour, the dark
         # block's primary in the dark theme, and OpenProject's own pale grey in the light high contrast theme.
         def self.css(token_set, root: "")
-          bar = pick(token_set, light: light?(token_set), root:)
+          bar = pick(token_set, light: light?(token_set, token_set.vocabulary), root:)
           rules = [rule(bar, selector: BAR_SELECTOR)]
+          if (emblem = emblem_url(token_set, root:))
+            rules << rule(emblem, selector: EMBLEM_SELECTOR)
+          end
           if Contrast.dark_usable?(token_set) && token_set.dark_tokens["primary"]
-            dark = pick(token_set, light: light?(token_set.dark_tokens), root:)
+            dark = pick(token_set, light: light?(token_set.dark_tokens, token_set.dark_vocabulary), root:)
             rules << rule(dark, selector: "#{DARK_SCOPE} #{BAR_SELECTOR}") if dark != bar
           end
           # Only a plain logo goes on the pale bar. Without one, OpenProject's own high contrast logo stays.
           rules << rule(Assets.bundled.logo_variant_url(token_set, "logo", root:), selector: HIGH_CONTRAST_SELECTOR) if bar
-          rules << rule(Assets.bundled.mobile_logo_url(token_set, root:), selector: MOBILE_SELECTOR)
+          # The square mark below 850 px: an uploaded one, else the emblem of the brand block.
+          rules << rule(Assets.bundled.mobile_logo_url(token_set, root:) || emblem_url(token_set, root:), selector: MOBILE_SELECTOR)
           rules.reject(&:empty?).join("\n")
         end
 
-        # White does not read on the bar's colour: the text there goes dark, and so must the logo.
-        def self.light?(tokens)
-          Contrast.on(tokens, "primary") != "#ffffff"
+        # White does not read on the bar's colour: the text there goes dark, and so must the logo. The bar is
+        # thematiq's header colour where the set gives one (Zuiddrecht's is white), the primary otherwise.
+        def self.light?(tokens, vocabulary = {})
+          text = Variables::Generator.on_bar(tokens, vocabulary || {})
+          !text.nil? && text.downcase != "#ffffff"
+        end
+
+        # The brand block of the dossiq bar draws the design system's emblem next to its name. A bundled logo
+        # can have one beside it, named after it: zuiddrecht.svg has zuiddrecht-emblem.svg. An uploaded logo
+        # replaces the bundled one as a whole, so it has none.
+        EMBLEM_SELECTOR = ".op-app-header .thematiq-brand--has-emblem .op-logo--link"
+
+        def self.emblem_url(token_set, root: "")
+          return nil if Assets.uploads_for(token_set).any? { |record| %w[logo logo_inverse].include?(record.kind) }
+
+          file = token_set.logo_file
+          emblem = file&.sub(/\.svg\z/, "-emblem.svg")
+          return nil if emblem.nil? || emblem == file || !File.file?(File.join(Catalogue::LOGO_DIRECTORY, emblem))
+
+          "#{root}#{Assets::URL_PREFIX}/logos/#{emblem}"
         end
 
         def self.pick(token_set, light:, root:)

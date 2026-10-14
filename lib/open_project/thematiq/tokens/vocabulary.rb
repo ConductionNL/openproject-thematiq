@@ -113,6 +113,7 @@ module OpenProject
         DRAWN = %w[
           animation-quick animation-slow brand-stripe-color-1 brand-stripe-color-2 brand-stripe-color-3 brand-stripe-height
           brand-stripe-ratio-1 brand-stripe-ratio-2 brand-stripe-ratio-3 color-footer-background color-footer-text
+          color-header-background color-header-text
           color-error color-success color-warning component-status-badge-error-background-color component-status-badge-error-color
           component-status-badge-info-background-color component-status-badge-success-background-color
           component-status-badge-success-color component-status-badge-warning-background-color component-status-badge-warning-color

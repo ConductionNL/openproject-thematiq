@@ -1,40 +1,58 @@
-/* openproject-thematiq, shell layer: the shared top bar (design: OpHeader).
+/* openproject-thematiq, shell layer: the shared top bar. Canon: the dossiq bar of Nextcloud Zuiddrecht
+ * (werkplek/DqKop), with the app menu of werkplek/AppMenu under the nine-dot button.
  *
- * This file comes after stylesheets/geometry/ in path order and builds on 20-top-bar.css,
- * which sets the bar height, the three columns, the search field and the button sizes.
- * Here: what the shell adds or reorders. The row of apps, the account label, the outline icons,
- * the unread dot and the app switcher popover.
+ * This file comes after stylesheets/geometry/ in path order and builds on 20-top-bar.css, which sets the bar
+ * height, the three columns, the brand block, the search field and the button sizes. Here: the colours, the
+ * lines, the outline icons, the unread dot, the account button and the app menu.
+ * The colours are the bar's own aliases (--thematiq-bar, --thematiq-on-bar and their fill, line and muted text),
+ * see Variables::Generator: thematiq's header colours where a set has them, the primary colour otherwise.
  * Selectors are OpenProject 17.9.1 class names, plus the thematiq-* classes the shell renders.
  */
 
 /* The colour aliases live on [data-color-mode], so anything mixed from them does too. */
 [data-color-mode] {
-  --shell-divider: color-mix(in srgb, var(--thematiq-on-primary) 35%, transparent);
-  --shell-hover: color-mix(in srgb, var(--thematiq-on-primary) 20%, transparent);
-  --shell-shadow: color-mix(in srgb, var(--thematiq-ink) 14%, transparent);
+  --shell-hover: var(--thematiq-bar-fill);
+  --shell-shadow: color-mix(in srgb, var(--thematiq-ink) 12%, transparent);
 }
 
 :root {
-  /* Outline icons from the design, 24 px grid, stroke 1.75. Used as masks, so they take the text colour. */
-  --shell-icon-apps: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 3h5v5H3zM9.5 3h5v5h-5zM16 3h5v5h-5zM3 9.5h5v5H3zM9.5 9.5h5v5h-5zM16 9.5h5v5h-5zM3 16h5v5H3zM9.5 16h5v5h-5zM16 16h5v5h-5z'/%3E%3C/svg%3E");
-  --shell-icon-bell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0'/%3E%3C/svg%3E");
+  /* Icons of the design, 24 px grid. Used as masks, so they take the text colour. */
+  --shell-icon-apps: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16,20H20V16H16M16,14H20V10H16M10,8H14V4H10M16,8H20V4H16M10,14H14V10H10M4,14H8V10H4M4,20H8V16H4M10,20H14V16H10M4,8H8V4H4V8Z'/%3E%3C/svg%3E");
+  --shell-icon-bell: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 21H14C14 22.1 13.1 23 12 23S10 22.1 10 21M21 19V20H3V19L5 17V11C5 7.9 7 5.2 10 4.3V4C10 2.9 10.9 2 12 2S14 2.9 14 4V4.3C17 5.2 19 7.9 19 11V17L21 19M17 11C17 8.2 14.8 6 12 6S7 8.2 7 11V18H17V11Z'/%3E%3C/svg%3E");
   --shell-icon-help: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01'/%3E%3C/svg%3E");
   --shell-icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
-  --shell-icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  --shell-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 21l-4.35-4.35M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14'/%3E%3C/svg%3E");
+  --shell-icon-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z'/%3E%3C/svg%3E");
+  --shell-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z'/%3E%3C/svg%3E");
 }
 
-/* ---------- Icon swaps: hide the core icon, draw the outline one. The buttons keep their names. ---------- */
+/* ---------- The bar ---------- */
+
+/* Core's own header variables follow the bar inside it, so whatever core draws there takes its colours. */
+.op-app-header {
+  --header-item-font-color: var(--thematiq-on-bar);
+  --header-item-font-hover-color: var(--thematiq-on-bar);
+  --header-item-bg-hover-color: var(--thematiq-bar-fill);
+  background-color: var(--thematiq-bar);
+  color: var(--thematiq-on-bar);
+  border-bottom: 1px solid var(--thematiq-bar-edge);
+}
+
+/* The brand block: the names in the bar's text, the organisation quieter. */
+.op-app-header .thematiq-brand--link,
+.op-app-header .thematiq-brand--link:hover { color: var(--thematiq-on-bar); text-decoration: none; }
+.op-app-header .thematiq-brand--link:hover { background: var(--shell-hover); }
+.op-app-header .thematiq-brand--link:focus-visible { outline: 2px solid var(--thematiq-on-bar); outline-offset: -2px; }
+.thematiq-brand--organisation { color: var(--thematiq-bar-muted); }
+
+/* ---------- Icon swaps: hide the core icon, draw the design's. The buttons keep their names. ---------- */
 
 .op-app-header .op-app-menu > .Button--iconOnly > svg,
 .op-app-header--end .op-ian-bell > svg,
-.op-app-header--end #op-app-header--help-menu-button > svg,
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual > svg { display: none; }
+.op-app-header--end #op-app-header--help-menu-button > svg { display: none; }
 
 .op-app-header .op-app-menu > .Button--iconOnly::before,
 .op-app-header--end .op-ian-bell::before,
-.op-app-header--end #op-app-header--help-menu-button::before,
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual::before {
+.op-app-header--end #op-app-header--help-menu-button::before {
   content: "";
   display: block;
   flex: none;
@@ -47,7 +65,6 @@
 .op-app-header .op-app-menu > .Button--iconOnly::before { --shell-icon: var(--shell-icon-apps); width: 20px; height: 20px; }
 .op-app-header--end .op-ian-bell::before { --shell-icon: var(--shell-icon-bell); }
 .op-app-header--end #op-app-header--help-menu-button::before { --shell-icon: var(--shell-icon-help); }
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual::before { --shell-icon: var(--shell-icon-plus); }
 
 .op-app-header--end .Button--iconOnly.op-app-header--primer-button,
 .op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button {
@@ -55,36 +72,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--thematiq-on-bar);
+}
+/* The app switcher is a filled square; the buttons on the right are round and only fill under the pointer. */
+.op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button {
   border-radius: var(--thematiq-radius);
+  background: var(--thematiq-bar-fill);
 }
 .op-app-header .op-app-header--primer-button:hover,
 .op-app-header .op-app-header--primer-button[aria-expanded="true"] { background: var(--shell-hover); }
+.op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button:hover,
+.op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--thematiq-on-bar) 8%, var(--thematiq-bar-fill));
+}
 
-/* Quick add: the design has no green button in the bar. It stays reachable as a plain icon button.
- * The caret is hidden from view only: it carries the button's accessible name. */
-.op-app-header--end #op-app-header--quick-add-menu-button {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: var(--thematiq-radius);
-  box-shadow: none;
-  background: transparent;
-  color: var(--thematiq-on-primary);
-}
-.op-app-header--end #op-app-header--quick-add-menu-button:hover { background: var(--shell-hover); }
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-content { gap: 0; }
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual { margin: 0; color: inherit; }
-.op-app-header--end #op-app-header--quick-add-menu-button .Button-label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-}
+/* Quick add: the dossiq bar has no add button. Its entries have other homes: "Create work package" heads the
+ * project menu and Home, a new project is on the project list, and members are added on a project's Members page. */
+.op-app-header--end > action-menu:has(#op-app-header--quick-add-menu-button) { display: none; }
 
 /* Notifications: OpenProject's own unread indicator, drawn as the design's dot. The count stays in
  * the page for screen readers. */
@@ -96,19 +100,21 @@
   height: 9px;
   padding: 0;
   box-sizing: content-box;
-  border: 2px solid var(--thematiq-on-primary);
+  border: 2px solid var(--thematiq-bar);
   border-radius: 50%;
+  background: var(--thematiq-accent);
   font-size: 0;
   line-height: 0;
   pointer-events: none;
 }
 
-/* Account button: avatar, name and role, then a chevron. */
+/* ---------- Account button: avatar, name and role, then a chevron ---------- */
+
 .op-app-header--end > button.op-app-menu--item.op-app-header--primer-button {
   position: relative;
   padding: 0 8px 0 4px;
-  border-radius: var(--thematiq-radius);
-  color: var(--thematiq-on-primary);
+  border-radius: 24px;
+  color: var(--thematiq-on-bar);
 }
 .op-app-header--end > button.op-app-menu--item .Button-label {
   display: flex;
@@ -129,11 +135,10 @@
 }
 .op-app-header .op-top-menu-user-avatar { display: flex; }
 .op-app-header .op-top-menu-user-avatar .op-avatar { border-radius: 50%; font-size: 14px; font-weight: 700; }
-/* The initials avatar is the bar inverted, as in the design. An uploaded picture is left alone. */
+/* The initials avatar as the design draws it: the light primary with the deep primary. An uploaded picture is left alone. */
 .op-app-header .op-top-menu-user-avatar .op-avatar--fallback {
-  background: var(--thematiq-on-primary) !important; /* core sets a colour per user inline */
-  /* The bar's own colour, which always reads on its text colour. primary-deep was dark on dark on a light bar. */
-  color: var(--thematiq-primary);
+  background: var(--thematiq-primary-light) !important; /* core sets a colour per user inline */
+  color: var(--thematiq-primary-deep);
 }
 .thematiq-account {
   display: flex;
@@ -142,23 +147,22 @@
   line-height: 1.2;
   text-align: left;
   white-space: nowrap;
-  color: var(--thematiq-on-primary);
+  color: var(--thematiq-on-bar);
 }
 .thematiq-account--name { font-size: 15px; font-weight: 700; }
-.thematiq-account--role { font-size: 13px; font-weight: 400; opacity: 0.85; }
+.thematiq-account--role { font-size: 13px; font-weight: 400; color: var(--thematiq-bar-muted); }
 /* A long name or list of roles ends in an ellipsis instead of widening the bar. The button keeps the whole text. */
 .thematiq-account { max-width: 200px; }
 .thematiq-account--name,
 .thematiq-account--role { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
-/* The row of apps and modules after the brand block (canon: Global menu). A tile is a link with an
- * icon and its name. The name shows under the icon on the current tile and on hover and focus.
- * Otherwise it is kept for screen readers only. */
+/* ---------- An own row of tiles (Tiles in the top bar). The design has none. ---------- */
+
 .thematiq-app-row {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin: 0 0 0 12px; /* 16 px after the rule, with the 4 px gap of the bar */
+  margin: 0 0 0 13px;
   padding: 0;
   list-style: none;
 }
@@ -174,7 +178,7 @@
   height: 48px;
   padding: 0 10px;
   border-radius: var(--thematiq-radius);
-  color: var(--thematiq-on-primary);
+  color: var(--thematiq-on-bar);
   line-height: 1;
   text-decoration: none;
 }
@@ -201,47 +205,44 @@
   overflow: visible;
   clip-path: none;
 }
-.op-app-header .thematiq-app-row--item:hover { background: var(--shell-hover); color: var(--thematiq-on-primary); text-decoration: none; }
-.op-app-header .thematiq-app-row--item:focus-visible { outline: 2px solid var(--thematiq-on-primary); outline-offset: -2px; }
+.op-app-header .thematiq-app-row--item:hover { background: var(--shell-hover); color: var(--thematiq-on-bar); text-decoration: none; }
+.op-app-header .thematiq-app-row--item:focus-visible { outline: 2px solid var(--thematiq-on-bar); outline-offset: -2px; }
 /* Where you are: a fill and a line under the tile, so it does not rest on colour alone. */
 .op-app-header .thematiq-app-row--item[aria-current="page"] {
-  background: var(--thematiq-bar-current); /* the text colour at 16%, less where the name under the icon needs it */
-  box-shadow: inset 0 -3px 0 var(--thematiq-on-primary);
+  background: var(--thematiq-bar-fill);
+  box-shadow: inset 0 -3px 0 var(--thematiq-on-bar);
 }
+/* With a row, the app switcher follows it without the extra space after the brand block's line. */
+.op-app-header .thematiq-app-row + .Button--iconOnly { margin-left: 0; }
 
-/* Between 1360 and 1240 px the account button keeps the avatar and the chevron. The search field
- * narrows to 240 px at most (geometry/20-top-bar.css). */
+/* Between 1360 and 1240 px the account button keeps the avatar and the chevron. */
 @media screen and (max-width: 1359px) {
   .thematiq-account { display: none; }
 }
-/* On a module page the current tile shows its name, which makes the row about 60 px wider. Under 1440 px
- * the account label gives way there too, or the bar is wider than the screen (first full test, finding 2). */
+/* A row with a named current tile is wider; under 1440 px the account label gives way there too
+ * (first full test, finding 2). */
 @media screen and (min-width: 1360px) and (max-width: 1439px) {
   .op-app-header:has(.thematiq-app-row [aria-current="page"]) .thematiq-account { display: none; }
 }
 
-/* Below 1240 px the row folds into the app switcher. The current tile stays, after the button.
- * Everything in the row is in the app switcher too. */
+/* Below 1240 px an own row folds into the app switcher. The current tile stays, after the button. */
 @media screen and (max-width: 1239px) {
   .thematiq-app-row > li:not(:has([aria-current="page"])) { display: none; }
   .thematiq-app-row { order: 1; margin-left: 0; }
-  .op-app-header .op-app-menu > .Button--iconOnly { margin-left: 12px; }
 }
 
 /* OpenProject's compact header has no room for a tile. The app switcher holds every entry. */
 @media screen and (max-width: 1011px) {
   .thematiq-app-row { display: none; }
-  .op-app-header .op-app-menu > .Button--iconOnly { margin-left: 0; }
 }
 
 /* The small logo is a square mark in a 130 px box. With the app switcher after it, that box
  * pushes the switcher under the search button on a phone. */
 @media screen and (max-width: 850px) {
-  .op-app-header .op-app-menu > .op-logo--icon { width: 56px; }
+  .op-app-header .op-app-menu > .op-logo--icon { width: 34px; margin: 0 4px 0 6px; height: 34px; background-size: contain; }
 }
 
-/* Below 1012 px OpenProject uses its compact header. The texts do not fit there.
- * The geometry layer gives the header its compact columns below that width itself (geometry/20-top-bar.css). */
+/* Below 1012 px OpenProject uses its compact header. The texts do not fit there. */
 @media screen and (max-width: 1011px) {
   .thematiq-account,
   .op-app-header--end > button.op-app-menu--item .Button-label::after { display: none; }
@@ -250,43 +251,46 @@
 /* ---------- Desktop ---------- */
 
 @media screen and (min-width: 1012px) {
-  /* The brand block is as wide as the sidebar (geometry/20-top-bar.css). Its rule is its last pixel,
-   * so it sits on the sidebar's edge. Then the row of apps, then the app switcher. */
-  .op-app-header .op-app-menu { gap: 4px; }
+  /* The line after the brand block: 12 px after it, 1 x 28 px. */
   .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon) { position: relative; }
   .op-app-header .op-app-menu > .op-logo:not(.op-logo--icon)::after {
     content: "";
     position: absolute;
-    right: 0;
-    top: 20px;
+    left: calc(100% + 12px);
+    top: 10px;
     width: 1px;
     height: 28px;
-    background: var(--shell-divider);
+    background: var(--thematiq-bar-line);
   }
-  .op-app-header .op-app-menu > .Button--iconOnly.op-app-header--primer-button { width: 44px; height: 44px; }
-  .op-app-header .op-app-menu > .Button--iconOnly::before { width: 22px; height: 22px; }
 
   /* Right side: 6 px between the buttons. Core adds Primer spacing utilities, which are !important. */
   .op-app-header--end { align-items: center; gap: 6px; }
   .op-app-header--end .op-app-menu--item { padding: 0 !important; }
   .op-app-header--end > dialog-helper { margin-left: -6px; } /* an empty flex item: take its gap back */
 
-  /* The rule between help and the account button. */
-  .op-app-header--end > button.op-app-menu--item.op-app-header--primer-button { margin-left: 19px; overflow: visible; }
-  .op-app-header--end > button.op-app-menu--item.op-app-header--primer-button::before {
+  /* The line between the buttons and the account button: 6 px either side, as in the design. */
+  .op-app-header--end > .op-app-menu--item.op-app-header--primer-button:not(.Button--iconOnly),
+  .op-app-header--end > .thematiq-account-menu { margin-left: 13px; overflow: visible; }
+  .op-app-header--end > .op-app-menu--item.op-app-header--primer-button:not(.Button--iconOnly)::before,
+  .op-app-header--end > .thematiq-account-menu::before {
     content: "";
     position: absolute;
     left: -13px;
     top: 10px;
     width: 1px;
     height: 28px;
-    background: var(--shell-divider);
+    background: var(--thematiq-bar-line);
   }
 
-  /* Search: the glass at 14 px, text from 42 px, typed text in the middle of the 44 px field. */
-  .op-app-header--center { align-items: center; }
+  /* Search: the glass 18 px at 14 px, the text from 42 px, in the middle of the 44 px field. */
   .op-app-header .top-menu-search { position: relative; height: 44px; }
-  .op-app-header .top-menu-search .ng-placeholder { font-size: 15px; }
+  .op-app-header .top-menu-search .ng-select-container {
+    border: 1px solid var(--thematiq-bar-line) !important;
+    background: var(--thematiq-bar-fill) !important;
+    box-shadow: none !important;
+  }
+  .op-app-header .top-menu-search .ng-placeholder { font-size: 15px; color: var(--thematiq-bar-muted) !important; }
+  .op-app-header .top-menu-search .ng-select .ng-select-container .ng-value-container .ng-input > input { color: var(--thematiq-on-bar) !important; }
   /* Core sets these paddings with !important. */
   .op-app-header .top-menu-search .ng-select .ng-select-container .ng-value-container {
     height: 42px;
@@ -298,7 +302,7 @@
     transform: translateY(-50%);
     padding-left: 16px !important; /* the input inside adds 25 px of its own */
   }
-  .op-app-header .top-menu-search--button { left: 8px; height: 44px; }
+  .op-app-header .top-menu-search--button { left: 14px; width: 18px; padding: 0; height: 44px; color: var(--thematiq-bar-muted); }
   .op-app-header .top-menu-search--button .op-icon--wrapper { display: none; }
   .op-app-header .top-menu-search--button::before {
     content: "";
@@ -311,15 +315,15 @@
     mask: var(--shell-icon-search) center / contain no-repeat;
   }
 
-  /* ---------- App switcher: a popover with entries in three columns instead of a side sheet ---------- */
+  /* ---------- The app menu: a popover under the nine-dot button instead of a side sheet (werkplek/AppMenu) ---------- */
 
   .op-app-header .op-app-menu dialog.Overlay.op-app-menu--item {
     position: fixed;
-    inset: 72px auto auto calc(var(--main-menu-width, 264px) + 16px);
-    width: 800px;
-    max-width: calc(100vw - var(--main-menu-width, 264px) - 32px);
+    inset: 70px auto auto 160px;
+    width: 640px;
+    max-width: calc(100vw - 176px);
     height: auto;
-    max-height: calc(100vh - 88px);
+    max-height: calc(100vh - 86px);
     margin: 0;
     border: 1px solid var(--thematiq-line);
     border-radius: var(--thematiq-radius-lg);
@@ -404,48 +408,68 @@
 .op-app-header .op-app-menu dialog .op-app-menu--items .ActionListItem-label { font-size: 14px; font-weight: 600; }
 .op-app-header .op-app-menu dialog .op-app-menu--items .ActionListItem { margin: 0 0 4px; }
 
-/* ---------- The plugin's own list under the nine-dot button (Shell::AppSwitcher), design OpHeader ---------- */
+/* ---------- The plugin's own list under the nine-dot button (Shell::AppSwitcher), design werkplek/AppMenu ---------- */
 
+/* The menu has no title bar: its name stays for screen readers, Escape and a click outside close it. */
 .op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-header {
-  position: static;
-  padding: 18px 20px 0 14px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
-#thematiq-switcher .Overlay-headerContentWrap { align-items: center; }
-.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-titleWrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-#thematiq-switcher .Overlay-title { font-size: 16px; font-weight: 700; line-height: 24px; }
-#thematiq-switcher .Overlay-description { margin: 0; font-size: 13px; font-weight: 400; color: var(--thematiq-muted); }
-.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-body { display: block; padding: 14px 20px 0; }
-/* Groups stack (Nextcloud, then OpenProject); the entries of each group flow in up to three columns. */
-.thematiq-switcher--columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.thematiq-switcher--column .thematiq-apps--list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px 12px; }
+.op-app-header .op-app-menu dialog#thematiq-switcher .Overlay-body { display: block; padding: 18px 20px 0; }
+/* Groups stack (Nextcloud, then OpenProject). OpenProject's entries are tiles in four columns, Nextcloud's in six. */
+.thematiq-switcher--columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.thematiq-switcher--column .thematiq-apps--title { margin: 0 0 14px; padding: 0; font-size: 13px; font-weight: 700; line-height: 1.2; }
+.thematiq-switcher--column .thematiq-apps--list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.thematiq-switcher--column.thematiq-apps .thematiq-apps--list { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .thematiq-switcher--column.thematiq-apps { margin-bottom: 0; }
-.thematiq-switcher--text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; line-height: 1.25; }
+.thematiq-switcher--entry.thematiq-apps--item {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 14px 8px 12px;
+  border-radius: var(--thematiq-radius-lg);
+  text-align: center;
+}
+.thematiq-switcher--entry .thematiq-apps--icon { width: 44px; height: 44px; min-width: 44px; border-radius: 50%; }
+.thematiq-switcher--entry .thematiq-apps--icon svg { width: 22px; height: 22px; }
+.thematiq-switcher--text { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; line-height: 1.2; }
+.thematiq-apps--name { font-size: 14px; font-weight: 600; }
 .thematiq-switcher--line { font-size: 12px; font-weight: 400; color: var(--thematiq-muted); }
-.thematiq-switcher--entry.is-current { background: var(--thematiq-primary-light); }
-.thematiq-switcher--entry.is-current .thematiq-apps--icon { background: var(--thematiq-primary-deep); color: var(--thematiq-primary-light); }
-.thematiq-switcher--entry .thematiq-apps--icon svg { width: 20px; height: 20px; }
+/* Nextcloud's tiles: smaller, grey and without a second line. */
+.thematiq-apps .thematiq-switcher--entry.thematiq-apps--item { padding: 12px 6px; }
+.thematiq-apps .thematiq-switcher--entry .thematiq-apps--icon { width: 40px; height: 40px; min-width: 40px; background: var(--thematiq-chip); color: var(--thematiq-text); }
+.thematiq-apps .thematiq-switcher--entry .thematiq-apps--icon svg { width: 20px; height: 20px; }
+.thematiq-apps .thematiq-apps--name { font-size: 13px; font-weight: 500; }
+.thematiq-apps .thematiq-switcher--line { display: none; }
+/* Where you are: the accent's light fill, its ring filled. */
+.thematiq-switcher--entry.is-current { background: color-mix(in srgb, var(--thematiq-accent) 8%, var(--thematiq-surface)); }
+.thematiq-switcher--entry.is-current .thematiq-apps--icon { background: var(--thematiq-accent); color: var(--thematiq-surface); }
+.thematiq-switcher--entry .upsell-colored { position: absolute; top: 8px; right: 8px; }
+.thematiq-switcher--entry { position: relative; }
 #thematiq-switcher .thematiq-switcher--footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
   margin: 14px 20px 16px;
-  padding: 12px 10px 0;
+  padding: 12px 0 0;
   border-top: 1px solid var(--thematiq-line);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--thematiq-muted);
 }
 .thematiq-switcher--manage { font-weight: 600; color: var(--thematiq-link); text-decoration: none; }
 .thematiq-switcher--manage:hover, .thematiq-switcher--manage:focus-visible { text-decoration: underline; }
-/* Pressed: the list is open. */
-.op-app-header .op-app-menu > .op-app-header--primer-button[aria-expanded="true"] { background: var(--shell-hover); }
+
+/* On a phone the menu is core's sheet; the tiles go two and three across. */
+@media screen and (max-width: 1011px) {
+  .thematiq-switcher--column .thematiq-apps--list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .thematiq-switcher--column.thematiq-apps .thematiq-apps--list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 /* OpenProject's introduction tour puts its close button 10 px from the top right corner, where the account
  * name of this taller bar is. Below the bar it covers nothing (first full test, finding 8).
@@ -457,7 +481,6 @@
   .op-app-header .op-app-menu > .Button--iconOnly::before,
   .op-app-header--end .op-ian-bell::before,
   .op-app-header--end #op-app-header--help-menu-button::before,
-  .op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual::before,
   .op-app-header--end > button.op-app-menu--item .Button-label::after,
   .op-app-header .top-menu-search--button::before { background: ButtonText; }
 }

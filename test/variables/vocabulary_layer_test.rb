@@ -37,7 +37,8 @@ class VocabularyLayerTest < Minitest::Test
   # The bundled catalogue carries thematiq's vocabulary. What it changes on the page is the vocabulary layer's
   # variables and nothing else: every line it adds or changes is one of the mapped variables.
   def test_the_bundled_catalogue_only_changes_the_vocabulary_variables
-    mapped = Generator::VOCABULARY_COLORS.keys + Generator::VOCABULARY_SHAPE.keys + Generator::STRIPE_VARIABLES
+    mapped = Generator::VOCABULARY_COLORS.keys + Generator::VOCABULARY_SHAPE.keys + Generator::STRIPE_VARIABLES +
+             Generator::BAR_ALIASES.keys
     changed_sets = 0
     OpenProject::Thematiq::Catalogue.bundled.sets.each do |token_set|
       bare = TokenSet.new(id: token_set.id, name: token_set.name, tokens: token_set.tokens, dark: token_set.dark_tokens)
