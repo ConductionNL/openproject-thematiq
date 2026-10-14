@@ -38,6 +38,16 @@
   <%= t("thematiq.admin.active_now_html", name: active.name) %>
 </p>
 <p><%= link_to t("thematiq.history.link"), admin_thematiq_history_path, data: { test_selector: "thematiq-history-link" } %></p>
+<p><%= link_to t("thematiq.gallery.link"), admin_thematiq_gallery_path, data: { test_selector: "thematiq-gallery-link" } %></p>
+<% if (gallery_notice = @store.gallery_notice) %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :default, icon: :info, mb: 3, data: { test_selector: "thematiq-gallery-notice" })) do %>
+    <%= t("thematiq.gallery.notice", published: gallery_notice["generated_from"], mine: @store.catalogue.generated_from, count: gallery_notice["new"].to_i) %>
+    <%= form_with(url: admin_thematiq_gallery_path, method: :post, data: { turbo: false }, class: "thematiq-inline-form") do %>
+      <input type="hidden" name="dismiss" value="1">
+      <%= render(Primer::Beta::Button.new(type: :submit, size: :small)) { t("thematiq.gallery.dismiss") } %>
+    <% end %>
+  <% end %>
+<% end %>
 
 <% assets = OpenProject::Thematiq::Assets.bundled %>
 <% named_font = assets.named_family(active) %>
@@ -643,3 +653,15 @@ end %>
     <% end %>
   </tbody>
 </table>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-appearance") { t("thematiq.appearance.title") }
+end %>
+<%= form_with(url: admin_thematiq_appearance_path, method: :post, data: { turbo: false }, id: "thematiq-appearance-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.appearance.hint", example: "#{thematiq_appearance_url(mode: 'dark')}&return_to=/") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="appearance_link_enabled" value="1" id="thematiq-appearance-enabled" <%= "checked" if @store.appearance_link_enabled? %>>
+    <%= t("thematiq.appearance.enabled") %>
+  </label>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.appearance.save") } %>
+<% end %>

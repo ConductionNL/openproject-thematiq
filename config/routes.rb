@@ -36,6 +36,8 @@ Rails.application.routes.draw do
   get "admin/thematiq/bundle", to: "thematiq/admin#bundle_export", as: :admin_thematiq_bundle
   get "admin/thematiq/playground", to: "thematiq/admin#playground", as: :admin_thematiq_playground
   post "admin/thematiq/playground", to: "thematiq/admin#component_preview"
+  get "admin/thematiq/gallery", to: "thematiq/admin#gallery", as: :admin_thematiq_gallery
+  post "admin/thematiq/gallery", to: "thematiq/admin#update_gallery"
   get "admin/thematiq/compliance", to: "thematiq/admin#compliance", as: :admin_thematiq_compliance
   get "admin/thematiq/health", to: "thematiq/admin#health", as: :admin_thematiq_health, defaults: { format: :json }
   post "admin/thematiq/bundle", to: "thematiq/admin#bundle_import"
@@ -54,6 +56,8 @@ Rails.application.routes.draw do
   get "thematiq/api/v1/sets/:id/manifest", to: "thematiq/api#manifest", as: :thematiq_api_manifest, format: false,
                                            constraints: { id: /[A-Za-z0-9][A-Za-z0-9._-]{0,63}/ }
   get "thematiq/api/v1/contrast", to: "thematiq/api#contrast", as: :thematiq_api_contrast, format: false
+  get "thematiq/appearance", to: "thematiq/appearance#show", as: :thematiq_appearance, format: false
+  post "admin/thematiq/appearance", to: "thematiq/admin#update_appearance", as: :admin_thematiq_appearance
   get "thematiq/metrics", to: "thematiq/metrics#show", as: :thematiq_metrics, format: false
   get "thematiq/api/shell-tokens", to: "thematiq/shell_tokens#show", as: :thematiq_shell_tokens, format: false
 

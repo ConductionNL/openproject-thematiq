@@ -33,6 +33,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `schedule.spec.js` | A switch is planned, listed and cancelled (the switch itself is in the request check) |
 | `playground.spec.js` | The playground draws OpenProject's components in a chosen design system, the content area only |
 | `scopes.spec.js` | A project's design system styles its whole page, and leaving the project and coming back swaps the style tags (Turbo); a module's design system reaches the content only; projects may not choose by default |
+| `gallery.spec.js` | The gallery is off by default and refuses an address that is not https; another product's link sets a person's light or dark choice once it is allowed |
 | `governance.spec.js` | The environment marker on every page, the sign-in page too; a deprecated token in the editor and the read endpoint |
 | `history.spec.js` | Each change is listed with who made it; restoring a version shows what it changes first, then brings it back |
 | `short-form.spec.js` | Two colours open in the editor, unsaved, and save as a custom design system; a colour that is not a hex value is refused |

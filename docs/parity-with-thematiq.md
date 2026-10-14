@@ -16,11 +16,11 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 133 |
+| in plugin | 139 |
 | being built | 0 |
 | to build, as is | 10 |
-| to build, adapted | 19 |
-| no counterpart | 3 |
+| to build, adapted | 10 |
+| no counterpart | 6 |
 | Total | 165 |
 
 On 12 October it was 20 in plugin, 34 being built, 51 to build as is, 57 to build adapted and 3 without a counterpart.
@@ -49,7 +49,7 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **29 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 22 S, 5 M and 2 L.
+1. **20 of 165 rows still have to be built, and 0 are in open pull requests.** The rows to build are sized 15 S, 4 M and 1 L.
 2. **Waves 0 and 1 are done** apart from nine rows, two of them blocked or waiting on a design (PDF export styling, the cards of the workplace layout). **Wave 2 is done** (#68 to #71, #76). **Wave 4 is partly done** (#69, #72 to #74): the audit log and its export, the configuration file, the command line, the environment, the health report and the release. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. The L rows left are a full component bridge, the NL Design System converter and an icon pack.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
@@ -80,7 +80,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `cat-design-system-docs` | Follow a link from the settings page to the design system's own documentation (thematiq has this in part) | `specs/admin-settings` | to build, as is |  | S |
 | `cat-community-sets` | Use community-maintained brand sets for organisations that are not a municipality | `specs/extended-token-sets` | in plugin | The same catalogue (#13) |  |
 | `cat-starter-templates` | Start from a ready-made template or example theme and adapt it instead of starting blank | `specs/admin-settings` | in plugin | #8: "Customise" takes any set as the base. #71 adds "Start from your colours" |  |
-| `cat-marketplace` | Download additional themes from a marketplace or gallery maintained by the vendor or community | `specs/upstream-freshness` | to build, adapted | #5 removed every connection, so a gallery means a file you fetch yourself and import (#10). See question 2 | M |
+| `cat-marketplace` | Download additional themes from a marketplace or gallery maintained by the vendor or community | `specs/upstream-freshness` | in plugin | #95: a gallery of thematiq's published catalogue, read from one https address an admin turns on (off by default); new or changed design systems are added as custom ones |  |
 | `cat-provincial-sets` | Apply a house style for a province or water board (thematiq has this in part) | `specs/extended-token-sets` | in plugin | The same catalogue (#13) |  |
 | `cat-living-token-docs` | Generate living documentation of the house style's tokens as a core feature | `specs/token-reference` | in plugin | #78: `docs/token-reference.md`, generated from the code; a test fails when it is out of date |  |
 
@@ -103,7 +103,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `app-runtime-no-deploy` | Change the brand at runtime from an admin screen, without a redeployment or configuration management run | `specs/admin-settings` | in plugin | #7: the admin page changes the design at runtime |  |
 | `app-scheduled-switch` | Schedule a theme change for a date, such as a campaign or a holiday look | `specs/config-portability` | in plugin | #86: a design system planned for a date and time; the first page after it makes the switch, with no background job, and the history names it |  |
 | `app-rollback-history` | Roll back to an earlier version of the theme from a version history | `specs/theming-audit` | in plugin | #69: every change keeps the whole setup as a version; a restore first shows what it changes |  |
-| `app-reset-core` | Reset Nextcloud's own theming values back to stock in one action | `specs/theming-sync` | to build, adapted | Reset OpenProject's own design values (`CustomStyle`, `DesignColor`). See question 6 | S |
+| `app-reset-core` | Reset Nextcloud's own theming values back to stock in one action | `specs/theming-sync` | no counterpart | OpenProject's own design values are `CustomStyle`, which the owner's rule says the plugin never reads or writes |  |
 | `app-simple-theme-switch` | Let people who are not token specialists switch between brand themes without learning the token editor | `specs/token-set-dropdown` | in plugin | #7: the picker |  |
 | `app-branding-package` | Ship the tokens, templates and the theme stylesheet as one branding package that applies itself when a site is connected | `specs/theme-as-code` | in plugin | #82: `THEMATIQ_BUNDLE_FILE` names a configuration file that is made the setup at start, once per version of the file |  |
 
@@ -210,7 +210,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sco-user-follow-os` | Follow the user's operating system preference for dark mode and high contrast | `specs/dark-mode` | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`sync_with_os`) |  |
 | `sco-per-site` | Give each site, portal or department its own theme (thematiq has this in part) | `specs/per-group-theming` | in plugin | #67: a design system per project, inherited by subprojects, chosen by a project admin when the instance allows it |  |
 | `sco-app-token-catalogue` | Let another app on the instance list the available house styles for its own picker without admin rights | `specs/app-token-set-selection` | in plugin | #77: `GET /thematiq/api/v1/sets` for anyone signed in (`docs/api.md`) |  |
-| `sco-suite-wide-appearance` | Respect a user's light or dark choice from the central portal in every application of the suite (thematiq has this in part) | `specs/dark-mode` | to build, adapted | Needs one stored light or dark choice that both products read. No such link exists. See question 1 | L |
+| `sco-suite-wide-appearance` | Respect a user's light or dark choice from the central portal in every application of the suite (thematiq has this in part) | `specs/dark-mode` | in plugin | #95: another product links a person to `/thematiq/appearance?mode=` to set their OpenProject light or dark choice the same way; no connection between the products, off by default |  |
 
 ### Accessibility and contrast
 
@@ -258,12 +258,12 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | Capability | What it does | In thematiq | Status for the plugin | Remark | Size |
 |---|---|---|---|---|---|
 | `syn-upstream-generated` | Get house styles generated from the official NL Design System token sources rather than copied by hand | `specs/token-sync-workflow` | in plugin | #13, #65: the catalogue is generated from thematiq's token sets |  |
-| `syn-nightly-pr` | Receive upstream token changes as proposed updates through a nightly synchronisation (thematiq has this in part) | `specs/token-sync-workflow` | to build, adapted | A scheduled workflow in the plugin repository that regenerates the catalogue and opens a pull request | S |
-| `syn-freshness-check` | Opt in to a daily check that tells you when your house style is behind the upstream tokens | `specs/upstream-freshness` | to build, adapted | A daily check needs a connection. Since #5 the plugin opens none; it could be an opt-in an admin turns on, off by default. See question 2 | S |
-| `syn-freshness-dismiss` | Dismiss an upstream-update notice until the next change | `specs/upstream-freshness` | to build, adapted | With `syn-freshness-check` | S |
-| `syn-freshness-status` | See when the upstream check last ran and what it found | `specs/upstream-freshness` | to build, adapted | With `syn-freshness-check` | S |
-| `syn-nc-theming-sync` | Keep Nextcloud's built-in theming colours and logo in line with the chosen house style | `specs/token-set-dropdown` | to build, adapted | Keep OpenProject's own design values in line. Core only applies them with an Enterprise licence. See question 6 | S |
-| `syn-nc-theming-edit` | Edit Nextcloud's built-in theming values from the same settings page | `specs/theming-sync` | to build, adapted | With `syn-nc-theming-sync` | S |
+| `syn-nightly-pr` | Receive upstream token changes as proposed updates through a nightly synchronisation (thematiq has this in part) | `specs/token-sync-workflow` | in plugin | #95: `.github/workflows/catalogue-sync.yml` opens a pull request each night thematiq's catalogue is newer. Not run yet; needs the repository setting that lets Actions open pull requests |  |
+| `syn-freshness-check` | Opt in to a daily check that tells you when your house style is behind the upstream tokens | `specs/upstream-freshness` | in plugin | #95: with the gallery on, the picker checks once a day whether thematiq published a newer catalogue |  |
+| `syn-freshness-dismiss` | Dismiss an upstream-update notice until the next change | `specs/upstream-freshness` | in plugin | #95: the notice is dismissed until the next newer catalogue |  |
+| `syn-freshness-status` | See when the upstream check last ran and what it found | `specs/upstream-freshness` | in plugin | #95: the gallery page says when it last checked and what it found, or why it failed |  |
+| `syn-nc-theming-sync` | Keep Nextcloud's built-in theming colours and logo in line with the chosen house style | `specs/token-set-dropdown` | no counterpart | OpenProject's own design values are `CustomStyle`, which the plugin never reads or writes (owner's rule). Question 6 |  |
+| `syn-nc-theming-edit` | Edit Nextcloud's built-in theming values from the same settings page | `specs/theming-sync` | no counterpart | As `syn-nc-theming-sync` |  |
 | `syn-upgrade-migration` | Keep your settings intact when the app is renamed or upgraded | `specs/app-identity` | in plugin | #5: the keys of the version with a live link are removed; the one custom set of an early version moves into the list (#25) |  |
 | `aut-dtcg-colour-objects` | Read and write tokens in the stable DTCG specification, including colour values stored as objects with an explicit colour space | `specs/token-set-dtcg-export` | in plugin | #36: a colour object in sRGB is read and written |  |
 

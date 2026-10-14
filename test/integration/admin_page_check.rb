@@ -1224,6 +1224,26 @@ begin
   check("an icon is a static file without a session") { icon_view.response.status == 200 && icon_view.response.media_type == "image/svg+xml" }
   icon_view.get "/thematiq/icons/../../config/database.yml"
   check("the icon path does not leave its folder") { icon_view.response.status != 200 || !icon_view.response.body.include?("adapter") }
+
+  # 30. The gallery: off by default, https only; and the shared light or dark choice
+  check("the gallery is off by default and opens nothing") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  gallery_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  gallery_member.get "/admin/thematiq/gallery"
+  check("a non-admin cannot open the gallery") { gallery_member.response.status == 403 }
+  gallery_token = form_token(admin, "/admin/thematiq/gallery", "thematiq-gallery-form")
+  admin.post "/admin/thematiq/gallery", params: { save: "1", gallery_enabled: "1", gallery_url: "http://169.254.169.254/latest", authenticity_token: gallery_token }
+  check("a gallery address that is not https is refused") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  appearance_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "/" }
+  check("the appearance link answers 404 while it is off") { appearance_member.response.status == 404 }
+  OpenProject::Thematiq::Store.new.save_appearance_link(true)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "https://evil.example/" }
+  check("the appearance link sets the person's choice and only goes back to a safe place") do
+    appearance_member.response.redirect? && !appearance_member.response.location.include?("evil.example") && member.reload.pref.theme == "dark"
+  end
+  appearance_member.get "/thematiq/appearance", params: { mode: "light", return_to: "/projects" }
+  check("light, and back to a path here") { appearance_member.response.location.end_with?("/projects") && member.reload.pref.theme == "light" }
+  OpenProject::Thematiq::Store.new.save_appearance_link(false)
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
