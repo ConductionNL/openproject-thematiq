@@ -1194,6 +1194,20 @@ begin
   footer_view.get "/login"
   check("the legal links show on the sign-in page") { footer_view.response.body.include?('href="https://example.org/imprint"') }
   OpenProject::Thematiq::Store.new.save_footer_links({})
+
+  # 27. The sign-in page of Nextcloud Zuiddrecht: the brand above core's own form, a line under the heading
+  sign_in_view = session_for
+  sign_in_view.get "/login"
+  check("the sign-in page has the brand block above core's own form") do
+    body = sign_in_view.response.body
+    body.include?('data-test-selector="thematiq-sign-in-brand"') && body.include?('id="login-form"') && body.include?('id="username"')
+  end
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  sign_in_view.get "/login"
+  check("for an organisation the page names it and shows its emblem") do
+    body = sign_in_view.response.body
+    body.include?("For the staff of Gemeente Zuiddrecht.") && body.include?("/thematiq/logos/zuiddrecht-emblem.svg")
+  end
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
