@@ -2,7 +2,7 @@
 
 An OpenProject plugin that gives OpenProject the same shell as a Nextcloud themed with [thematiq](https://github.com/ConductionNL/thematiq). A user who moves from one product to the other sees the same top bar, navigation, buttons, inputs and tables.
 
-The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests. The design systems ship inside the plugin.
+The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests unless an administrator turns on the [gallery](#the-gallery-and-the-catalogue-notice), which is off by default. The design systems ship inside the plugin.
 
 **Status: early work.** A spike proved the route on OpenProject 17.9.1 community edition. The plugin itself is being built on the `development` branch.
 
@@ -186,7 +186,19 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 
 ### Try a design system on OpenProject's components
 
-**Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
+**Playground**, a link on **Thematiq design**, shows OpenProject's own components in each state: buttons, fields with an error and disabled, messages, labels, a counter and a list. Choose a design system and only that page's content area wears it. Nothing is applied. Under **Your own component**, paste HTML and CSS you are building: your CSS reads the design system's variables, such as `var(--thematiq-primary)`, in a frame that runs no script; nothing is stored. A design system's component tokens (text fields, selects, the secondary button, the table, the navigation and more) reach the matching Primer variables.
+
+### Government icons
+
+The plugin ships thematiq's government icon sets (RVO, OpenGemeenten, Den Haag, DSFR; 2,526 icons, each rebuilt by the plugin's SVG check), with their licences. Any app on the instance uses an icon by name at `/thematiq/icons/<set>/<name>.svg`; `/thematiq/api/v1/icons` lists them. **Icon library** on Thematiq design shows the sets.
+
+### The gallery and the catalogue notice
+
+thematiq publishes its catalogue of design systems. Under **Gallery**, a link on **Thematiq design**, turn on **Read the gallery from the address below**: the plugin then reads that one https address (thematiq's own on GitHub, or one you give). **Check now** lists the design systems this plugin does not have, or has with other values, and **Add** makes one a custom design system. The picker checks once a day and says when thematiq published a newer catalogue; **Dismiss** hides that until the next one. This is the plugin's only network connection, and it is off until you turn it on. A nightly workflow in this repository proposes the newer catalogue as a pull request.
+
+### A shared light or dark choice
+
+Turn on **Let another product set a person's light or dark choice by link**. Another product, such as Nextcloud with thematiq, then links a signed-in person to `/thematiq/appearance?mode=dark&return_to=/` (or `light`, or `system`) to set their OpenProject choice the same way and send them back. `return_to` may be a path here or an address under the Nextcloud address. It is only a link the person follows; off by default.
 
 ### E-mail in the house style
 

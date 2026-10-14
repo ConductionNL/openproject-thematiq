@@ -62,3 +62,26 @@
     3.times { |index| box.with_row { t("thematiq.playground.list_row", number: index + 1) } }
   end %>
 </div>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-component-preview") { t("thematiq.playground.own_title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.playground.own_hint") %></p>
+<%= form_with(url: admin_thematiq_playground_path, method: :post, data: { turbo: false }, id: "thematiq-component-preview-form") do %>
+  <input type="hidden" name="set_id" value="<%= @playground_set.id %>">
+  <label class="thematiq-editor__label" for="thematiq-preview-html"><%= t("thematiq.playground.own_html") %></label>
+  <textarea name="html" id="thematiq-preview-html" class="FormControl-textarea thematiq-custom-css__text" rows="6" spellcheck="false"><%= @preview_html %></textarea>
+  <label class="thematiq-editor__label" for="thematiq-preview-css"><%= t("thematiq.playground.own_css") %></label>
+  <textarea name="css" id="thematiq-preview-css" class="FormControl-textarea thematiq-custom-css__text" rows="4" spellcheck="false"><%= params[:css].to_s.first(OpenProject::Thematiq::CustomCss::MAX_BYTES) %></textarea>
+  <% if @preview_css_errors.present? %>
+    <ul class="thematiq-editor__error" data-test-selector="thematiq-preview-css-errors">
+      <% @preview_css_errors.each do |code, part| %><li><%= t("thematiq.custom_css.errors.#{code}", default: code) %><% if part.present? %>: <code><%= part %></code><% end %></li><% end %>
+    </ul>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.playground.own_show") } %>
+<% end %>
+<% if @srcdoc %>
+  <%# A frame with an origin of its own and no script: sandbox without allow-scripts or allow-same-origin. %>
+  <iframe class="thematiq-component-preview" sandbox="" title="<%= t("thematiq.playground.own_frame") %>" srcdoc="<%= @srcdoc %>"
+          data-test-selector="thematiq-component-frame"></iframe>
+<% end %>

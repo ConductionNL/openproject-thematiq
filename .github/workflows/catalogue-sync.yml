@@ -1,0 +1,56 @@
+# The nightly catalogue sync (syn-nightly-pr): reads thematiq's published shell catalogue and, when it is newer than the
+# one in this repository, opens a pull request that replaces data/catalogue/shell-catalogue.json. Nothing merges by
+# itself: the pull request runs the usual checks, and a maintainer copies any new logo or font by hand
+# (docs/catalogue.md, "Replace the catalogue"). The repository must allow GitHub Actions to open pull requests.
+name: Catalogue sync
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: catalogue-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: development
+      - name: Read thematiq's catalogue
+        run: |
+          curl --fail --silent --show-error --max-time 60 --proto '=https' \
+            https://raw.githubusercontent.com/ConductionNL/thematiq/development/docs/reference/shell-catalogue.json -o /tmp/catalogue.json
+          python3 -c "import json; d=json.load(open('/tmp/catalogue.json')); assert d.get('version') == 1 and d.get('sets'), 'not a catalogue'"
+      - name: Compare
+        id: compare
+        run: |
+          new=$(python3 -c "import json; print(json.load(open('/tmp/catalogue.json')).get('generated_from',''))")
+          old=$(python3 -c "import json; print(json.load(open('data/catalogue/shell-catalogue.json')).get('generated_from',''))")
+          echo "new=$new" >> "$GITHUB_OUTPUT"
+          if [ "$new" = "$old" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; else echo "same=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Open a pull request
+        if: steps.compare.outputs.same == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GENERATED_FROM: ${{ steps.compare.outputs.new }}
+        run: |
+          branch="chore/catalogue-sync-$(date -u +%Y%m%d)"
+          if git ls-remote --exit-code origin "refs/heads/$branch" >/dev/null; then echo "already proposed today"; exit 0; fi
+          cp /tmp/catalogue.json data/catalogue/shell-catalogue.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add data/catalogue/shell-catalogue.json
+          git commit -m "chore(catalogue): thematiq's catalogue of ${GENERATED_FROM}"
+          git push origin "$branch"
+          gh pr create --base development --head "$branch" --title "chore(catalogue): thematiq's catalogue of ${GENERATED_FROM}" \
+            --body "The nightly sync found a newer catalogue in thematiq. Before merging, copy any new logo or font that the catalogue marks redistributable (docs/catalogue.md, Replace the catalogue), and change the number of sets in test/catalogue_test.rb when it changed."
