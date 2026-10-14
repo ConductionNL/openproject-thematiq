@@ -1,0 +1,87 @@
+<% title = t("thematiq.playground.title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.playground.description") }
+  end
+%>
+
+<%= form_with(url: admin_thematiq_playground_path, method: :get, data: { turbo: false }, id: "thematiq-playground-form", class: "thematiq-picker__search") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-playground-set"><%= t("thematiq.playground.set") %></label>
+    <select name="set_id" id="thematiq-playground-set" class="FormControl-select FormControl-medium">
+      <%= options_for_select(@store.all_sets.map { |token_set| [token_set.name, token_set.id] }, @playground_set.id) %>
+    </select>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.playground.show") } %>
+<% end %>
+
+<div class="thematiq-playground" data-test-selector="thematiq-playground" data-thematiq-playground-set="<%= @playground_set.id %>">
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.playground.buttons") %></h3>
+  <div class="thematiq-playground__row">
+    <% %i[primary default secondary danger invisible].each do |scheme| %>
+      <%= render(Primer::Beta::Button.new(scheme:, data: { thematiq_sample: "button-#{scheme}" })) { t("thematiq.playground.schemes.#{scheme}") } %>
+    <% end %>
+    <%= render(Primer::Beta::Button.new(disabled: true)) { t("thematiq.playground.disabled") } %>
+    <%= render(Primer::Beta::Button.new(scheme: :primary, disabled: true)) { t("thematiq.playground.disabled") } %>
+  </div>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.playground.fields") %></h3>
+  <div class="thematiq-playground__row thematiq-playground__row--fields">
+    <%= render(Primer::Alpha::TextField.new(name: :sample_text, label: t("thematiq.playground.text_field"), placeholder: t("thematiq.playground.placeholder"))) %>
+    <%= render(Primer::Alpha::TextField.new(name: :sample_invalid, label: t("thematiq.playground.invalid_field"), value: "x",
+                                             validation_message: t("thematiq.playground.invalid_message"))) %>
+    <%= render(Primer::Alpha::TextField.new(name: :sample_disabled, label: t("thematiq.playground.disabled_field"), value: t("thematiq.playground.placeholder"), disabled: true)) %>
+    <label class="thematiq-editor__toggle"><input type="checkbox" checked> <%= t("thematiq.playground.checkbox") %></label>
+  </div>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.playground.messages") %></h3>
+  <% %i[default success warning danger].each do |scheme| %>
+    <%= render(Primer::Alpha::Banner.new(scheme:, mb: 2)) { t("thematiq.playground.banner", scheme: t("thematiq.playground.banner_schemes.#{scheme}")) } %>
+  <% end %>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.playground.labels") %></h3>
+  <div class="thematiq-playground__row">
+    <% %i[primary secondary accent success attention danger].each do |scheme| %>
+      <%= render(Primer::Beta::Label.new(scheme:)) { scheme.to_s } %>
+    <% end %>
+    <%= render(Primer::Beta::Counter.new(count: 12)) %>
+    <%= link_to t("thematiq.playground.link_text"), admin_thematiq_path %>
+  </div>
+
+  <h3 class="thematiq-editor__legend"><%= t("thematiq.playground.list") %></h3>
+  <%= render(Primer::Beta::BorderBox.new) do |box|
+    box.with_header { t("thematiq.playground.list_header") }
+    3.times { |index| box.with_row { t("thematiq.playground.list_row", number: index + 1) } }
+  end %>
+</div>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-component-preview") { t("thematiq.playground.own_title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.playground.own_hint") %></p>
+<%= form_with(url: admin_thematiq_playground_path, method: :post, data: { turbo: false }, id: "thematiq-component-preview-form") do %>
+  <input type="hidden" name="set_id" value="<%= @playground_set.id %>">
+  <label class="thematiq-editor__label" for="thematiq-preview-html"><%= t("thematiq.playground.own_html") %></label>
+  <textarea name="html" id="thematiq-preview-html" class="FormControl-textarea thematiq-custom-css__text" rows="6" spellcheck="false"><%= @preview_html %></textarea>
+  <label class="thematiq-editor__label" for="thematiq-preview-css"><%= t("thematiq.playground.own_css") %></label>
+  <textarea name="css" id="thematiq-preview-css" class="FormControl-textarea thematiq-custom-css__text" rows="4" spellcheck="false"><%= params[:css].to_s.first(OpenProject::Thematiq::CustomCss::MAX_BYTES) %></textarea>
+  <% if @preview_css_errors.present? %>
+    <ul class="thematiq-editor__error" data-test-selector="thematiq-preview-css-errors">
+      <% @preview_css_errors.each do |code, part| %><li><%= t("thematiq.custom_css.errors.#{code}", default: code) %><% if part.present? %>: <code><%= part %></code><% end %></li><% end %>
+    </ul>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.playground.own_show") } %>
+<% end %>
+<% if @srcdoc %>
+  <%# A frame with an origin of its own and no script: sandbox without allow-scripts or allow-same-origin. %>
+  <iframe class="thematiq-component-preview" sandbox="" title="<%= t("thematiq.playground.own_frame") %>" srcdoc="<%= @srcdoc %>"
+          data-test-selector="thematiq-component-frame"></iframe>
+<% end %>

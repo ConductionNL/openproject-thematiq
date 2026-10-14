@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   post "admin/thematiq/top-bar", to: "thematiq/admin#update_top_bar", as: :admin_thematiq_top_bar
   post "admin/thematiq/custom-css", to: "thematiq/admin#update_custom_css", as: :admin_thematiq_custom_css
   post "admin/thematiq/own-tokens", to: "thematiq/admin#update_own_token", as: :admin_thematiq_own_tokens
+  get "thematiq/api/v1/icons", to: "thematiq/api#icons", as: :thematiq_api_icons, format: false
   get "thematiq/api/v1/own-tokens", to: "thematiq/api#own_tokens", as: :thematiq_api_own_tokens, format: false
   post "admin/thematiq/schedule", to: "thematiq/admin#update_schedule", as: :admin_thematiq_schedule
   post "admin/thematiq/email", to: "thematiq/admin#update_email", as: :admin_thematiq_email
@@ -33,6 +34,10 @@ Rails.application.routes.draw do
   get "admin/thematiq/history.csv", to: "thematiq/admin#history_export", as: :admin_thematiq_history_export, format: false
   get "admin/thematiq/history", to: "thematiq/admin#history", as: :admin_thematiq_history
   get "admin/thematiq/bundle", to: "thematiq/admin#bundle_export", as: :admin_thematiq_bundle
+  get "admin/thematiq/playground", to: "thematiq/admin#playground", as: :admin_thematiq_playground
+  post "admin/thematiq/playground", to: "thematiq/admin#component_preview"
+  get "admin/thematiq/gallery", to: "thematiq/admin#gallery", as: :admin_thematiq_gallery
+  post "admin/thematiq/gallery", to: "thematiq/admin#update_gallery"
   get "admin/thematiq/compliance", to: "thematiq/admin#compliance", as: :admin_thematiq_compliance
   get "admin/thematiq/health", to: "thematiq/admin#health", as: :admin_thematiq_health, defaults: { format: :json }
   post "admin/thematiq/bundle", to: "thematiq/admin#bundle_import"
@@ -51,6 +56,9 @@ Rails.application.routes.draw do
   get "thematiq/api/v1/sets/:id/manifest", to: "thematiq/api#manifest", as: :thematiq_api_manifest, format: false,
                                            constraints: { id: /[A-Za-z0-9][A-Za-z0-9._-]{0,63}/ }
   get "thematiq/api/v1/contrast", to: "thematiq/api#contrast", as: :thematiq_api_contrast, format: false
+  get "thematiq/appearance", to: "thematiq/appearance#show", as: :thematiq_appearance, format: false
+  post "admin/thematiq/groups", to: "thematiq/admin#update_groups", as: :admin_thematiq_groups
+  post "admin/thematiq/appearance", to: "thematiq/admin#update_appearance", as: :admin_thematiq_appearance
   get "thematiq/metrics", to: "thematiq/metrics#show", as: :thematiq_metrics, format: false
   get "thematiq/api/shell-tokens", to: "thematiq/shell_tokens#show", as: :thematiq_shell_tokens, format: false
 
