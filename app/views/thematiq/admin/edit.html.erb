@@ -2,6 +2,7 @@
 <% kinds = OpenProject::Thematiq::Editor::KINDS %>
 <% preview_set = @draft.token_set %>
 <% editor = OpenProject::Thematiq::Editor %>
+<% dark_error = ->(key) { OpenProject::Thematiq::CustomDraft.dark_error(key) } %>
 
 <%=
   render(Primer::OpenProject::PageHeader.new) do |header|
@@ -58,14 +59,15 @@
       </div>
 
       <% editor.groups.each do |group| %>
-        <% changed = group.keys.count { |key| @draft.overridden?(key) } %>
+        <% changed = group.keys.sum { |key| (@draft.overridden?(key) ? 1 : 0) + (@draft.dark_overridden?(key) ? 1 : 0) } %>
+        <% group_errors = group.keys.any? { |key| @draft.error?(key) || @draft.error?(dark_error.call(key)) } %>
         <% if group.vocabulary && group == editor.groups.find(&:vocabulary) %>
           <h3 class="thematiq-editor__legend" id="thematiq-more-values"><%= t("thematiq.editor.more_values") %></h3>
           <p class="thematiq-editor__hint"><%= t("thematiq.editor.more_values_hint") %></p>
         <% end %>
         <%# A group of the vocabulary starts closed, unless it holds a changed or a refused value. %>
         <% if group.vocabulary %>
-          <details class="thematiq-editor__more" data-thematiq-more <%= "open" if changed.positive? || group.keys.any? { |key| @draft.error?(key) } %>>
+          <details class="thematiq-editor__more" data-thematiq-more <%= "open" if changed.positive? || group_errors %>>
             <summary class="thematiq-editor__more-title">
               <%= t("thematiq.editor.groups.#{group.id}.label") %>
               <span class="thematiq-editor__hint"><%= t("thematiq.editor.values_count", count: group.keys.size) %></span>
@@ -77,7 +79,7 @@
             <p class="thematiq-editor__hint"><%= t("thematiq.editor.groups.#{group.id}.hint") %></p>
             <span class="thematiq-editor__count" data-thematiq-count><%= t("thematiq.editor.changed_count", count: changed) %></span>
             <button type="submit" name="reset_group" value="<%= group.id %>" class="Button Button--secondary Button--small" formnovalidate
-                    data-thematiq-reset-group <%= "hidden" if changed.zero? && group.keys.none? { |key| @draft.error?(key) } %>
+                    data-thematiq-reset-group <%= "hidden" if changed.zero? && !group_errors %>
                     aria-label="<%= t("thematiq.editor.reset_group_label", group: t("thematiq.editor.groups.#{group.id}.label")) %>">
               <span class="Button-content"><span class="Button-label"><%= t("thematiq.editor.reset_group") %></span></span>
             </button>
@@ -88,9 +90,9 @@
             <% label = group.vocabulary ? t("thematiq.vocabulary.#{key}") : t("thematiq.tokens.#{key}.label") %>
             <% field_id = "thematiq-token-#{key}" %>
             <% checks = kind == :color ? editor.checks_for(key) : [] %>
-            <% touched = @draft.overridden?(key) || @draft.error?(key) %>
+            <% touched = @draft.overridden?(key) || @draft.error?(key) || @draft.dark_overridden?(key) || @draft.error?(dark_error.call(key)) %>
             <% described = ["#{field_id}-hint", (checks.any? ? "#{field_id}-contrast" : nil), "#{field_id}-error"].compact.join(" ") %>
-            <div class="thematiq-editor__field <%= "is-changed" if @draft.overridden?(key) %>" data-thematiq-row="<%= key %>">
+            <div class="thematiq-editor__field <%= "is-changed" if @draft.overridden?(key) || @draft.dark_overridden?(key) %>" data-thematiq-row="<%= key %>">
               <label class="thematiq-editor__label <%= "thematiq-editor__label--stacked" if group.vocabulary %>" for="<%= field_id %>">
                 <span>
                   <%= label %>
@@ -128,6 +130,34 @@
                 </ul>
               <% end %>
               <p class="thematiq-editor__error" id="<%= field_id %>-error" data-thematiq-error <%= "hidden" unless @draft.error?(key) %>><%= t("thematiq.editor.error_#{kind}") %></p>
+              <% if editor::DARK_FIELDS.include?(key) %>
+                <%# The dark value. Empty keeps the base's dark value, else OpenProject's own: nothing is derived. %>
+                <% dark_id = "thematiq-dark-#{key}" %>
+                <% dark_invalid = @draft.error?(dark_error.call(key)) %>
+                <% base_dark = @draft.base_dark(key) %>
+                <% dark_label = t("thematiq.editor.dark.field_label", token: label) %>
+                <div class="thematiq-editor__dark" data-thematiq-dark-row>
+                  <label class="thematiq-editor__label" for="<%= dark_id %>">
+                    <span>
+                      <%= t("thematiq.editor.dark.label") %>
+                      <span class="thematiq-editor__badge" data-thematiq-dark-badge <%= "hidden" unless @draft.dark_overridden?(key) %>><%= t("thematiq.editor.changed") %></span>
+                    </span>
+                  </label>
+                  <div class="thematiq-editor__control">
+                    <%= thematiq_swatch(preview_set, key, dark: true) %>
+                    <input type="text" name="dark[<%= key %>]" id="<%= dark_id %>" class="FormControl-input FormControl-medium"
+                           maxlength="400" autocomplete="off" spellcheck="false"
+                           value="<%= @draft.dark_field_value(key) %>" placeholder="<%= base_dark %>"
+                           data-thematiq-dark="<%= key %>" data-thematiq-label="<%= dark_label %>" data-thematiq-base="<%= base_dark %>"
+                           aria-label="<%= dark_label %>" aria-describedby="<%= dark_id %>-hint <%= dark_id %>-error"
+                           <%= 'aria-invalid="true"'.html_safe if dark_invalid %>>
+                  </div>
+                  <p class="thematiq-editor__hint" id="<%= dark_id %>-hint">
+                    <%= base_dark ? t("thematiq.editor.dark.base_value", name: @draft.base.name, value: base_dark) : t("thematiq.editor.dark.own_value") %>
+                  </p>
+                  <p class="thematiq-editor__error" id="<%= dark_id %>-error" data-thematiq-dark-error <%= "hidden" unless dark_invalid %>><%= t("thematiq.editor.error_color") %></p>
+                </div>
+              <% end %>
             </div>
           <% end %>
         </fieldset>
@@ -152,8 +182,31 @@
 
   <div class="thematiq-editor__preview">
     <h3 class="thematiq-editor__legend"><%= t("thematiq.editor.preview_title") %></h3>
+    <%# Where a design system is chosen changes what it styles: a project's styles the whole page, a module's the content
+        area only (docs/design/scopes.md). The choice needs the script and stays hidden without it. %>
+    <div class="thematiq-editor__scope" data-thematiq-scope-tools hidden>
+      <label class="thematiq-editor__label" for="thematiq-preview-scope"><%= t("thematiq.editor.scope.label") %></label>
+      <select id="thematiq-preview-scope" class="FormControl-select FormControl-medium" data-thematiq-scope aria-describedby="thematiq-preview-scope-hint">
+        <option value="page"><%= t("thematiq.editor.scope.page") %></option>
+        <option value="module"><%= t("thematiq.editor.scope.module") %></option>
+      </select>
+      <p class="thematiq-editor__hint" id="thematiq-preview-scope-hint" data-thematiq-scope-hint="page"><%= t("thematiq.editor.scope.page_hint") %></p>
+      <p class="thematiq-editor__hint" id="thematiq-preview-scope-hint-module" data-thematiq-scope-hint="module" hidden><%= t("thematiq.editor.scope.module_hint", name: @store.active_token_set.name) %></p>
+    </div>
     <%= thematiq_shell_preview(preview_set) %>
     <p class="thematiq-editor__hint"><%= t("thematiq.editor.preview_hint") %></p>
+    <% used = @stored && Thematiq::Scope.ready? ? Thematiq::Scope.where(design_system_id: @draft.id).to_a : [] %>
+    <% if used.any? %>
+      <% projects = Project.where(id: used.filter_map(&:project_id)).index_by(&:id) %>
+      <h4 class="thematiq-editor__label"><%= t("thematiq.editor.scope.used_title") %></h4>
+      <ul class="thematiq-editor__used" data-test-selector="thematiq-used-in">
+        <% used.each do |row| %>
+          <% place = row.project_id ? projects[row.project_id]&.name : t("thematiq.editor.scope.instance") %>
+          <% next unless place %>
+          <li><%= row.module_name.to_s.empty? ? t("thematiq.editor.scope.used_project", place:) : t("thematiq.editor.scope.used_module", place:, module: t("thematiq.scopes.modules.#{row.module_name}", default: row.module_name)) %></li>
+        <% end %>
+      </ul>
+    <% end %>
   </div>
 </div>
 
@@ -164,9 +217,11 @@
                              zero: t("thematiq.editor.changed_count", count: 0) },
                     total: { one: t("thematiq.editor.changed_total", count: 1), other: t("thematiq.editor.changed_total", count: 2).sub("2", "%{count}"),
                              zero: t("thematiq.editor.changed_total", count: 0) },
-                    pick: t("thematiq.editor.pick_colour") } %>
+                    pick: t("thematiq.editor.pick_colour"), opacity: t("thematiq.editor.opacity", token: "%{token}") } %>
+<% editor_data = editor.script_data.merge("instance" => OpenProject::Thematiq::Preview.new(@store.active_token_set).shell_variable_map,
+                                          "checkerboard" => OpenProject::Thematiq::Preview::CHECKERBOARD) %>
 <%= nonced_javascript_tag do %>
-window.thematiqEditorData = <%= raw json_escape(editor.script_data.to_json) %>;
+window.thematiqEditorData = <%= raw json_escape(editor_data.to_json) %>;
 window.thematiqEditorTexts = <%= raw json_escape(editor_texts.to_json) %>;
 <%= raw editor.script %>
 <% end %>

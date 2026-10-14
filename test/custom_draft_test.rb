@@ -328,4 +328,67 @@ class CustomDraftTest < Minitest::Test
     assert_equal "/thematiq/logos/zuiddrecht-dark.svg", OpenProject::Thematiq::Assets.bundled.logo_url(draft.token_set)
     assert_equal zuiddrecht.tokens, draft.token_set.tokens
   end
+  # --- dark values from the editor's dark fields ---
+
+  def dark_base
+    @dark_base ||= TokenSet.from_set({ "id" => "night", "name" => "Night", "tokens" => { "primary" => "#3669a5" },
+                                       "dark" => { "tokens" => { "primary" => "#8fb8e6" } } })
+  end
+
+  def test_a_dark_value_from_the_editor_is_kept_and_reaches_the_dark_block
+    d = CustomDraft.new(base: dark_base, name: "x", overrides: {}, dark: { "primary" => "#123456", "link" => "" },
+                        dark_vocabulary: { "color-error" => "#ff8080" })
+
+    assert d.valid?
+    assert_equal({ "primary" => "#123456" }, d.dark)
+    assert_equal({ "color-error" => "#ff8080" }, d.dark_vocabulary)
+    assert d.dark_overridden?("primary")
+    refute d.dark_overridden?("link")
+    assert_equal "#123456", d.token_set.dark_tokens["primary"]
+    assert_equal "#ff8080", d.token_set.dark_vocabulary["color-error"]
+    assert_equal({ "primary" => "#123456" }, d.definition["dark"])
+    assert_equal 2, d.changed_count, "a dark value counts as a value that differs"
+  end
+
+  def test_an_empty_dark_field_keeps_the_dark_value_of_the_base_and_nothing_is_derived
+    d = CustomDraft.new(base: dark_base, name: "x", overrides: { "primary" => "#aa0000" }, dark: { "primary" => " " })
+
+    assert d.valid?
+    assert_empty d.dark
+    assert_equal "#8fb8e6", d.token_set.dark_tokens["primary"]
+    assert_equal "#8fb8e6", d.base_dark("primary")
+    assert_nil d.base_dark("link"), "the base has none: OpenProject's own dark colour stays"
+    assert_nil d.token_set.dark_tokens["link"]
+  end
+
+  def test_a_dark_value_equal_to_the_base_is_not_an_override
+    assert_empty CustomDraft.new(base: dark_base, name: "x", overrides: {}, dark: { "primary" => "#8FB8E6" }).dark
+  end
+
+  def test_a_bad_dark_value_is_an_error_of_its_own_and_comes_back_into_its_field
+    HOSTILE_VALUES.grep(String).reject { |value| value.strip.empty? }.each do |value|
+      d = CustomDraft.new(base: dark_base, name: "x", overrides: {}, dark: { "primary" => value }, dark_errors: true)
+
+      refute d.valid?, value
+      assert d.error?("dark.primary"), value
+      refute d.error?("primary"), value
+      assert_empty d.dark, value
+      assert_equal "#8fb8e6", d.token_set.dark_tokens["primary"], value
+      assert_equal value[0, CustomDraft::MAX_INPUT], d.dark_field_value("primary"), value
+    end
+  end
+
+  def test_without_the_editor_a_bad_dark_value_is_left_out_as_before
+    d = CustomDraft.new(base: dark_base, name: "x", overrides: {}, dark: { "primary" => "red; } body {" })
+
+    assert d.valid?
+    assert_empty d.dark
+  end
+
+  def test_the_dark_field_value
+    d = CustomDraft.new(base: dark_base, name: "x", overrides: {}, dark: { "primary" => "#123456" })
+
+    assert_equal "#123456", d.dark_field_value("primary")
+    assert_equal "", d.dark_field_value("link")
+  end
 end

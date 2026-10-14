@@ -4,3 +4,6 @@ tmp
 spike
 *.log
 *.gem
+test/e2e/node_modules
+test/e2e/.results
+test/e2e/.auth

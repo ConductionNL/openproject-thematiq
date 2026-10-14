@@ -87,11 +87,28 @@ class PreviewTest < Minitest::Test
 
     assert_nil cunningham["menu"]
     OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.each_key { |key| assert_match(/\Abackground: /, Preview.new(cunningham).swatch(key)) }
-    assert_includes Preview.new(cunningham).swatch("menu"), "background: #ffffff"
+    assert_includes Preview.new(cunningham).swatch("menu"), "background: linear-gradient(#ffffff, #ffffff)"
   end
 
+  # The colour lies over a checkerboard, so a colour with transparency shows as such.
   def test_swatch
-    assert_equal "background: #aa0055; border: 1px solid #{OpenProject::Thematiq::Tokens::Defaults::TOKENS['field']}",
+    assert_equal "background: linear-gradient(#aa0055, #aa0055), #{Preview::CHECKERBOARD}; " \
+                 "border: 1px solid #{OpenProject::Thematiq::Tokens::Defaults::TOKENS['field']}",
                  Preview.new(set("primary" => "#aa0055")).swatch("primary")
+  end
+
+  def test_a_dark_swatch_shows_the_dark_value_or_the_bare_checkerboard
+    night = OpenProject::Thematiq::Tokens::TokenSet.from_set({ "id" => "n", "name" => "N", "tokens" => {},
+                                                               "dark" => { "tokens" => { "primary" => "#8fb8e6" } } })
+
+    assert_includes Preview.new(night).dark_swatch("primary"), "linear-gradient(#8fb8e6, #8fb8e6)"
+    assert_match(/\Abackground: #{Regexp.escape(Preview::CHECKERBOARD)};/, Preview.new(night).dark_swatch("link"))
+  end
+
+  def test_the_variable_map_is_what_the_style_attribute_holds
+    preview = Preview.new(set("primary" => "#aa0055"))
+
+    assert_equal preview.shell_variables, preview.shell_variable_map.map { |name, value| "#{name}: #{value}" }.join("; ")
+    assert(preview.shell_variable_map.keys.all? { |name| name.start_with?(Preview::PREFIX) })
   end
 end

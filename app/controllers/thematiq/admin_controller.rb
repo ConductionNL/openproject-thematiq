@@ -356,11 +356,30 @@ module Thematiq
       typed = {} if params[:reset_all].present?
       typed = typed.except(params[:reset].to_s) if params[:reset].present?
       typed = typed.except(*OpenProject::Thematiq::Editor.keys_of(params[:reset_group])) if params[:reset_group].present?
+      dark = dark_from_params
       id = custom_id_from_params
+      stored = @store.custom_draft(id)
       OpenProject::Thematiq::CustomDraft.new(base:, name: params[:name].to_s, overrides: typed, id:,
-                                             logo: @store.custom_draft(id)&.definition&.dig("logo"),
-                                             dark: @store.custom_draft(id)&.dark,
-                                             dark_vocabulary: @store.custom_draft(id)&.dark_vocabulary)
+                                             logo: stored&.definition&.dig("logo"),
+                                             dark:, dark_errors: true,
+                                             # The editor has dark fields for colours only. Other dark values an import brought stay.
+                                             dark_vocabulary: kept_dark_vocabulary(stored).merge(dark))
+    end
+
+    # The dark fields: one per colour, roles and vocabulary in one list. Reset clears the dark value with the light one.
+    def dark_from_params
+      keys = OpenProject::Thematiq::Editor::DARK_FIELDS
+      dark = params[:dark].respond_to?(:permit) ? params[:dark].permit(*keys).to_h : {}
+      dark = {} if params[:reset_all].present?
+      dark = dark.except(params[:reset].to_s) if params[:reset].present?
+      dark = dark.except(*OpenProject::Thematiq::Editor.keys_of(params[:reset_group])) if params[:reset_group].present?
+      dark
+    end
+
+    def kept_dark_vocabulary(stored)
+      return {} unless stored && params[:reset_all].blank?
+
+      stored.dark_vocabulary.except(*OpenProject::Thematiq::Editor::DARK_FIELDS)
     end
 
     def token_keys
