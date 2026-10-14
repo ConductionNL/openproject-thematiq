@@ -7,7 +7,8 @@ const ganttPath = `/projects/${config.project}/gantt`;
 
 async function openGantt(page, query = "") {
   await page.goto(`${ganttPath}${query}`);
-  await expect(page.locator(".wp-timeline-cell").first()).toBeVisible();
+  // Below 680 px core shows the table without the timeline.
+  await expect(page.locator("tr.wp-table--row").first()).toBeVisible();
   await expect(page.locator("[data-test-selector=thematiq-gantt-bar]")).toBeVisible();
 }
 
@@ -56,7 +57,7 @@ test.describe("Gantt page", () => {
     const header = page.locator(".wp-table-timeline--header-inner");
     await expect(header.locator('[data-tq-row="week"]').first()).toHaveText(/^\d{1,2} \S+$/);
     await expect(header.locator('[data-tq-row="day"]').first()).toHaveText(/^\S$/);
-    expect(await header.boundingBox().then((box) => box.height)).toBe(44);
+    expect(await page.locator("wp-timeline-header").evaluate((node) => node.getBoundingClientRect().height)).toBe(44);
 
     const weekend = page.locator(".wp-timeline--non-working-day").first();
     await expect(weekend).toBeAttached();
@@ -76,6 +77,7 @@ test.describe("Gantt page", () => {
 
   test("bars, the parent, the milestone and the dependency lines in the board's shapes", async ({ page }) => {
     await openGantt(page);
+    await expect(page.locator(".wp-timeline-cell").first()).toBeVisible();
     const action = await token(page, "--thematiq-action");
     const light = await token(page, "--thematiq-primary-light");
 
@@ -87,7 +89,7 @@ test.describe("Gantt page", () => {
     expect(await parent.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(light);
 
     const diamond = page.locator(".timeline-element.milestone .diamond").first();
-    expect(await diamond.evaluate((node) => node.getBoundingClientRect().width)).toBeCloseTo(14, 0);
+    expect(await diamond.evaluate((node) => node.offsetWidth)).toBe(14);
 
     // Core's lines are drawn for rows of 40 px and hidden; the plugin's follow the bars of 48 px rows.
     await expect(page.locator(".thematiq-gantt__relations path").first()).toBeAttached();
