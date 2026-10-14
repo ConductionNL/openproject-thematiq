@@ -71,7 +71,8 @@
     <%= t("thematiq.admin.no_results") %>
   <% end %>
 <% else %>
-  <%= form_with(url: admin_thematiq_path, method: :post, data: { turbo: false }, id: "thematiq-picker-form") do %>
+  <%# Apply first shows what changes (the apply dialog). A plain GET: nothing is written until that page's Apply. %>
+  <%= form_with(url: admin_thematiq_compare_path, method: :get, data: { turbo: false }, id: "thematiq-picker-form") do %>
     <%# Apply comes before the list. Every card has three links, each a tab stop of its own, so after the list
         Apply was some 200 tab stops away (first full test, finding 14). Here it is one Shift+Tab from the list. %>
     <div class="thematiq-picker__actions">

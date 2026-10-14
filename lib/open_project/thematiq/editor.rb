@@ -71,6 +71,7 @@ module OpenProject
       ].freeze
 
       SCRIPT_PATH = File.expand_path("editor/assets/editor.js", __dir__)
+      COMPARE_SCRIPT_PATH = File.expand_path("editor/assets/compare.js", __dir__)
 
       module_function
 
@@ -119,6 +120,11 @@ module OpenProject
       # The script of the live preview. It is inlined with OpenProject's nonce, like the project menu's.
       def script
         @script ||= File.read(SCRIPT_PATH)
+      end
+
+      # The script of the apply dialog: the boxes repaint the picture, and Apply repaints the page without a reload.
+      def compare_script
+        @compare_script ||= File.read(COMPARE_SCRIPT_PATH)
       end
     end
   end

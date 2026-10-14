@@ -162,4 +162,15 @@ class EditorTest < Minitest::Test
     assert_includes SCRIPT, 'opacity.type = "range"'
     assert_includes SCRIPT, "alpha >= 100 ? hex : hex + hexByte"
   end
+  # The apply dialog's script sends its own form, to the plugin, and nothing else.
+  def test_the_compare_script_sends_only_its_form_and_writes_no_markup
+    script = File.read(Editor::COMPARE_SCRIPT_PATH)
+
+    refute_match(%r{</script|<!--}i, script)
+    refute_match(/XMLHttpRequest|WebSocket|EventSource|sendBeacon|import\(|eval\(|new Function|innerHTML|outerHTML|insertAdjacentHTML|document\.write|localStorage|cookie/, script)
+    assert_equal 1, script.scan("fetch(").size
+    assert_includes script, "window.fetch(form.action"
+    assert_includes script, 'credentials: "same-origin"'
+    assert_includes script, "element.textContent = css"
+  end
 end

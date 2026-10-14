@@ -138,11 +138,11 @@ begin
   throwaway.post "/admin/thematiq", params: { set_id: last.id }
   check("a post without a CSRF token is refused") { throwaway.response.status == 422 }
 
-  admin.post "/admin/thematiq", params: { set_id: "no-such-set", authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  admin.post "/admin/thematiq", params: { set_id: "no-such-set", authenticity_token: form_token(admin, "/admin/thematiq/compare?set_id=#{last.id}", "thematiq-compare-form") }
   admin.follow_redirect!
   check("an unknown design system is refused") { admin.response.body.include?("Choose a design system from the list first.") }
 
-  admin.post "/admin/thematiq", params: { set_id: last.id, authenticity_token: form_token(admin, "/admin/thematiq", "thematiq-picker-form") }
+  admin.post "/admin/thematiq", params: { set_id: last.id, authenticity_token: form_token(admin, "/admin/thematiq/compare?set_id=#{last.id}", "thematiq-compare-form") }
   admin.follow_redirect!
   check("apply makes the chosen design system active") { OpenProject::Thematiq::Store.new.active_token_set.id == last.id }
   check("the page says so") { admin.response.body.include?("is now the active design system") }
@@ -874,6 +874,58 @@ begin
   check("an unknown version gives 404") { admin.response.status == 404 }
   admin.get "/admin/thematiq/history/../../etc"
   check("a version id that is not a number gives 404") { admin.response.status == 404 }
+
+  # 12. Switch safely: the apply dialog, apply without a reload, a trial in one's own session
+  switch_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  switch_member.get "/admin/thematiq/compare", params: { set_id: "zuiddrecht" }
+  check("a non-admin cannot open the apply dialog") { switch_member.response.status == 403 }
+  admin.get "/admin/thematiq/compare", params: { set_id: "zuiddrecht" }
+  check("the apply dialog lists what changes and applies nothing") do
+    admin.response.status == 200 && admin.response.body.include?('data-thematiq-compare-row="primary"') &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
+  end
+  admin.get "/admin/thematiq/compare", params: { set_id: "<script>" }
+  check("the apply dialog refuses an unknown design system") { admin.response.status == 302 }
+  apply_token = form_token(admin, "/admin/thematiq/compare?set_id=zuiddrecht", "thematiq-compare-form")
+  admin.post "/admin/thematiq", params: { set_id: "zuiddrecht", compared: "1", take: ["primary"], authenticity_token: apply_token },
+                                headers: { "Accept" => "application/json" }
+  answer = JSON.parse(admin.response.body) rescue {}
+  check("apply with unticked values keeps them in a new custom design system") do
+    store = OpenProject::Thematiq::Store.new
+    store.custom_active? && store.active_token_set["primary"] == catalogue.find("zuiddrecht")["primary"] &&
+      store.active_token_set["link"] == catalogue.find("cunningham")["link"]
+  end
+  check("apply answers JSON with the style sheets for the page") do
+    admin.response.status == 200 && answer["styles"].is_a?(Hash) &&
+      answer["styles"]["openproject-thematiq"].to_s.include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};")
+  end
+  kept_id = OpenProject::Thematiq::Store.new.active_custom_id
+  OpenProject::Thematiq::Store.new.delete_custom(kept_id) if kept_id
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  trial_token = form_token(admin, "/admin/thematiq/compare?set_id=zuiddrecht", "thematiq-trial-form")
+  switch_member.post "/admin/thematiq/trial", params: { set_id: "zuiddrecht" }
+  check("a non-admin cannot start a trial") { [403, 422].include?(switch_member.response.status) }
+  admin.post "/admin/thematiq/trial", params: { set_id: "zuiddrecht", authenticity_token: trial_token }
+  admin.get "/projects"
+  check("the administrator on trial sees the design system on trial, with the banner") do
+    head_style(admin).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") &&
+      admin.response.body.include?('data-test-selector="thematiq-trial-banner"')
+  end
+  check("a trial changes nothing for anyone else") { OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham" }
+  switch_member.get "/projects"
+  check("another person sees the design system in use and no banner") do
+    head_style(switch_member).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
+      !switch_member.response.body.include?("thematiq-trial-banner")
+  end
+  publish_token = CGI.unescapeHTML(admin.response.body[%r{<form[^>]*action="/admin/thematiq/trial/publish".*?name="authenticity_token" value="([^"]+)"}m, 1].to_s)
+  admin.post "/admin/thematiq/trial/publish", params: { authenticity_token: publish_token }
+  check("publish makes the trial everyone's and ends it") do
+    OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" && Thematiq::Change.order(:id).last.action == "trial_publish"
+  end
+  admin.get "/projects"
+  check("after publishing the banner is gone") { !admin.response.body.include?("thematiq-trial-banner") }
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

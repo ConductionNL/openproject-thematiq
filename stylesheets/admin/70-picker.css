@@ -52,3 +52,18 @@
 .thematiq-history { width: 100%; max-width: 960px; border-collapse: collapse; margin: 0 0 16px; font-size: 14px; }
 .thematiq-history th, .thematiq-history td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--thematiq-line); vertical-align: top; }
 .thematiq-bundle-changes { margin: 8px 0 16px; padding-left: 20px; }
+/* The apply dialog: the picture of now and of after, and the values that change. */
+.thematiq-compare[hidden], .thematiq-compare__applied[hidden], .thematiq-compare__tools[hidden] { display: none !important; }
+.thematiq-compare__previews { display: flex; gap: 24px; flex-wrap: wrap; margin: 0 0 20px; }
+.thematiq-compare__preview { flex: 1 1 420px; min-width: 0; }
+.thematiq-compare__tools { display: flex; gap: 8px; margin: 8px 0; }
+.thematiq-compare__swatch { display: inline-block; width: 20px; height: 20px; flex: none; vertical-align: middle; }
+.thematiq-compare__trial { margin-top: 16px; }
+.thematiq-compare__applied { padding: 16px; margin: 0 0 16px; border: 1px solid var(--thematiq-line); border-left: 4px solid var(--thematiq-primary); border-radius: var(--thematiq-radius); }
+.thematiq-compare__applied:focus { outline: 2px solid var(--focus-outlineColor, currentColor); outline-offset: 2px; }
+/* The banner of a trial: at the foot of every page, for the administrator who started it. */
+.thematiq-trial { position: fixed; z-index: 1000; left: 16px; right: 16px; bottom: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px; background: var(--thematiq-surface); color: var(--thematiq-ink); border: 2px solid var(--thematiq-primary, currentColor);
+  border-radius: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, .2); font-size: 14px; }
+.thematiq-trial__text { flex: 1 1 280px; margin: 0; }
+.thematiq-trial form { margin: 0; }

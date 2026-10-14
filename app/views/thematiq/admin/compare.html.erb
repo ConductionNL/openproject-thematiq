@@ -1,0 +1,98 @@
+<% title = t("thematiq.compare.title", name: @chosen.name) %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+<% kinds = OpenProject::Thematiq::Editor::KINDS %>
+<% label = ->(row) { row.role? ? t("thematiq.tokens.#{row.key}.label") : t("thematiq.vocabulary.#{row.key}") } %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.compare.description", current: @current.name, chosen: @chosen.name) }
+  end
+%>
+
+<%# Shown by the script once the design system is applied without a reload. %>
+<div class="thematiq-compare__applied" data-thematiq-applied data-test-selector="thematiq-applied" role="status" hidden>
+  <p data-thematiq-applied-text></p>
+  <%= link_to t("thematiq.editor.back"), admin_thematiq_path %>
+</div>
+
+<div class="thematiq-compare" data-thematiq-compare>
+  <div class="thematiq-compare__previews">
+    <div class="thematiq-compare__preview">
+      <h3 class="thematiq-editor__legend"><%= t("thematiq.compare.now", name: @current.name) %></h3>
+      <%= thematiq_shell_preview(@current) %>
+    </div>
+    <div class="thematiq-compare__preview">
+      <h3 class="thematiq-editor__legend"><%= t("thematiq.compare.after", name: @chosen.name) %></h3>
+      <div data-thematiq-after><%= thematiq_shell_preview(@chosen) %></div>
+      <p class="thematiq-editor__hint"><%= t("thematiq.compare.after_hint") %></p>
+    </div>
+  </div>
+
+  <%= form_with(url: admin_thematiq_path, method: :post, data: { turbo: false }, id: "thematiq-compare-form") do %>
+    <input type="hidden" name="set_id" value="<%= @chosen.id %>">
+    <input type="hidden" name="compared" value="1">
+    <% if @rows.empty? %>
+      <p data-test-selector="thematiq-compare-nothing"><%= t("thematiq.compare.nothing") %></p>
+    <% else %>
+      <p class="thematiq-editor__summary" data-test-selector="thematiq-compare-count"><%= t("thematiq.compare.count", count: @rows.size) %></p>
+      <p class="thematiq-editor__hint"><%= t("thematiq.compare.keep_hint") %></p>
+      <div class="thematiq-compare__tools" data-thematiq-compare-tools hidden>
+        <button type="button" class="Button Button--secondary Button--small" data-thematiq-select="all"><span class="Button-content"><span class="Button-label"><%= t("thematiq.compare.select_all") %></span></span></button>
+        <button type="button" class="Button Button--secondary Button--small" data-thematiq-select="none"><span class="Button-content"><span class="Button-label"><%= t("thematiq.compare.select_none") %></span></span></button>
+      </div>
+      <table class="thematiq-history thematiq-compare__table" data-test-selector="thematiq-compare-rows">
+        <caption class="sr-only"><%= t("thematiq.compare.count", count: @rows.size) %></caption>
+        <thead>
+          <tr>
+            <th scope="col"><%= t("thematiq.compare.take") %></th>
+            <th scope="col"><%= t("thematiq.compare.value") %></th>
+            <th scope="col"><%= t("thematiq.compare.now_column") %></th>
+            <th scope="col"><%= t("thematiq.compare.after_column") %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @rows.each do |row| %>
+            <% box_id = "thematiq-take-#{row.layer}-#{row.key}" %>
+            <tr data-thematiq-compare-row="<%= row.id %>">
+              <td>
+                <input type="checkbox" name="take[]" value="<%= row.id %>" id="<%= box_id %>" checked
+                       data-thematiq-take data-thematiq-key="<%= row.key %>" data-thematiq-layer="<%= row.layer %>"
+                       data-thematiq-from="<%= row.from %>" data-thematiq-to="<%= row.to %>"
+                       <% unless row.keepable? %>disabled aria-describedby="<%= box_id %>-why"<% end %>>
+              </td>
+              <td>
+                <label for="<%= box_id %>"><%= row.layer == "dark" ? t("thematiq.compare.dark", value: label.call(row)) : label.call(row) %></label>
+                <% unless row.keepable? %><p class="thematiq-editor__hint" id="<%= box_id %>-why"><%= t("thematiq.compare.not_keepable") %></p><% end %>
+              </td>
+              <td><%= thematiq_compare_value(row.from, kinds[row.key]) %></td>
+              <td><%= thematiq_compare_value(row.to, kinds[row.key]) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+    <div class="thematiq-editor__actions">
+      <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary, data: { thematiq_apply: true })) { t("thematiq.compare.apply") } %>
+      <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.admin.cancel") } %>
+    </div>
+  <% end %>
+
+  <%# A trial is a form of its own: Rails binds a CSRF token to one form action. %>
+  <%= form_with(url: admin_thematiq_trial_path, method: :post, data: { turbo: false }, id: "thematiq-trial-form", class: "thematiq-compare__trial") do %>
+    <input type="hidden" name="set_id" value="<%= @chosen.id %>">
+    <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.compare.trial") } %>
+    <p class="thematiq-editor__hint"><%= t("thematiq.compare.trial_hint") %></p>
+  <% end %>
+</div>
+
+<% compare_texts = { failed: t("thematiq.compare.failed") } %>
+<%= nonced_javascript_tag do %>
+window.thematiqCompareTexts = <%= raw json_escape(compare_texts.to_json) %>;
+<%= raw OpenProject::Thematiq::Editor.compare_script %>
+<% end %>
