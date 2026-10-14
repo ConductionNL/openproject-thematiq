@@ -7,8 +7,6 @@ const ganttPath = `/projects/${config.project}/gantt`;
 
 async function openGantt(page, query = "") {
   await page.goto(`${ganttPath}${query}`);
-  // Below 680 px core shows the table without the timeline.
-  await expect(page.locator("tr.wp-table--row").first()).toBeVisible();
   await expect(page.locator("[data-test-selector=thematiq-gantt-bar]")).toBeVisible();
 }
 
@@ -111,12 +109,16 @@ test.describe("Gantt page", () => {
 test.describe("Gantt page at 390 px", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("the row of chips and the legend stay on the screen", async ({ page }) => {
+  // Core shows cards without a timeline on a phone, so Today, the zoom list and the legend step aside.
+  test("the row of chips stays on the screen; the timeline's controls step aside with the timeline", async ({ page }) => {
     await openGantt(page);
+    await expect(page.locator("body")).toHaveAttribute("data-tq-gantt-timeline", "off");
     const bar = await page.locator("[data-test-selector=thematiq-gantt-bar]").boundingBox();
     expect(bar.x).toBeGreaterThanOrEqual(0);
     expect(bar.x + bar.width).toBeLessThanOrEqual(390);
-    await expect(page.locator("[data-test-selector=thematiq-gantt-legend]")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Today" })).toBeHidden();
+    await expect(page.locator("[data-test-selector=thematiq-gantt-zoom]")).toBeHidden();
+    await expect(page.getByRole("group", { name: "View" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBe(0);
   });
 });

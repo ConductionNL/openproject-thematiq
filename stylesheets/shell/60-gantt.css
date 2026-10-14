@@ -165,6 +165,11 @@ body.thematiq-gantt .thematiq-gantt__swatch--follows svg {
   stroke-linecap: round; stroke-linejoin: round;
 }
 
+/* ---- without a timeline (core's cards on a phone): no Today, zoom or legend ---- */
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__today,
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__zoom,
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__legend { display: none; }
+
 /* ---- narrow screens: the row wraps, the view switch stays on the screen ---- */
 @media (max-width: 679px) {
   body.thematiq-gantt .thematiq-gantt__spacer { display: none; }
