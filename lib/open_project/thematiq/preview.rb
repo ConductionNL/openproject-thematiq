@@ -38,9 +38,15 @@ module OpenProject
       # colours the plugin works out itself. The static CSS of the picture reads them, and the script of
       # the editor writes the same properties while an administrator types. One style attribute, no rules.
       def shell_variables
+        css(shell_variable_map)
+      end
+
+      # The same properties as a hash, for the script: it writes the instance's values on the top bar and the menu
+      # of the picture when the editor shows a module's design system, which reaches the content area only.
+      def shell_variable_map
         values = Tokens::TokenSet::ALL_KINDS.each_key.to_h { |key| ["#{PREFIX}#{key}", value(key)] }
         derived.each { |name, colour| values["#{PREFIX}#{name}"] = colour }
-        css(values)
+        values
       end
 
       # The colours the plugin picks by contrast. The script of the editor follows the same rules.
@@ -55,9 +61,22 @@ module OpenProject
           "on-selected" => (Contrast.on_selected(@token_set) || value("primary-deep")) }
       end
 
-      # A square in one colour, next to a colour field.
+      # The squares behind a colour, so a colour with transparency shows as such. The script of the editor uses the same.
+      CHECKERBOARD = "repeating-conic-gradient(#c8c8c8 0% 25%, #ffffff 0% 50%) 0 0 / 10px 10px"
+
+      # A square in one colour over a checkerboard, next to a colour field.
       def swatch(key)
-        css("background" => value(key), "border" => "1px solid #{value('field')}")
+        swatch_of(value(key))
+      end
+
+      # The square next to a dark field: the set's dark value, or the bare checkerboard when it has none.
+      def dark_swatch(key)
+        swatch_of(@token_set.dark_tokens[key] || @token_set.dark_vocabulary[key])
+      end
+
+      def swatch_of(colour)
+        layers = colour ? "linear-gradient(#{colour}, #{colour}), #{CHECKERBOARD}" : CHECKERBOARD
+        css("background" => layers, "border" => "1px solid #{value('field')}")
       end
 
       private

@@ -51,6 +51,10 @@ module OpenProject
       # Every key the form has a field for, with its kind: the roles, then the vocabulary.
       KINDS = Tokens::TokenSet::ALL_KINDS.merge(Tokens::Vocabulary::KINDS).freeze
 
+      # Every key with a dark field: each colour, roles and vocabulary alike. Left empty, the dark theme keeps the dark
+      # value of the base, else OpenProject's own. Nothing is derived from the light value.
+      DARK_FIELDS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
+
       # One contrast check the shell draws: the text, what it sits on, and the tokens it is shown next to.
       # A name that starts with "@" is a colour the plugin works out itself, see Preview#derived.
       Check = Struct.new(:id, :foreground, :background, :tokens, keyword_init: true)

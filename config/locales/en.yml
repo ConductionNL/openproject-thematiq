@@ -56,6 +56,22 @@ en:
       only_changed: "Show changed values only"
       no_match: "No value matches."
       pick_colour: "Pick a colour for %{token}"
+      opacity: "Opacity of %{token}"
+      dark:
+        label: "Dark theme"
+        field_label: "%{token} in the dark theme"
+        base_value: "Leave it empty to keep the dark value of %{name}: %{value}."
+        own_value: "Leave it empty to keep OpenProject's own dark colour."
+      scope:
+        label: "Show the preview as the design system of"
+        page: "The instance or a project"
+        module: "A module"
+        page_hint: "The instance's or a project's design system styles the whole page: the top bar, the menu and the content."
+        module_hint: "A module's design system styles the content area only. The top bar and the menu keep the page's design system, here %{name}, the one in use now."
+        used_title: "Where this design system is chosen"
+        instance: "the whole instance"
+        used_project: "Project %{place}"
+        used_module: "%{module} in %{place}"
       groups:
         branding:
           label: "Branding"

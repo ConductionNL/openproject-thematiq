@@ -141,4 +141,25 @@ class EditorTest < Minitest::Test
 
     assert_empty css.scan(/var\((--tqp-[a-z-]+)/).flatten.uniq - written
   end
+  def test_every_colour_has_a_dark_field_and_nothing_else_has
+    assert_equal Editor::KINDS.select { |_key, kind| kind == :color }.keys, Editor::DARK_FIELDS
+    assert_includes Editor::DARK_FIELDS, "primary"
+    assert_includes Editor::DARK_FIELDS, "color-error"
+    refute_includes Editor::DARK_FIELDS, "radius"
+    assert_empty TokenSet::DARK_KEYS - Editor::DARK_FIELDS, "every dark role of a set has a field"
+  end
+
+  def test_the_page_has_a_dark_field_an_opacity_text_and_the_scope_choice
+    assert_includes VIEW, 'name="dark[<%= key %>]"'
+    assert_includes VIEW, "data-thematiq-scope"
+    %w[opacity dark.label dark.field_label dark.base_value dark.own_value scope.label scope.page scope.module scope.page_hint
+       scope.module_hint scope.used_title].each { |key| assert_kind_of String, EN.dig("editor", *key.split(".")), key }
+  end
+
+  # thematiq writes #rrggbb at full opacity and #rrggbbaa below it. The script does the same.
+  def test_the_script_writes_the_opacity_as_an_eight_digit_hex
+    assert_includes SCRIPT, "function withAlpha"
+    assert_includes SCRIPT, 'opacity.type = "range"'
+    assert_includes SCRIPT, "alpha >= 100 ? hex : hex + hexByte"
+  end
 end

@@ -90,7 +90,8 @@ module ThematiqHelper
     t("thematiq.editor.contrast.#{verdict}", ratio: ratio ? format("%.2f", ratio) : "")
   end
 
-  def thematiq_swatch(token_set, key)
-    tag.span(class: "thematiq-editor__swatch", style: OpenProject::Thematiq::Preview.new(token_set).swatch(key), aria: { hidden: true })
+  def thematiq_swatch(token_set, key, dark: false)
+    preview = OpenProject::Thematiq::Preview.new(token_set)
+    tag.span(class: "thematiq-editor__swatch", style: dark ? preview.dark_swatch(key) : preview.swatch(key), aria: { hidden: true })
   end
 end
