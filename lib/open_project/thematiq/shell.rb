@@ -7,6 +7,7 @@ module OpenProject
     # The shared top bar and the project menu. See docs/shell-structure.md for what each part uses and why.
     #
     #   Shell::CoreGuard      the core files the shell depends on, with their checksums
+    #   Shell::CreateDialog   every create action of a project opens core's create dialog
     #   Shell::TopBar         two small overrides of OpenProject's top menu helpers
     #   Shell::ProjectMenu    the overrides of the project menu helpers and the project switcher
     #   Shell::Home           Home and My page as one page
@@ -47,6 +48,7 @@ module OpenProject
       # they were written against. On any other OpenProject version the core top bar renders
       # unchanged and the log names the files that moved.
       def self.install!
+        require "open_project/thematiq/shell/create_dialog"
         require "open_project/thematiq/shell/nextcloud_apps"
         require "open_project/thematiq/shell/app_row"
         require "open_project/thematiq/shell/logo"

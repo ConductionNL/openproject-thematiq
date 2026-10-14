@@ -21,6 +21,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `uploads.spec.js` | Each kind of upload shows where it should, hostile files are cleaned or refused, the public file route serves without a session and refuses near misses |
 | `shell.spec.js` | The two-layer project menu, the row of tiles, Home and `/my/page`, the sizes of the canon |
 | `top-bar.spec.js` | The field for the tiles of the top bar: an own row shows in its order, no row shows no tiles, an empty own row is refused |
+| `create-dialog.spec.js` | The project menu's action, the Create button and a type in the quick add menu open core's create dialog; Escape and Close return focus; core validates in the dialog and a save refreshes the Gantt chart; a click with a modifier key still opens core's page; 390 px |
 | `api.spec.js` | The read endpoints for a signed-in person, and thematiq's shell-tokens answer without a session |
 | `app-switcher.spec.js` | The list under the nine-dot button: heading, two columns, a second line, the current entry, Manage apps, `aria-expanded`, arrow keys and Escape; one column without a Nextcloud address |
 | `icons.spec.js` | The icon library lists its sets and licences; an icon loads without a session |
