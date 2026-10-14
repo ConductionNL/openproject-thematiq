@@ -928,6 +928,44 @@ begin
   end
   admin.get "/projects"
   check("after publishing the banner is gone") { !admin.response.body.include?("thematiq-trial-banner") }
+
+  # 13. The configuration file and the history as CSV
+  bundle_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  bundle_member.get "/admin/thematiq/bundle"
+  check("a non-admin cannot download the setup") { bundle_member.response.status == 403 }
+  bundle_member.get "/admin/thematiq/history.csv"
+  check("a non-admin cannot download the history") { bundle_member.response.status == 403 }
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  admin.get "/admin/thematiq/bundle"
+  setup_file = admin.response.body
+  check("the setup downloads as a JSON attachment") do
+    admin.response.status == 200 && admin.response.headers["Content-Disposition"].to_s.include?("attachment") &&
+      JSON.parse(setup_file)["settings"]["active_id"] == "zuiddrecht"
+  end
+  admin.get "/admin/thematiq/history.csv"
+  check("the history downloads as CSV") { admin.response.status == 200 && admin.response.media_type == "text/csv" && admin.response.body.start_with?("time,user,action") }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  bundle_token = form_token(admin, "/admin/thematiq", "thematiq-bundle-form")
+  admin.post "/admin/thematiq/bundle", params: { file: upload.call(setup_file), authenticity_token: bundle_token }
+  check("reading the file shows what changes and writes nothing") do
+    admin.response.status == 200 && admin.response.body.include?("The design system in use goes from") &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
+  end
+  confirm_token = CGI.unescapeHTML(admin.response.body[/<form[^>]*id="thematiq-bundle-confirm-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  hostile = JSON.parse(setup_file)
+  hostile["settings"]["customs"] = { "custom" => { "name" => "x", "overrides" => { "primary" => "red; } body { display:none" } } }
+  admin.post "/admin/thematiq/bundle", params: { bundle: JSON.generate(hostile), confirmed: "1", authenticity_token: confirm_token }
+  check("a hostile file is refused at the confirmation too") { admin.response.status == 302 && OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham" }
+  confirm_token = CGI.unescapeHTML(form_token(admin, "/admin/thematiq", "thematiq-bundle-form"))
+  admin.post "/admin/thematiq/bundle", params: { file: upload.call(setup_file), authenticity_token: confirm_token }
+  confirm_token = CGI.unescapeHTML(admin.response.body[/<form[^>]*id="thematiq-bundle-confirm-form".*?name="authenticity_token" value="([^"]+)"/m, 1].to_s)
+  admin.post "/admin/thematiq/bundle", params: { bundle: setup_file, confirmed: "1", authenticity_token: confirm_token }
+  check("the confirmed file is the setup, and a row in the history") do
+    OpenProject::Thematiq::Store.new.active_token_set.id == "zuiddrecht" && Thematiq::Change.order(:id).last.action == "bundle_import"
+  end
+  throwaway = session_for("admin", ADMIN_PASSWORD)
+  throwaway.post "/admin/thematiq/bundle", params: { bundle: setup_file, confirmed: "1" }
+  check("an import without a CSRF token is refused") { throwaway.response.status == 422 }
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

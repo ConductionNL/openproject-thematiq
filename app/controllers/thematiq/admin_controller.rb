@@ -329,7 +329,59 @@ module Thematiq
       end
     end
 
+    # The history as a CSV file, for an auditor. Every row, newest first; the setup itself stays in OpenProject.
+    def history_export
+      rows = Thematiq::Change.ready? ? Thematiq::Change.order(id: :desc).to_a : []
+      send_data history_csv(rows), filename: "openproject-thematiq-history-#{Time.current.strftime('%Y-%m-%d')}.csv",
+                                   type: "text/csv", disposition: "attachment"
+    end
+
+    # --- the configuration file: the whole setup, to move from test to production ---
+
+    def bundle_export
+      send_data OpenProject::Thematiq::Bundle.dump(Thematiq::Change.current_bundle(@store)),
+                filename: "openproject-thematiq-setup-#{Time.current.strftime('%Y-%m-%d')}.json",
+                type: "application/json", disposition: "attachment"
+    end
+
+    # Reads a configuration file and shows what it changes. Nothing is written: the file goes back in the form of
+    # the page, and is read and checked again when the administrator confirms.
+    def bundle_import
+      file = params[:file]
+      @bundle_text = file.respond_to?(:read) ? file.read(OpenProject::Thematiq::Bundle::MAX_BYTES + 1).to_s : params[:bundle].to_s
+      checked = read_bundle(@bundle_text)
+      if params[:confirmed].present?
+        Thematiq::Change.apply!(checked, store: @store)
+        record_change("bundle_import")
+        flash[:notice] = t("thematiq.bundle.notice_applied")
+        return redirect_to action: :show
+      end
+
+      @changes_list = OpenProject::Thematiq::Bundle.changes(Thematiq::Change.current_bundle(@store), checked)
+      @names = design_system_names(checked)
+    rescue OpenProject::Thematiq::Bundle::Refused => e
+      flash[:error] = t("thematiq.bundle.errors.#{bundle_error_key(e.code)}")
+      redirect_to action: :show, anchor: "thematiq-bundle"
+    end
+
     private
+
+    def read_bundle(text)
+      OpenProject::Thematiq::Bundle.read(text.to_s.force_encoding(Encoding::UTF_8), catalogue: @store.catalogue,
+                                                                                    project_exists: ->(identifier) { Project.exists?(identifier:) })
+    end
+
+    def history_csv(rows)
+      require "csv"
+      CSV.generate do |csv|
+        csv << %w[time user action detail restorable]
+        rows.each do |row|
+          # A cell that starts like a formula is quoted, so a spreadsheet does not run it.
+          safe = ->(text) { text.to_s.match?(/\A[=+\-@\t\r]/) ? "'#{text}" : text.to_s }
+          csv << [row.created_at.utc.iso8601, safe.call(row.user_name), row.action, safe.call(row.detail), row.restorable?]
+        end
+      end
+    end
 
     # The id of the design system in use: a custom one, else the catalogue's.
     def current_id

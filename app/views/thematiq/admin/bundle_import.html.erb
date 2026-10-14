@@ -1,0 +1,33 @@
+<% title = t("thematiq.bundle.import_title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+  end
+%>
+
+<%# A dry run: what the configuration file changes. The file goes back with the form and is checked again. %>
+<div class="thematiq-confirm" data-test-selector="thematiq-bundle-import">
+  <% if @changes_list.empty? %>
+    <p data-test-selector="thematiq-bundle-nothing"><%= t("thematiq.bundle.nothing_changes") %></p>
+    <p><%= link_to t("thematiq.editor.back"), admin_thematiq_path %></p>
+  <% else %>
+    <p><strong><%= t("thematiq.bundle.import_changes") %></strong></p>
+    <%= render partial: "thematiq/admin/bundle_changes", locals: { changes: @changes_list, names: @names } %>
+    <p><%= t("thematiq.bundle.import_consequence") %></p>
+    <%= form_with(url: admin_thematiq_bundle_path, method: :post, data: { turbo: false }, id: "thematiq-bundle-confirm-form") do %>
+      <input type="hidden" name="bundle" value="<%= @bundle_text %>">
+      <input type="hidden" name="confirmed" value="1">
+      <div class="thematiq-editor__actions">
+        <%= render(Primer::Beta::Button.new(type: :submit, scheme: :primary)) { t("thematiq.bundle.import_confirm") } %>
+        <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path)) { t("thematiq.admin.cancel") } %>
+      </div>
+    <% end %>
+  <% end %>
+</div>
