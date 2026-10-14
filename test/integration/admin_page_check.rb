@@ -999,6 +999,16 @@ begin
   check("shell-tokens answers without a session, eighteen roles, no cookie") do
     api_anonymous.response.status == 200 && shell["tokens"].to_h.size == 18 && api_anonymous.response.headers["Set-Cookie"].blank?
   end
+
+  # 16. The contrast report
+  report_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  report_member.get "/admin/thematiq/compliance"
+  check("a non-admin cannot read the contrast report") { report_member.response.status == 403 }
+  admin.get "/admin/thematiq/compliance.json"
+  report = JSON.parse(admin.response.body) rescue {}
+  check("the contrast report downloads as JSON with the design system in use") do
+    admin.response.status == 200 && report["design_systems"].to_a.first.to_h["used_by"].to_a.include?("instance")
+  end
 ensure
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all

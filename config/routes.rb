@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get "admin/thematiq/history.csv", to: "thematiq/admin#history_export", as: :admin_thematiq_history_export, format: false
   get "admin/thematiq/history", to: "thematiq/admin#history", as: :admin_thematiq_history
   get "admin/thematiq/bundle", to: "thematiq/admin#bundle_export", as: :admin_thematiq_bundle
+  get "admin/thematiq/compliance", to: "thematiq/admin#compliance", as: :admin_thematiq_compliance
   get "admin/thematiq/health", to: "thematiq/admin#health", as: :admin_thematiq_health, defaults: { format: :json }
   post "admin/thematiq/bundle", to: "thematiq/admin#bundle_import"
   get "admin/thematiq/history/:id", to: "thematiq/admin#history_version", as: :admin_thematiq_history_version, constraints: { id: /\d{1,12}/ }
