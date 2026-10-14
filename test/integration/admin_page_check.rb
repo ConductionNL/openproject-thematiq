@@ -1060,6 +1060,14 @@ begin
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
 
+  # 18b. The top bar is the dossiq bar: the brand block, no row of tiles by default
+  bar_view = session_for("admin", ADMIN_PASSWORD)
+  bar_view.get "/projects"
+  check("the top bar has the brand block and no row of tiles") do
+    body = bar_view.response.body
+    bar_view.response.status == 200 && body.include?('data-test-selector="thematiq-brand"') && !body.include?("thematiq-app-row--item")
+  end
+
   # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
   scraper = session_for
   scraper.get "/thematiq/metrics"
