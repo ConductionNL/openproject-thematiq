@@ -12,6 +12,10 @@ module OpenProject
       ID = "custom"
       ID_PATTERN = /\Acustom(?:-[1-9]\d{0,3})?\z/
       MAX_INPUT = 400
+      # A value may name another token of the same kind, {primary} or {color-error} (aut-semantic-aliases). It is kept
+      # as the reference and follows that token: change the primary, and every value that names it changes with it.
+      REFERENCE = /\A\{([a-z0-9-]{1,80})\}\z/
+      MAX_HOPS = 8
 
       attr_reader :base, :errors, :id
 
@@ -116,9 +120,9 @@ module OpenProject
       # The design system these overrides give. Invalid values are left out, so this is always safe to draw.
       # It keeps the logo of its base.
       def token_set
-        Tokens::TokenSet.new(id:, name: name || base.name, tokens: locked(overrides), base: base.tokens,
+        Tokens::TokenSet.new(id:, name: name || base.name, tokens: locked(resolved(overrides)), base: base.tokens,
                              dark: { "tokens" => base.dark_tokens.merge(dark), "vocabulary" => base.dark_vocabulary.merge(dark_vocabulary) },
-                             vocabulary: base.vocabulary.merge(vocabulary),
+                             vocabulary: base.vocabulary.merge(resolved(vocabulary)),
                              logo_file: logo_file || base.logo_file,
                              logo_inverse_file: logo_file ? logo_inverse_file : base.logo_inverse_file,
                              logo_licence: base.logo_licence)
@@ -152,11 +156,54 @@ module OpenProject
 
       private
 
+      # The values with every reference followed to a value, through this draft's own values and its base's.
+      # A reference that leads nowhere or in a circle was refused in #clean, so this always ends.
+      def resolved(values)
+        values.transform_values { |value| follow(value) }.compact
+      end
+
+      def follow(value, hops = 0)
+        match = REFERENCE.match(value.to_s)
+        return value unless match
+        return nil if hops > MAX_HOPS
+
+        target = match[1]
+        follow(@raw_values.fetch(target) { base[target] }, hops + 1)
+      end
+
       # The overrides with the main button on the primary colour, when the lock is on.
       def locked(values)
         return values unless lock_primary?
 
         values.merge(LOCKED.to_h { |key, source| [key, values[source] || base[source]] }.compact)
+      end
+
+      # Every value this draft gives, cleaned or a reference, by key: what a reference is followed through.
+      def reference_targets
+        all = Tokens::TokenSet::ALL_KINDS.merge(Tokens::Vocabulary::KINDS)
+        all.each_with_object({}) do |(key, kind), result|
+          given = @raw[key]
+          next unless given.is_a?(String) && !given.strip.empty? && given.length <= MAX_INPUT
+
+          result[key] = REFERENCE.match?(given.strip) ? given.strip : Tokens::Validator.public_send(kind, given)
+        end.compact
+      end
+
+      # A reference names another key of the same kind, and following it ends in a value within MAX_HOPS steps.
+      def reference_ok?(key, kind, reference)
+        all = Tokens::TokenSet::ALL_KINDS.merge(Tokens::Vocabulary::KINDS)
+        seen = [key]
+        current = reference
+        (MAX_HOPS + 1).times do
+          target = REFERENCE.match(current)[1]
+          return false unless all[target] == kind && !seen.include?(target)
+
+          seen << target
+          current = @raw_values.fetch(target) { base[target] }
+          return false if current.nil?
+          return true unless REFERENCE.match?(current.to_s)
+        end
+        false
       end
 
       def clean_dark(raw)
@@ -190,10 +237,15 @@ module OpenProject
       end
 
       def clean(kinds)
+        @raw_values ||= reference_targets
         kinds.each_with_object({}) do |(key, kind), result|
           given = @raw[key]
           next if given.nil? || (given.is_a?(String) && given.strip.empty?)
 
+          if given.is_a?(String) && REFERENCE.match?(given.strip)
+            reference_ok?(key, kind, given.strip) ? result[key] = given.strip : @errors << key
+            next
+          end
           value = given.is_a?(String) && given.length <= MAX_INPUT ? Tokens::Validator.public_send(kind, given) : nil
           if value.nil?
             @errors << key

@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/ConductionNL/openproject-thematiq"
   s.summary     = "Gives OpenProject the same shell as a Nextcloud themed with thematiq"
   s.description = "Ships the design systems of thematiq and writes the chosen one to the CSS variables OpenProject " \
-                  "already uses, with the shared top bar and project menu, so both products share one look. No network."
+                  "already uses, with the shared top bar and project menu, so both products share one look. No network unless an administrator turns on the gallery."
   s.license     = "EUPL-1.2"
 
   s.required_ruby_version = ">= 3.3"

@@ -220,4 +220,25 @@ test.describe("editor", () => {
       await restore(page, saved);
     }
   });
+  // A value may name another token, {primary}, and follows it (aut-semantic-aliases).
+  test("a reference follows the token it names, in the preview and in the export", async ({ page }) => {
+    const saved = await snapshot(page);
+    try {
+      await page.goto("/admin/thematiq/custom?from=cunningham");
+      await page.locator("#thematiq-token-primary").fill("#aa0055");
+      await page.locator("#thematiq-token-link").fill("{primary}");
+      await expect.poll(() => preview(page, "link")).toBe("#aa0055");
+      await page.locator("#thematiq-token-accent").fill("{radius}");
+      await expect(page.locator("#thematiq-token-accent")).toHaveAttribute("aria-invalid", "true");
+      await page.locator("#thematiq-token-accent").fill("");
+      await page.locator("#thematiq-name").fill(`E2E reference ${Date.now()}`);
+      await Promise.all([page.waitForURL(/\/admin\/thematiq$/), page.getByRole("button", { name: "Save and apply" }).click()]);
+      const added = (await customIds(page)).filter((id) => !saved.customs.includes(id));
+      expect((await exported(page, added[0])).tokens.link).toBe("#aa0055");
+      await page.goto(`/admin/thematiq/custom?id=${added[0]}`);
+      await expect(page.locator("#thematiq-token-link")).toHaveValue("{primary}");
+    } finally {
+      await restore(page, saved);
+    }
+  });
 });
