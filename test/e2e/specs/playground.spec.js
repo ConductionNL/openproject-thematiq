@@ -7,8 +7,9 @@ test.describe("playground", () => {
     const chosen = await exported(page, "zuiddrecht");
     await page.goto(PICKER);
     await page.locator('[data-test-selector="thematiq-playground-link"]').click();
-    await page.getByLabel("Design system").selectOption("zuiddrecht");
-    await page.getByRole("button", { name: "Show" }).click();
+    const form = page.locator("#thematiq-playground-form");
+    await form.getByLabel("Design system", { exact: true }).selectOption("zuiddrecht");
+    await form.getByRole("button", { name: "Show", exact: true }).click();
     await expect(page.locator('[data-test-selector="thematiq-playground"]')).toHaveAttribute("data-thematiq-playground-set", "zuiddrecht");
     await expect(page.locator('[data-thematiq-sample="button-primary"]')).toHaveCSS("background-color", rgb(chosen.tokens.action));
     await expect(page.locator("#openproject-thematiq-content")).toHaveCount(1);
