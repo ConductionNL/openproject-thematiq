@@ -300,6 +300,7 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 | `frontend/src/global_styles/layout/_main_menu.sass` | The two-layer menu: the rules that hide and show rows in the `open` and `closed` states, which the CSS undoes | Checksum in `core_guard.rb` |
 | `app/components/open_project/common/submenu_component.html.erb` and `.sass` | The two-layer menu: the classes of the links, group headers, search field and create button in a module's frame | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/projects_menu.rb` | `Shell::ProjectMenu::Helper#render_projects_top_menu_node` | Checksum in `core_guard.rb` |
+| Eight files of core's create dialog and create actions, listed under `create_dialog` in `core_guard.rb` | `Shell::CreateDialog`: the script and `stylesheets/shell/70-create-modal.css` | Checksum in `core_guard.rb`; the script is not rendered when one differs |
 | `app/components/header/project_select_component.rb` and `.html.erb` | `Shell::ProjectMenu::Switcher#trigger_label`, which the template prints inside the button | Checksum in `core_guard.rb` |
 
 | `app/controllers/homescreen_controller.rb`, `app/views/homescreen/index.html.erb`, `app/components/homescreen/blocks_grid_component.rb`, `config/initializers/homescreen.rb` | `Shell::Home::HomePage#index`, and the plugin's Home template, which renders everything core's Home view renders | Checksum in `core_guard.rb` |
@@ -335,6 +336,47 @@ You notice it in one of three ways: `script/check-core.rb` exits 1, the log says
 5. Start the instance and compare the top bar with the design, with `spike/pixdiff.py`.
 
 Until someone does this, OpenProject keeps working. Its own top bar and project menu render with the plugin's colours and sizes, and without what the overrides add.
+
+## Create work package as a dialog
+
+The board `OpCreateWorkPackage` opens a new work package in a dialog over the page you are on. Core opens it as a page (`/projects/:id/work_packages/new`) or in the split view (`.../create_new`).
+
+### What 17.9.1 offers
+
+| Route | What it is | Fit |
+|---|---|---|
+| Core's create page or split view, in an iframe in a dialog | The whole Angular create form | Two Angular apps on one page, and the page's own layout inside the dialog. Dropped |
+| The Angular create form (`wp-new`) moved into a dialog | Angular components | Needs a frontend build. Dropped |
+| `WorkPackages::Dialogs::CreateDialogComponent`, a Primer dialog at `/projects/:id/work_packages/dialog/new` | Core's own dialog. Core uses it for "new child" on the relations tab and in Backlogs. It answers with a Turbo stream that opens the dialog, saves through `WorkPackages::CreateService`, shows errors in place, and redirects back on success | Chosen |
+
+### What is built
+
+`Shell::CreateDialog` renders a small script at the end of every page for a signed-in user. It catches a click on:
+
+- "Create work package" in the project menu,
+- the Create button of the work package, Gantt and other Angular pages (`button.add-work-package`),
+- a work package type in the quick add menu of the top bar, and any other link to `/projects/:id/work_packages/new` or `.../create_new`,
+
+and fetches core's dialog for that project, with the type and the parent of the link, the way core's own `async-dialog` links do. The type, subject, description, the required custom fields, the permission check (`add_work_packages`), the validation and the save are core's.
+
+| Need | How |
+|---|---|
+| Focus moves into the dialog | Core puts it in the subject |
+| Escape closes, focus returns | Core's Primer dialog closes on Escape. The script puts focus back on the control that opened it: the project menu action, the Create button, or the quick add button when the action was in its menu |
+| Closing returns to where you were | Nothing navigates until a save |
+| Saving refreshes the view | Core redirects back to the page the dialog was opened on, so the list, the Gantt chart or the board reloads with the new work package and core's notice |
+| A click with Ctrl, Cmd, Shift or the middle button | Opens core's page in a new tab, as before |
+| The board's look | `stylesheets/shell/70-create-modal.css`: 640 px wide, the project name above the title, the type label shown, fields of 40 px, a footer with a line on top. The title and the submit button say "Create work package" |
+
+### Differences from the board
+
+- **Fewer fields.** Core's dialog has the type, the subject, the description and the required custom fields. The board also draws Parent, Assignee, Priority, Start date, Due date and "Link the project folder in Nextcloud". Adding them means overriding core's form class, which is the part that keeps validation and custom fields core's. They are set on the work package after it is created. A parent comes along when the action had one, such as "new child".
+- **The page's Create button opens the dialog directly.** Core shows a list of types first; the dialog has its own type field, as the board draws it.
+- **Outside a project** (the quick add menu on a page without a project, the global work package page), core's page opens. Core's dialog needs a project.
+
+### What it costs on an upgrade
+
+Eight guarded core files, the part `create_dialog` in `core_guard.rb`: the dialog controller, the dialog and form components, the form class, core's `async-dialog` controller, the quick add menu, the Create button and its list of types. When one differs, the script is not rendered and every create action opens core's page again. The route `work_packages/dialog/new` itself is in `config/routes.rb`, which changes on every release and is not guarded: if it moves, the fetch fails and the script opens core's page.
 
 ## Open questions
 
