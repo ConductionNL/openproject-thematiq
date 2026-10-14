@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 exec docker run --rm -v "$PWD":/plugin:ro --entrypoint bash "${OPENPROJECT_IMAGE:-openproject/openproject:17}" -c '
 cd /app
 status=0
-for f in $(find /plugin/app /plugin/lib /plugin/config /plugin/test -name "*.rb"); do ruby -c "$f" >/dev/null || status=1; done
+for f in $(find /plugin/app /plugin/lib /plugin/config /plugin/test -name "*.rb" -o -name "*.rake"); do ruby -c "$f" >/dev/null || status=1; done
 ruby -ryaml -e "Dir[%q(/plugin/config/locales/*.yml)].each { |f| YAML.load_file(f) }" || status=1
 bundle exec ruby -e "
   require %q(action_view)

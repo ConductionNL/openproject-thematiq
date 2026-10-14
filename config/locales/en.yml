@@ -59,6 +59,10 @@ en:
       trial_hint: "Only you see the design system, on every page, until you publish or discard it, or for a day at most."
       kept_name: "%{name}, with values kept"
       failed: "The page could not repaint itself, so it loads again."
+    environment:
+      banner: "The environment variable %{variable} names the design system: %{name}. Apply is off on this page. Change or remove the variable to choose here again."
+      unknown: "The environment variable %{variable} names \"%{value}\", which is not a design system here. It is ignored."
+      error_apply: "The environment variable %{variable} names the design system, so it cannot be changed here."
     short_form:
       title: "Start from your colours"
       hint: "Give a name, your main colour and a background colour. The plugin works out the shades, opens the result in the editor and saves nothing yet. Add a logo once it is saved."
