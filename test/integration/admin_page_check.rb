@@ -1356,7 +1356,7 @@ ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
   end
-  design_role&.destroy if defined?(design_role)
+  GlobalRole.where(id: design_role.id).destroy_all if defined?(design_role) && design_role
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
     Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }
