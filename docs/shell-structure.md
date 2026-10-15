@@ -55,7 +55,7 @@ The design is the dossiq bar of Nextcloud Zuiddrecht (`werkplek/DqKop` on identi
 | Search | Core's own field, restyled: round, the bar's fill and line, the glass at 14 px | Built. The placeholder is core's text |
 | Bell with the unread dot | CSS mask on core's link and core's own indicator as a dot in the accent colour | Built |
 | Second round button | Core's help menu, outline icon by CSS mask. The design has Contacts there; OpenProject has no contacts | Built as help |
-| No quick add | CSS hides core's quick add menu. Its entries have other homes: "Create work package" in the project menu and on Home, a new project on the project list, members on a project's Members page | Built |
+| Quick add, though the design has none | Core's quick add menu as a round plus button before the bell, in the bar's colours. It is where a work package of a chosen type, a project and an invitation start, and the create dialog opens from it | Built, one button more than the design |
 | Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super` | Built |
 | No brand stripe under the bar | The design has none. The stripe stays a variable for the surfaces that draw it | Built |
 
@@ -412,7 +412,7 @@ Eight guarded core files, the part `create_dialog` in `core_guard.rb`: the dialo
 
 ## Open questions
 
-- **Quick add.** The design has no quick add button. The plugin keeps it as a plain plus, because removing it takes "new project" and "invite user" out of the bar. Hide it with one CSS rule once those two have another home.
+- **Quick add.** The dossiq bar has no add button. The plugin keeps core's as a round plus before the bell, because the create dialog opens from its types and removing it takes "new project" and "invite user" out of the bar.
 - **Search placeholder.** The design says "Search files, work packages or people". Core's search finds work packages and projects, so the plugin keeps core's text.
 - **Nextcloud apps.** The fixed list should become a call to Nextcloud's navigation API, cached per user.
 - **Nextcloud address.** The setting `nextcloud_url` needs a field on the admin page.
