@@ -86,9 +86,43 @@
   background: color-mix(in srgb, var(--thematiq-on-bar) 8%, var(--thematiq-bar-fill));
 }
 
-/* Quick add: the dossiq bar has no add button. Its entries have other homes: "Create work package" heads the
- * project menu and Home, a new project is on the project list, and members are added on a project's Members page. */
-.op-app-header--end > action-menu:has(#op-app-header--quick-add-menu-button) { display: none; }
+/* Quick add: the dossiq bar has no add button, but OpenProject's quick add is where a work package of a chosen type,
+ * a project and an invitation start, and the create dialog opens from it. It stays as one more round button before
+ * the bell, in the bar's colours, with core's menu. The caret is hidden from view only: it carries the name. */
+.op-app-header--end #op-app-header--quick-add-menu-button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: none;
+  background: transparent;
+  color: var(--thematiq-on-bar);
+}
+.op-app-header--end #op-app-header--quick-add-menu-button:hover,
+.op-app-header--end #op-app-header--quick-add-menu-button[aria-expanded="true"] { background: var(--shell-hover); }
+.op-app-header--end #op-app-header--quick-add-menu-button .Button-content { gap: 0; }
+.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual { margin: 0; color: inherit; }
+.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual > svg { display: none; }
+.op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual::before {
+  content: "";
+  display: block;
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  -webkit-mask: var(--shell-icon-plus) center / contain no-repeat;
+  mask: var(--shell-icon-plus) center / contain no-repeat;
+}
+.op-app-header--end #op-app-header--quick-add-menu-button .Button-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
 
 /* Notifications: OpenProject's own unread indicator, drawn as the design's dot. The count stays in
  * the page for screen readers. */
@@ -482,6 +516,7 @@
   .op-app-header .op-app-menu > .Button--iconOnly::before,
   .op-app-header--end .op-ian-bell::before,
   .op-app-header--end #op-app-header--help-menu-button::before,
+  .op-app-header--end #op-app-header--quick-add-menu-button .Button-leadingVisual::before,
   .op-app-header--end > button.op-app-menu--item .Button-label::after,
   .op-app-header .top-menu-search--button::before { background: ButtonText; }
 }

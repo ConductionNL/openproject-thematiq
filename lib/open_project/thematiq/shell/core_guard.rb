@@ -91,7 +91,39 @@ module OpenProject
           # Scopes read the module of a page from current_menu_item. When it moves, a module's design system stops
           # applying (the lookup rescues and the page keeps its project's or the instance's), and this check says why.
           "lib/redmine/menu_manager/menu_controller.rb" =>
-            "d44bf6153135f83c807d2831b841def1e0a5c1728d32113e697fa715751fccf5"
+            "d44bf6153135f83c807d2831b841def1e0a5c1728d32113e697fa715751fccf5",
+          # Shell::Gantt reads the follower and the one it follows from the classes of core's dependency lines,
+          # and hides those lines: they are drawn for rows of 40 px.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline-relations.directive.ts" =>
+            "dd52210cd565e7dc2b6bf6549a087f6bea50fdf1cd630cbbf0f67b3765f4c4e8",
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/timeline-relation-element.ts" =>
+            "963f361527b3d040b6d3d588725e889e06a8912fbf4e4e56834a8737b05e450f",
+          # The header rows it relabels, found by their top offset, and the zoom level on the header.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/header/wp-timeline-header.directive.ts" =>
+            "f31d936957885915764fb8f5c07b45fae28143b2143373c7526dc59c957772db",
+          # The grid lines and the class of a non-working day.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/grid/wp-timeline-grid.directive.ts" =>
+            "1dd0e0a7e080f1925ac742e29093c3e3e649e019405789b77b9a6ab44b4ea8f7",
+          # The left of the today line, which the dates under the header are read from.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline.today-line.ts" =>
+            "82d7a32a8ef598da94e8fa875a969987e21393f83ee1ac0f5fdb9da67448931a",
+          # The markup of a bar, its labels and a milestone.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-cell-renderer.ts" =>
+            "5b89a9750e5fe72971eee330f06f4aafd6adde235317eb495bbd0b830406acb7",
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-milestone-cell-renderer.ts" =>
+            "a2a35d355a423e51fce875d0f9d25231bce99a23c474f5675e268181954b27a3",
+          # The zoom list presses core's zoom buttons by their ids.
+          "frontend/src/app/features/work-packages/components/wp-buttons/wp-timeline-toggle-button/wp-timeline-toggle-button.html" =>
+            "d0747905731ece91ee77063763de11f56bcae900b3f783d1186cecff04115b6e",
+          # Export PDF opens the entry "Export" of core's "More actions" menu.
+          "frontend/src/app/shared/components/op-context-menu/handlers/op-settings-dropdown-menu.directive.ts" =>
+            "7daf1b6d320d380084a41e0d8a81b586f04f383e0ab7c5d675fa596facd10f0c",
+          # The chips are core's two default Gantt views.
+          "modules/gantt/app/services/gantt/default_query_generator_service.rb" =>
+            "fb8abe768c97a0719f2513d5b22e1e7069eff27d356c8f6ded7ae36bb1331e37",
+          # The timeline cells and the containers the stylesheet and the lines are placed in.
+          "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass" =>
+            "7c7c5185bf36be6d6ae8193812e5ab9908fe59311762135184d6acc1a482a589"
         }.freeze
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
@@ -133,6 +165,19 @@ module OpenProject
           scopes: [
             "lib/redmine/menu_manager/menu_controller.rb",
             "app/views/layouts/base.html.erb"
+          ],
+          gantt: [
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline-relations.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/timeline-relation-element.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/header/wp-timeline-header.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/grid/wp-timeline-grid.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline.today-line.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-cell-renderer.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-milestone-cell-renderer.ts",
+            "frontend/src/app/features/work-packages/components/wp-buttons/wp-timeline-toggle-button/wp-timeline-toggle-button.html",
+            "frontend/src/app/shared/components/op-context-menu/handlers/op-settings-dropdown-menu.directive.ts",
+            "modules/gantt/app/services/gantt/default_query_generator_service.rb",
+            "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass"
           ]
         }.freeze
 

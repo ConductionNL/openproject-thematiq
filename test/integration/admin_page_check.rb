@@ -1289,6 +1289,19 @@ begin
   OpenProject::Thematiq::Store.new.save_group_choices([])
   check_group.destroy
 
+  # The Gantt page as the OpGantt board draws it (Shell::Gantt): the script and its chips on a project's Gantt page only.
+  gantt_admin = session_for("admin", ADMIN_PASSWORD)
+  gantt_admin.get "/projects/demo-project/gantt"
+  # Core sends the bare address on to its default view.
+  3.times { gantt_admin.response.redirect? ? gantt_admin.follow_redirect! : break }
+  check("the Gantt page carries the Gantt script with core's default views as chips") do
+    body = gantt_admin.response.body
+    gantt_admin.response.status == 200 && body.include?("window.thematiqGantt") && body.include?(%("key":"all_open")) &&
+      body.include?("/projects/demo-project/gantt?")
+  end
+  gantt_admin.get "/projects/demo-project/work_packages"
+  check("the work package page does not") { gantt_admin.response.status == 200 && !gantt_admin.response.body.include?("window.thematiqGantt") }
+
   # 32. The sign-in page of Nextcloud Zuiddrecht: the brand above core's own form, a line under the heading
   sign_in_view = session_for
   sign_in_view.get "/login"
