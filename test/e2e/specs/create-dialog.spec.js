@@ -5,8 +5,8 @@ const { config } = require("../support/env");
 
 const dialog = (page) => page.locator("#create-work-package-dialog[open]");
 const SUBJECT_PREFIX = "E2E dialog";
-// OpenProject renders data-test-selector only in its test environment, so the quick add button goes by its id.
-const quickAdd = (page) => page.locator("#op-app-header--quick-add-menu-button");
+// The quick add button and its entries go by role and name: the top bar around them changes with the shell.
+const quickAdd = (page) => page.getByRole("banner").getByRole("button", { name: "Add…", exact: true });
 
 async function expectBoardDialog(page) {
   await expect(dialog(page)).toBeVisible();
@@ -57,9 +57,8 @@ test.describe("Create work package as a dialog", () => {
   test("a type in the quick add menu opens the dialog with that type", async ({ page }) => {
     await page.goto(`/projects/${config.project}`);
     await quickAdd(page).click();
-    const item = page.locator('#op-app-header--quick-add-menu-list a[href*="/work_packages/new?type="]').first();
-    const type = (await item.innerText()).trim();
-    await item.click();
+    const type = "Task";
+    await page.getByRole("menuitem", { name: type, exact: true }).click();
     await expect(dialog(page)).toBeVisible();
     await expect(dialog(page).locator("[data-test-selector=work_package_create_dialog_type]")).toContainText(new RegExp(type, "i"));
     await page.keyboard.press("Escape");
