@@ -152,16 +152,17 @@ module OpenProject
 
             label = I18n.t("thematiq.shell.create_dialog.nextcloud_folder")
             note = I18n.t("thematiq.shell.create_dialog.nextcloud_folder_note")
-            form.html_content do
-              content_tag(:div, class: "thematiq-create__nextcloud", data: { "thematiq-field": "nextcloud" }) do
-                safe_join([
-                  content_tag(:label, class: "thematiq-create__check") do
-                    safe_join([tag.input(type: "checkbox", disabled: true, "aria-describedby": "thematiq-create-nextcloud-note"), label])
-                  end,
-                  content_tag(:p, note, id: "thematiq-create-nextcloud-note", class: "thematiq-create__note")
-                ])
-              end
+            # The markup is built here, not in the block: the block runs when the dialog renders, and a failure
+            # there would take the whole dialog down instead of only this line.
+            h = helpers
+            box = h.tag.input(type: "checkbox", disabled: true, "aria-describedby": "thematiq-create-nextcloud-note")
+            html = h.content_tag(:div, class: "thematiq-create__nextcloud", data: { "thematiq-field": "nextcloud" }) do
+              h.safe_join([
+                h.content_tag(:label, h.safe_join([box, label]), class: "thematiq-create__check"),
+                h.content_tag(:p, note, id: "thematiq-create-nextcloud-note", class: "thematiq-create__note")
+              ])
             end
+            form.html_content { html }
           end
         end
       end

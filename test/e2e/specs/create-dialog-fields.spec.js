@@ -44,8 +44,9 @@ test.afterAll(async ({ request }) => {
 test.describe("The board's fields in the create dialog", () => {
   test("every field of the board has a label, in the board's rows of two", async ({ page }) => {
     await openDialog(page);
+    // A required field's label ends in " *".
     for (const name of ["Type", "Parent", "Subject", "Description", "Assignee", "Priority", "Start date", "Finish date"]) {
-      await expect(dialog(page).getByText(name, { exact: true }).first(), name).toBeVisible();
+      await expect(dialog(page).locator("label").filter({ hasText: new RegExp(`^\\s*${name}(\\s*\\*)?\\s*$`) }).first(), name).toBeVisible();
     }
     const field = (name) => dialog(page).locator(`[data-thematiq-field="${name}"]`).first();
     const typeTop = await top(dialog(page).locator('label[for="work_package_type_id"]'));
@@ -68,7 +69,7 @@ test.describe("The board's fields in the create dialog", () => {
     await page.locator("#work_package_due_date").fill("2026-10-23");
     await dialog(page).getByRole("button", { name: "Create work package" }).click();
     await expect(dialog(page)).toHaveCount(0);
-    await expect(page.getByText("Successful creation.").first()).toBeVisible();
+    await expect(page.locator("td.subject", { hasText: subject })).toBeVisible();
 
     const filters = encodeURIComponent(JSON.stringify([{ subject: { operator: "=", values: [subject] } }]));
     const found = await (await request.get(`/api/v3/work_packages?filters=${filters}`, { headers })).json();
