@@ -39,12 +39,12 @@ test.describe("shell", () => {
     await expect(brand).toBeVisible();
     await expect(brand.locator(".thematiq-brand--app")).toHaveText(/\S/);
     await expect(header.locator(".thematiq-app-row--item")).toHaveCount(0);
+    const box = async (locator) => locator.first().boundingBox();
     // Quick add stays: a round button before the bell, where the create dialog opens from a type.
     const add = await box(header.locator("#op-app-header--quick-add-menu-button"));
     expect([Math.round(add.width), Math.round(add.height)]).toEqual([44, 44]);
     await expect(header.getByRole("button", { name: "All apps and modules" })).toBeVisible();
 
-    const box = async (locator) => locator.first().boundingBox();
     const brandBox = await box(header.locator(".thematiq-brand"));
     expect(Math.round(brandBox.x)).toBe(14);
     expect(Math.round(brandBox.width)).toBe(237);
