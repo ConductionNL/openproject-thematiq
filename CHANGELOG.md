@@ -48,6 +48,10 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 - The picker says how much of thematiq's vocabulary each shipped design system fills; the contrast report measures the status colours; selected text takes the brand colour; an upload of the Marianne typeface asks for the entitlement first (#98).
 
+### The shell follows Nextcloud
+
+- Where OpenProject's canon and Nextcloud (Zuiddrecht) differ, OpenProject follows Nextcloud: the primary button is 48 px high (was 40), a table row 44 px (was 48) and body text 15 px (was 14).
+
 ### Database
 
 No new table since 0.2.0. Uploads take one more kind, `login_background`, and the font library uses the set id `library` in `thematiq_uploads`.

@@ -9,13 +9,14 @@
   --main-menu-width: 264px !important;   /* canon navigation: width 264 px (OpenProject: 280). !important because OpenProject writes this inline on the html element for the resizable menu */
   --main-menu-item-height: 42px;         /* canon navigation item: min-height 42 px (OpenProject: 36) */
   --main-menu-font-size: 15px;           /* canon navigation item: 15 px */
-  --table-timeline--row-height: 48px;    /* canon table row: 48 px for one line (OpenProject: 40) */
+  --table-timeline--row-height: 44px;    /* canon table row: 44 px for one line, as Nextcloud (OpenProject: 40) */
   --generic-table--header-font-size: 14px; /* canon table header: 14 px */
   --generic-table--header-height: 44px;  /* canon table header: 44 px in all. OpenProject's 45 is the height of the thead */
 }
 
 [data-color-mode] {
-  --control-medium-size: 2.5rem;         /* canon button and input: 40 px high (Primer: 32) */
+  --control-medium-size: 2.5rem;         /* canon button and input: 40 px high (Primer: 32). The primary button is 48: 50-controls.css */
+  --body-font-size: 15px;                /* canon body text: 15 px, as Nextcloud (OpenProject: 14) */
   --thematiq-table-head: var(--thematiq-v-table-head, var(--bgColor-muted));
 }
 

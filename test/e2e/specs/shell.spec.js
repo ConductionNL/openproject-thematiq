@@ -65,8 +65,10 @@ test.describe("shell", () => {
     // The Create button of the work package toolbar, OpenProject's own class for a primary button.
     const create = page.locator("button.button.-primary.add-work-package");
     await expect(create).toBeVisible();
-    expect((await create.boundingBox()).height, "primary button").toBe(40);
-    expect((await size("table.work-package-table tbody tr")).height, "table row").toBe(48);
+    expect((await create.boundingBox()).height, "primary button").toBe(48);
+    expect((await size("table.work-package-table tbody tr")).height, "table row").toBe(44);
+    // Body text follows Nextcloud: 15 px.
+    expect(await page.evaluate(() => getComputedStyle(document.body).fontSize), "body text").toBe("15px");
   });
 
   test("the table header is 44 px", async ({ page }) => {
