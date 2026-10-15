@@ -1061,6 +1061,9 @@ begin
   check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
+  # The member is a plain member again for the sections below: they check what someone without the permission gets.
+  global_member.destroy
+  design_role.destroy
 
   # Create work package as a dialog (Shell::CreateDialog): the script on the pages, and core's own dialog behind it.
   dialog_admin = session_for("admin", ADMIN_PASSWORD)
