@@ -1,6 +1,6 @@
 # OpenProject twin: shell and primitives canon
 
-The contract for every `Op*` board. Geometry is measured from our Nextcloud boards (`DqKop`, `AppZijbalk`, `DqZijbalk`, `DqPostvak`, `DqTaak`, `DqBerichtVersturen`). Colour, type and radius come from the active design system through `var(--sc-*)`: under `?ds=openproject` the Cunningham example theme sets them. Use the literals from `token-rules.md` and nothing near them. Where the measured OpenProject size differs (header 55 px, row 40 px, button 34 px, nav 245 px), our Nextcloud size wins, because both products must be identical.
+The contract for every `Op*` board. Geometry is measured from our Nextcloud boards (`DqKop`, `AppZijbalk`, `DqZijbalk`, `DqPostvak`, `DqTaak`, `DqBerichtVersturen`). Colour, type and radius come from the active design system through `var(--sc-*)`: under `?ds=openproject` the Cunningham example theme sets them. Use the literals from `token-rules.md` and nothing near them. Where the measured OpenProject size differs (header 55 px, row 40 px, button 34 px, nav 245 px), our Nextcloud size wins, because both products must be identical. On 15 October 2026 the owner decided again that OpenProject follows Nextcloud (Zuiddrecht) where they differ: the primary button became 48 px (was 40), the table row 44 px (was 48) and body text 15 px (was 14).
 
 ## Top bar (`OpHeader.dc.html`, measured from `DqKop.dc.html`)
 
@@ -31,7 +31,7 @@ The contract for every `Op*` board. Geometry is measured from our Nextcloud boar
 |---|---|
 | frame | `background: #ffffff; border: 1px solid #e4e6ea; border-radius: var(--sc-radius-lg, 10px)`, overflow hidden |
 | header row | `background: #fafbfc`, th padding 12px 16px, 14 px weight 600 `#5e6168`, line-height 20 px: 44 px high; sort caret 14 px `#c4c7cb` |
-| row | td padding 14px 16px, 14 px line-height 20 px: 48 px high for one line; `border-top: 1px solid #eef0f3`; no zebra |
+| row | td padding 12px 16px, 14 px line-height 20 px: 44 px high for one line, as Nextcloud; `border-top: 1px solid #eef0f3`; no zebra |
 | row title | 15 px weight 600 `#1b1c1d`; secondary line 14 px `#5e6168` |
 | selection | checkbox 18 px, `accent-color: #3669a5` |
 | footer | padding 12px 16px, `border-top: 1px solid #eef0f3`, 14 px `#5e6168`, pagination 34 px |
@@ -41,7 +41,7 @@ The contract for every `Op*` board. Geometry is measured from our Nextcloud boar
 
 | kind | value |
 |---|---|
-| primary (the one main action) | 40 px high, padding 0 14px, radius `var(--sc-radius, 8px)`, `background: var(--sc-action, #3669a5)`, border 1 px `var(--sc-action-deep, #234a78)`, white 14 px weight 600, icon 16 px |
+| primary (the one main action) | 48 px high, as Nextcloud, padding 0 14px, radius `var(--sc-radius, 8px)`, `background: var(--sc-action, #3669a5)`, border 1 px `var(--sc-action-deep, #234a78)`, white 14 px weight 600, icon 16 px |
 | secondary | 40 px high, padding 0 14px, `border: 1px solid #c4c7cb; background: #ffffff; color: #1b1c1d`, 14 px weight 600 |
 | compact (in a row) | 34 px high, otherwise secondary |
 | icon only | 40 x 40, `aria-label`, icon 20 px |
@@ -89,7 +89,7 @@ The contract for every `Op*` board. Geometry is measured from our Nextcloud boar
 
 | role | value |
 |---|---|
-| body | 14 px, line-height 21 px, `#1b1c1d`; muted `#5e6168`; secondary `#3d4047` |
+| body | 15 px, line-height 21 px, as Nextcloud, `#1b1c1d`; muted `#5e6168`; secondary `#3d4047` |
 | page title | 28 px weight 700, line-height 1.2 |
 | section title | 20 px weight 700 |
 | widget title | 16 px weight 700 |

@@ -8,16 +8,18 @@
   box-sizing: border-box;
 }
 
-/* primary button: the same size, action background, 1 px action-deep border */
+/* primary button: 48 px high, as Nextcloud's, action background, 1 px action-deep border */
 .toolbar-items .button.-primary, .button.-primary {
+  height: 48px; line-height: 46px;
   background: var(--thematiq-action); border-color: var(--thematiq-action-deep); color: var(--thematiq-on-action);
 }
 
 /* icon only button: 40 x 40 */
 .toolbar-items .button.toolbar-icon { width: 40px; padding: 0; }
 
-/* Primer buttons: radius, weight 600. Their 40 px height comes from --control-medium-size */
+/* Primer buttons: radius, weight 600. Their 40 px height comes from --control-medium-size; the primary one is 48 px */
 .Button, .Button--medium { border-radius: var(--thematiq-radius); }
+.Button--primary.Button--medium { height: 48px; min-height: 48px; }
 .Button--primary, .Button--secondary, .Button--default { font-weight: 600; }
 
 /* input and select: 40 px high, 1 px field border, radius-lg, 15 px text */

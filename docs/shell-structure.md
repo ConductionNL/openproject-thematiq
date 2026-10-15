@@ -309,7 +309,7 @@ OpenProject draws the chart in Angular (`frontend/src/app/features/work-packages
 
 | Part of the board | Mechanism | Status |
 |---|---|---|
-| Rows of 48 px, the table frame, the header row of the table | The geometry layer, as on the work package page | Built |
+| Rows of 44 px, the table frame, the header row of the table | The geometry layer, as on the work package page | Built |
 | Bars: 20 px, radius 4, the action colour | CSS on core's bar. Core colours each bar by its type with an `!important` rule, which the stylesheet overrides | Built |
 | A parent as an outlined summary bar | CSS on a timeline row with the class `__hierarchy-root-*`, which core gives only to a row with children | Built. The board says "Epic"; any parent gets the outline |
 | Milestone diamond | Core's diamond, 14 px, in the type colour of the milestone | Built |
@@ -317,7 +317,7 @@ OpenProject draws the chart in Angular (`frontend/src/app/features/work-packages
 | Header: the first day of each week over one letter per day | The script rewrites the text of core's header cells at the Days and Weeks levels. The dates come from the left of core's today line | Built. Core's own labels stay for Months and up |
 | Weekends shaded | CSS on core's `wp-timeline--non-working-day` | Built. Core only marks them at Days and Weeks |
 | Today line and its label | CSS on core's line; the label is `content: attr(data-label)`, set by the script from `en.yml` | Built |
-| Dependency lines | Core draws its lines for rows of 40 px (`wp-timeline-relations.directive.ts` multiplies by 40), so with rows of 48 px they miss the bars. The script reads which bar follows which from the classes of core's lines, hides those, and draws its own in one SVG | Built |
+| Dependency lines | Core draws its lines for rows of 40 px (`wp-timeline-relations.directive.ts` multiplies by 40), so with rows of 44 px they miss the bars. The script reads which bar follows which from the classes of core's lines, hides those, and draws its own in one SVG | Built |
 | Chips "All open" and "Milestones only" | Links to core's own two default Gantt views (`Gantt::DefaultQueryGeneratorService`), with the count of open work packages on the first | Built. "Critical path" is left out: OpenProject has no critical path |
 | Today | Scrolls the timeline to the today line | Built |
 | Zoom | A list of core's five levels. It presses core's zoom buttons, which the stylesheet hides | Built. The board lists three levels |
