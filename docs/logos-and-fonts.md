@@ -6,7 +6,7 @@ A design system can have a logo and a font. The plugin ships the files it may pa
 
 | Path | What it holds |
 |---|---|
-| `public/thematiq/logos/` | 21 logo files, for 15 design systems |
+| `public/thematiq/logos/` | 22 logo files, for 15 design systems: 21 logos and the Zuiddrecht emblem |
 | `public/thematiq/fonts/` | 47 font files in 13 families, and their licence texts |
 | `lib/open_project/thematiq/assets.rb` | Which file belongs to which design system |
 
@@ -23,7 +23,7 @@ The files were copied from thematiq at the commit the catalogue names in `genera
 
 ## The logo
 
-The top bar has the primary colour as its background. So the plugin shows the variant for dark backgrounds when the design system has one, and the normal logo otherwise. Where the bar is light, the normal logo comes first: on a light primary colour (white text does not read on it), in the dark theme when the dark block's primary is light (Zuiddrecht's is light blue), and in OpenProject's light high contrast theme, where the bar is OpenProject's own pale grey. When a design system has no normal logo, the light high contrast theme shows OpenProject's own logo. A custom design system keeps the logo of the design system it is based on, until you upload one. An uploaded logo wins.
+The top bar has thematiq's header colour as its background where the design system gives one, and the primary colour otherwise. On a coloured bar the plugin shows the variant for dark backgrounds when the design system has one, and the normal logo otherwise. Where the bar is light, the normal logo comes first: on a white header such as Zuiddrecht's, on a light primary colour (white text does not read on it), in the dark theme when the dark block's primary is light (Zuiddrecht's is light blue), and in OpenProject's light high contrast theme, where the bar is OpenProject's own pale grey. When a design system has no normal logo, the light high contrast theme shows OpenProject's own logo. A custom design system keeps the logo of the design system it is based on, until you upload one. An uploaded logo wins.
 
 ## The font
 

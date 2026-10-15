@@ -32,6 +32,10 @@ module OpenProject
 
       # The end of the body: the script of the two-layer project menu.
       render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/body_bottom"
+
+      # The sign-in page as Nextcloud draws it: the logo above the card and the lines around it. See Shell::SignIn.
+      render_on :view_account_login_top, partial: "thematiq/shell/sign_in_top"
+      render_on :view_account_login_bottom, partial: "thematiq/shell/sign_in_bottom"
     end
 
     # A listener has one method per hook, so each addition to the end of the body is a listener of its own.

@@ -24,7 +24,7 @@ test.describe("member", () => {
   test("sees the shell and only menu items they may open", async ({ page }) => {
     await page.goto(`/projects/${config.project}/work_packages`);
     await expect(page.locator(".op-app-header")).toHaveCSS("height", "68px");
-    await expect(page.locator(".thematiq-app-row--item").first()).toBeVisible();
+    await expect(page.locator('[data-test-selector="thematiq-brand"]')).toBeVisible();
     await expect(page.getByRole("link", { name: "Thematiq design" })).toHaveCount(0);
     // The list under the nine-dot button has no "Manage apps" for a member.
     await page.getByRole("button", { name: "All apps and modules" }).click();

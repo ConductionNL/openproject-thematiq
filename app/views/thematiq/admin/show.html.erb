@@ -274,7 +274,7 @@ end %>
 <% row = OpenProject::Thematiq::Shell::AppRow %>
 <% top_mode, top_keys = @store.top_bar_apps %>
 <% offered = row::KNOWN | top_keys %>
-<% slots = top_mode == "custom" ? top_keys : (top_mode == "default" ? row::DEFAULT : []) %>
+<% slots = top_mode == "custom" ? top_keys : row::OPHEADER %>
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium, id: "thematiq-top-bar") { t("thematiq.shell.top_bar.title") }
 end %>

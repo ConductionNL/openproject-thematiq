@@ -33,8 +33,9 @@ Measured with computed styles at 1440 x 1000 on the work package table of the de
 | Top bar height | 68 px | 55 px | 68 px |
 | Sidebar width | 264 px | 280 px | 264 px |
 | Navigation item height | 42 px | 36 px | 42 px |
-| Primary button height | 40 px | 34 px | 40 px |
-| Table row height | 48 px | 40 px | 48 px |
+| Primary button height | 48 px | 34 px | 48 px |
+| Table row height | 44 px | 40 px | 44 px |
+| Body text size | 15 px | 14 px | 15 px |
 | Table header row height | 44 px | not measured | 45 px |
 
 The table header row is 1 px over. Its bottom border adds to the 44 px.

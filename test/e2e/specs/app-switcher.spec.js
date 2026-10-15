@@ -49,7 +49,7 @@ test.describe("app switcher", () => {
     await expect(button).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("without a Nextcloud address there is one group, its entries in three columns", async ({ page }) => {
+  test("without a Nextcloud address there is one group, its entries tiles in four columns", async ({ page }) => {
     await setNextcloud(page, "");
     await page.goto("/projects");
     await page.getByRole("button", { name: "All apps and modules" }).click();
@@ -60,6 +60,10 @@ test.describe("app switcher", () => {
     await expect(list.getByText(/of them (is|are) in the bar/)).toHaveCount(0);
     const columns = await list.locator(".thematiq-apps--list").first()
       .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
-    expect(columns).toBe(3);
+    expect(columns).toBe(4);
+    // A popover under the nine-dot button, as werkplek/AppMenu draws it, not a sheet.
+    const box = await list.boundingBox();
+    expect(Math.round(box.x)).toBe(160);
+    expect(Math.round(box.width)).toBe(640);
   });
 });

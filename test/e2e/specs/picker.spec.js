@@ -1,6 +1,6 @@
 // The picker: the bundled design systems, the search, and Apply changing the whole installation.
 const { test, expect } = require("@playwright/test");
-const { PICKER, rgb, applySet, exported, createCustom, snapshot, restore } = require("../support/thematiq");
+const { PICKER, rgb, primaryOf, barColour, applySet, exported, createCustom, snapshot, restore } = require("../support/thematiq");
 const { config } = require("../support/env");
 
 test.describe("picker", () => {
@@ -51,19 +51,20 @@ test.describe("picker", () => {
     await expect(page.locator(`#thematiq-set-${id}`)).toBeVisible();
   });
 
-  test("apply changes the colour of the top bar for everyone", async ({ page, browser }) => {
+  test("apply changes the design system and the top bar for everyone", async ({ page, browser }) => {
     const target = saved.active === "zuiddrecht" ? "rotterdam" : "zuiddrecht";
-    const primary = (await exported(page, target)).tokens.primary;
+    const set = await exported(page, target);
     await applySet(page, target);
-    await expect(page.locator('[data-test-selector="thematiq-active"]')).toContainText((await exported(page, target)).name);
+    await expect(page.locator('[data-test-selector="thematiq-active"]')).toContainText(set.name);
     await page.goto("/projects");
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
+    await expect.poll(() => primaryOf(page)).toBe(set.tokens.primary.toLowerCase());
+    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(barColour(set)));
 
     // Someone who is not signed in sees it too, on the sign-in page.
     const visitor = await browser.newContext({ baseURL: config.baseURL, storageState: { cookies: [], origins: [] } });
     const signIn = await visitor.newPage();
     await signIn.goto("/login");
-    await expect(signIn.locator(".op-app-header")).toHaveCSS("background-color", rgb(primary));
+    await expect.poll(() => primaryOf(signIn)).toBe(set.tokens.primary.toLowerCase());
     await visitor.close();
   });
 

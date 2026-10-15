@@ -104,7 +104,10 @@ class UploadsWiringTest < Minitest::Test
     assert_equal 3, css.lines.size, "the bar, the light high contrast bar and the mobile logo"
     assert_includes css, %(.op-app-header .op-logo--icon.op-logo--link { background-image: url("/op/thematiq/files/#{token('b')}"); })
     assert_nil assets.mobile_logo_url(custom, uploads: [record("logo", "svg", "a")])
-    refute_includes Thematiq::Shell::Logo.css(Catalogue.bundled.find("zuiddrecht")), "op-logo--icon"
+    refute_includes Thematiq::Shell::Logo.css(Catalogue.bundled.find("dinkelland")), "op-logo--icon"
+    assert_includes Thematiq::Shell::Logo.css(Catalogue.bundled.find("zuiddrecht")),
+                    %(.op-app-header .op-logo--icon.op-logo--link { background-image: url("/thematiq/logos/zuiddrecht-emblem.svg"); }),
+                    "without an uploaded mark the emblem is the mark"
   end
 
   # --- favicon and touch icon ---

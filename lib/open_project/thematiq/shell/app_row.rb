@@ -9,8 +9,11 @@ module OpenProject
       # An entry has a key. A Nextcloud app has the key of Shell::NextcloudApps ("files", "mail").
       # An OpenProject module has the name of its item in core's top menu ("work_packages", "boards").
       module AppRow
-        # The row of the OpHeader design.
-        DEFAULT = %w[files mail calendar work_packages boards gantt meetings].freeze
+        # The row of the design. The top bar follows the dossiq bar of Nextcloud, which has no row of tiles: the
+        # logo, then the app switcher. An administrator can still set an own row.
+        DEFAULT = [].freeze
+        # The row of the earlier OpHeader design, offered as a start for an own row.
+        OPHEADER = %w[files mail calendar work_packages boards gantt meetings].freeze
         MAX = 12
         OFF = "none"
 

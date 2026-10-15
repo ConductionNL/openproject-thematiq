@@ -1,0 +1,107 @@
+/* openproject-thematiq, shell layer: the account menu under the avatar (Shell::AccountMenu).
+ * The button is the dossiq bar's (werkplek/DqKop): 48 px high and round, a 38 px avatar, the name and the role,
+ * then a chevron. The menu is Nextcloud's: a panel under the avatar, aligned to its right edge, with the person
+ * on top and one row per entry. Its look follows the app menu of the design (werkplek/AppMenu): white, a 1 px
+ * line, the large radius and the same shadow. */
+
+.thematiq-account-menu { position: relative; display: flex; align-items: center; }
+
+.op-app-header .thematiq-account-menu--button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  width: auto;
+  padding: 0 8px 0 4px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: var(--thematiq-on-bar);
+  font: inherit;
+  cursor: pointer;
+}
+.op-app-header .thematiq-account-menu--button:hover,
+.op-app-header .thematiq-account-menu.is-open .thematiq-account-menu--button { background: var(--thematiq-bar-fill); }
+.op-app-header .thematiq-account-menu--button:focus-visible { outline: 2px solid var(--thematiq-on-bar); outline-offset: 2px; }
+.thematiq-account-menu--chevron { flex: none; fill: currentColor; transition: transform var(--thematiq-v-animation-quick, 100ms); }
+.thematiq-account-menu.is-open .thematiq-account-menu--chevron { transform: rotate(180deg); }
+.thematiq-account-menu--avatar { display: flex; }
+.thematiq-account-menu--avatar .op-avatar { width: 38px; height: 38px; line-height: 38px; border-radius: 50%; font-size: 14px; font-weight: 700; }
+.thematiq-account-menu--avatar .op-avatar--fallback {
+  background: var(--thematiq-primary-light) !important; /* core sets a colour per user inline */
+  color: var(--thematiq-primary-deep);
+}
+
+/* A popover in the top layer: the script sets the two variables from the button's place. */
+.thematiq-account-menu--panel {
+  position: fixed;
+  inset: var(--tq-account-top, 77px) var(--tq-account-right, 20px) auto auto;
+  margin: 0;
+  box-sizing: border-box;
+  width: 300px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 86px);
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--thematiq-line);
+  border-radius: var(--thematiq-radius-lg);
+  background: var(--thematiq-surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--thematiq-ink) 12%, transparent);
+  color: var(--thematiq-ink);
+  font-size: 14px;
+  text-align: left;
+}
+.thematiq-account-menu--panel:not(:popover-open) { display: none; }
+/* A bridge over the gap between the button and the panel, so the pointer can cross it without closing the menu. */
+.thematiq-account-menu--panel::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; }
+
+.thematiq-account-menu--who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--thematiq-line);
+}
+.thematiq-account-menu--names { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.thematiq-account-menu--names strong { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thematiq-account-menu--names span { font-size: 13px; color: var(--thematiq-muted); }
+.thematiq-account-menu--partial { padding: 4px 10px; }
+
+.thematiq-account-menu--list { margin: 0; padding: 0; list-style: none; }
+.thematiq-account-menu--list > li { margin: 0; padding: 0; list-style: none; }
+.thematiq-account-menu--entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--thematiq-radius);
+  color: var(--thematiq-ink);
+  font-weight: 500;
+  text-decoration: none;
+}
+.thematiq-account-menu--entry svg { flex: none; width: 16px; height: 16px; fill: currentColor; color: var(--thematiq-muted); }
+.thematiq-account-menu--entry:hover,
+.thematiq-account-menu--entry:focus-visible { background: var(--thematiq-primary-light); color: var(--thematiq-ink); text-decoration: none; }
+.thematiq-account-menu--entry:focus-visible { outline: 2px solid var(--thematiq-primary-deep); outline-offset: -2px; }
+.thematiq-account-menu--divider { height: 1px; margin: 4px 0; background: var(--thematiq-line); }
+
+/* The line before the account button is drawn by 10-top-bar.css. */
+
+/* The texts give way where the bar is narrow, as in 10-top-bar.css. */
+@media screen and (max-width: 1359px) {
+  .thematiq-account-menu--button .thematiq-account { display: none; }
+}
+@media screen and (max-width: 1011px) {
+  .thematiq-account-menu--chevron { display: none; }
+  .op-app-header .thematiq-account-menu--button { padding: 0 3px; }
+}
+@media screen and (max-width: 543px) {
+  .thematiq-account-menu--panel { inset: var(--tq-account-top, 77px) 8px auto 8px; width: auto; }
+}
+
+@media (forced-colors: active) {
+  .thematiq-account-menu--panel { border-color: CanvasText; }
+  .thematiq-account-menu--chevron { fill: ButtonText; }
+}

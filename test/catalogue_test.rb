@@ -49,7 +49,9 @@ class CatalogueTest < Minitest::Test
   end
 
   def test_every_logo_the_bundled_catalogue_names_is_in_the_gem_and_nothing_else_is
-    named = Catalogue.bundled.sets.flat_map { |s| [s.logo_file, s.logo_inverse_file] }.compact.uniq.sort
+    named = Catalogue.bundled.sets.flat_map { |s| [s.logo_file, s.logo_inverse_file] }.compact.uniq
+    # The emblem of the dossiq brand block sits beside the logo it belongs to (Shell::Logo.emblem_url).
+    named = (named + %w[zuiddrecht-emblem.svg]).sort
     present = Dir.children(Catalogue::LOGO_DIRECTORY).reject { |name| name.start_with?(".") }.sort
 
     assert_equal named, present

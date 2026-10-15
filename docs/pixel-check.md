@@ -2,7 +2,7 @@
 
 The plugin styles OpenProject by class names that OpenProject can change in any release. The pixel check tells you when a release moved something in the top bar or the sidebar.
 
-The reference images are in `script/pixel/reference/`. They were made on 13 October 2026 on OpenProject 17.9.1 with Cunningham active. Two captures in a row differed in 0.00% of the pixels of both regions, so the limits below leave room for font smoothing only. Without the reference images the check answers "cannot run", exit code 2. It never answers "pass" without them.
+The reference images are in `script/pixel/reference/`. They were made on 14 October 2026 on OpenProject 17.9.1 with Cunningham active, when the top bar became the dossiq bar. Two captures in a row differed in 0.00% of the pixels of both regions, so the limits below leave room for font smoothing only. Without the reference images the check answers "cannot run", exit code 2. It never answers "pass" without them.
 
 ## What it does
 

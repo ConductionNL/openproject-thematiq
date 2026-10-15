@@ -1,6 +1,6 @@
-/* thematiq's brand stripe under the top bar and on the sign-in page, when the design system has one. The gradient and its
- * height come from the variable layer, written from validated values. Without them nothing is drawn. */
-.op-app-header { background-image: var(--thematiq-v-brand-stripe, none); background-size: 100% var(--thematiq-v-brand-stripe-height, 0); background-repeat: no-repeat; background-position: left bottom; }
+/* thematiq's brand stripe, when the design system has one. The gradient and its height come from the variable layer,
+ * written from validated values. Without them nothing is drawn. The dossiq bar of the design has no stripe under it,
+ * so the top bar does not draw one. */
 
 /* The footer with the organisation's legal links, at the end of every page. Its colours follow the design system. */
 .thematiq-footer { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: center; padding: 12px 16px; font-size: 13px;
