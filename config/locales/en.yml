@@ -1120,6 +1120,9 @@ en:
       website-tab-current-color: "Website tab current"
       website-tab-line-color: "Website tab line"
     shell:
+      sign_in:
+        lead: "For the staff of %{organisation}."
+        footnote: "%{organisation} · %{app}"
       settings:
         title: "App switcher"
         nextcloud_url: "Nextcloud address"

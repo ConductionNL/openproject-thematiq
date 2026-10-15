@@ -17,6 +17,7 @@ module OpenProject
     #   Shell::AccountMenu    the account menu as a dropdown under the avatar, in place of core's sheet
     #   Shell::Logo           the logo of the active design system, as a CSS rule
     #   Shell::Gantt          the Gantt page as the OpGantt board draws it: a script and a stylesheet on core's chart
+    #   Shell::SignIn         the sign-in page as Nextcloud draws it, from two hooks and a stylesheet
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
     module Shell
@@ -54,6 +55,7 @@ module OpenProject
         require "open_project/thematiq/shell/nextcloud_apps"
         require "open_project/thematiq/shell/app_row"
         require "open_project/thematiq/shell/logo"
+        require "open_project/thematiq/shell/sign_in"
         require "open_project/thematiq/shell/top_bar"
         require "open_project/thematiq/shell/app_switcher"
         require "open_project/thematiq/shell/account_menu"

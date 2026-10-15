@@ -16,8 +16,8 @@ test.describe("surfaces", () => {
   test.beforeEach(async ({ page }) => { saved = await snapshot(page); });
   test.afterEach(async ({ page }) => { await restore(page, saved); });
 
-  // The dossiq bar of the design has no stripe under it. The variable is on the page for the surfaces that draw it.
-  test("a brand stripe is on the page and not under the top bar", async ({ page }) => {
+  // The dossiq bar of the design has no stripe under it; the sign-in card has one on top (werkplek/NcLogin).
+  test("a brand stripe draws on the sign-in card and not under the top bar", async ({ page, browser }) => {
     const id = await importSet(page, { id: "e2e-stripe", name: `E2E stripe ${Date.now()}`, tokens: { primary: "#2f6b4a" },
                                        vocabulary: { "brand-stripe-color-1": "#2f6b4a", "brand-stripe-color-2": "#f5b82e", "brand-stripe-color-3": "#2f6b4a",
                                                      "brand-stripe-height": "6px" } });
@@ -28,6 +28,13 @@ test.describe("surfaces", () => {
     expect(stripe.toLowerCase()).toContain("#f5b82e");
     const image = await page.locator(".op-app-header").evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(image).toBe("none");
+    const visitor = await browser.newContext({ baseURL: config.baseURL, storageState: { cookies: [], origins: [] } });
+    const signIn = await visitor.newPage();
+    await signIn.goto("/login");
+    const card = await signIn.locator("#login-form").evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(card).toContain("linear-gradient");
+    expect(card).toContain("rgb(245, 184, 46)");
+    await visitor.close();
   });
 
   test("the legal links show at the end of every page and on the sign-in page", async ({ page, browser }) => {
