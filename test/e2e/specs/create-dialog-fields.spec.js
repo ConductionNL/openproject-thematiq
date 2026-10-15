@@ -71,10 +71,12 @@ test.describe("The board's fields in the create dialog", () => {
     await expect(dialog(page)).toHaveCount(0);
     await expect(page.locator("td.subject", { hasText: subject })).toBeVisible();
 
-    const filters = encodeURIComponent(JSON.stringify([{ subject: { operator: "=", values: [subject] } }]));
+    // The API filters a subject by "contains"; the subject is unique to this run.
+    const filters = encodeURIComponent(JSON.stringify([{ subject: { operator: "~", values: [subject] } }]));
     const found = await (await request.get(`/api/v3/work_packages?filters=${filters}`, { headers })).json();
-    expect(found._embedded.elements).toHaveLength(1);
-    const saved = found._embedded.elements[0];
+    const matches = found._embedded.elements.filter((element) => element.subject === subject);
+    expect(matches).toHaveLength(1);
+    const saved = matches[0];
     expect(saved._links.parent.title).toBe("Organize open source conference");
     expect(saved._links.assignee.title).toBe("OpenProject Admin");
     expect(saved._links.priority.title).toBe(high.trim());
