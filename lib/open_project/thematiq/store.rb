@@ -446,8 +446,8 @@ module OpenProject
       def top_bar_apps
         text = data[TOP_BAR_APPS_KEY].to_s.strip
         keys = Shell::AppRow.wanted(text)
-        return ["none", []] if keys.empty?
         return ["default", Shell::AppRow::DEFAULT] if text.empty? || keys.equal?(Shell::AppRow::DEFAULT)
+        return ["none", []] if keys.empty?
 
         ["custom", keys]
       end

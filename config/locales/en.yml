@@ -1130,10 +1130,10 @@ en:
         error_invalid: "Enter a full address that starts with http:// or https://, or leave the field empty."
       top_bar:
         title: "Tiles in the top bar"
-        rules: "The top bar shows apps and modules as tiles after the logo, at most %{max}. A tile a user cannot open is left out, and the row is filled up from OpenProject's own order. Nextcloud tiles need the Nextcloud address above. The page a user is on always gets a tile, in the last place when it is not in the row."
+        rules: "The bar of the design has no tiles: the app switcher holds every app and module. With your own row, the top bar shows apps and modules as tiles after the logo, at most %{max}. A tile a user cannot open is left out, and the row is filled up from OpenProject's own order. Nextcloud tiles need the Nextcloud address above. The page a user is on always gets a tile, in the last place when it is not in the row."
         mode: "Row"
         modes:
-          default: "The row of the design: Files, Mail, Calendar, Work packages, Boards, Gantt, Meetings"
+          default: "The bar of the design, without tiles"
           custom: "My own row, in the order of the places below"
           none: "No tiles"
         places: "Places"
@@ -1166,6 +1166,9 @@ en:
           news: "News"
           cost_reports_global: "Time and costs"
           wikis: "Wiki"
+      account_menu:
+        button: "Menu of %{name}"
+        region: "Account"
       app_switcher:
         title: "All apps and modules"
         keys: "Arrow keys move, Enter opens, Escape closes."

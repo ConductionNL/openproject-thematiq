@@ -1,7 +1,7 @@
 // Switch safely: see what changes before applying, keep single values, apply without a reload, try a design system
 // in your own session first.
 const { test, expect } = require("@playwright/test");
-const { PICKER, rgb, activeSetId, applySet, exported, customIds, snapshot, restore, flash } = require("../support/thematiq");
+const { PICKER, rgb, primaryOf, barColour, activeSetId, applySet, exported, customIds, snapshot, restore, flash } = require("../support/thematiq");
 const { config } = require("../support/env");
 
 async function openCompare(page, id) {
@@ -39,7 +39,8 @@ test.describe("switch safely", () => {
     await page.locator("#thematiq-compare-form").getByRole("button", { name: "Apply", exact: true }).click();
     await expect(page.locator('[data-test-selector="thematiq-applied"]')).toContainText(`"${target.name}" is now the active design system`);
     expect(await page.evaluate(() => window.__thematiqSamePage)).toBe(true);
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(target.tokens.primary));
+    await expect.poll(() => primaryOf(page)).toBe(target.tokens.primary.toLowerCase());
+    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(barColour(target)));
     expect(await activeSetId(page)).toBe("zuiddrecht");
   });
 
@@ -70,20 +71,20 @@ test.describe("switch safely", () => {
     await Promise.all([page.waitForURL((url) => !url.pathname.startsWith("/admin")), page.getByRole("button", { name: "Try it yourself first" }).click()]);
     const banner = page.locator('[data-test-selector="thematiq-trial-banner"]');
     await expect(banner).toContainText(`Trial: ${target.name}.`);
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(target.tokens.primary));
+    await expect.poll(() => primaryOf(page)).toBe(target.tokens.primary.toLowerCase());
     expect(await activeSetId(page)).toBe("cunningham");
 
     // Someone else, not signed in, sees the design system in use and no banner.
     const visitor = await browser.newContext({ baseURL: config.baseURL, storageState: { cookies: [], origins: [] } });
     const other = await visitor.newPage();
     await other.goto("/login");
-    await expect(other.locator(".op-app-header")).toHaveCSS("background-color", rgb(current.tokens.primary));
+    await expect.poll(() => primaryOf(other)).toBe(current.tokens.primary.toLowerCase());
     await expect(other.locator('[data-test-selector="thematiq-trial-banner"]')).toHaveCount(0);
     await visitor.close();
 
     await banner.getByRole("button", { name: "Discard" }).click();
     await expect(page.locator('[data-test-selector="thematiq-trial-banner"]')).toHaveCount(0);
-    await expect(page.locator(".op-app-header")).toHaveCSS("background-color", rgb(current.tokens.primary));
+    await expect.poll(() => primaryOf(page)).toBe(current.tokens.primary.toLowerCase());
 
     await openCompare(page, "zuiddrecht");
     await Promise.all([page.waitForURL((url) => !url.pathname.startsWith("/admin")), page.getByRole("button", { name: "Try it yourself first" }).click()]);

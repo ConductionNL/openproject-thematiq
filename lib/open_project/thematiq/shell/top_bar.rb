@@ -10,7 +10,7 @@ module OpenProject
       # what core returns.
       #
       # Written against OpenProject 17.9.1:
-      #   lib/redmine/menu_manager/top_menu_helper.rb     (top_menu_left_menu_items)
+      #   lib/redmine/menu_manager/top_menu_helper.rb     (top_menu_left_menu_items, render_logo)
       #   lib/redmine/menu_manager/top_menu/module_menu.rb (more_top_menu_items, read only)
       #   lib/redmine/menu_manager/top_menu/user_menu.rb  (lateral_user_menu_button)
       # CoreGuard holds their checksums. Shell.install! skips this module when they differ.
@@ -21,11 +21,37 @@ module OpenProject
         end
 
         # Core returns the app switcher first, then the logo. The design puts the logo first, then
-        # a row of apps and modules, then the app switcher as the "more" button.
+        # the app switcher, as the dossiq bar draws it. An administrator can add a row of apps and modules
+        # between the two (Tiles in the top bar); the design has none.
         # Moving the elements, not just their CSS order, keeps the focus order equal to what you see.
         def top_menu_left_menu_items
           switcher, *rest = super
           rest + [thematiq_app_row, switcher].compact
+        end
+
+        # The brand block of the dossiq bar: the design system's emblem, its name over the name of this
+        # OpenProject, as one link home. A design system without an emblem shows its logo and the name of
+        # OpenProject. Without a logo of its own the logo is OpenProject's, which already says the name, so the
+        # name is kept for screen readers only. The logo itself is core's element with core's class, so the logo
+        # rule of Shell::Logo and core's theme switcher keep working on it.
+        def render_logo
+          token_set = OpenProject::Thematiq.active_token_set
+          emblem = Logo.emblem_url(token_set).present?
+          named = emblem || Assets.bundled.logo_url(token_set).present?
+          mode_class = "op-logo--link_high_contrast" if User.current.pref.light_high_contrast_theme?
+          tag.div(class: ["op-logo", "thematiq-brand", ("thematiq-brand--has-emblem" if emblem)].compact) do
+            link_to(configurable_home_url, class: "thematiq-brand--link", data: { test_selector: "thematiq-brand" }) do
+              concat tag.span(class: ["op-logo--link", mode_class].compact, "aria-hidden": "true",
+                              data: { auto_theme_switcher_target: "desktopLogo" })
+              concat(tag.span(class: "thematiq-brand--text") do
+                concat tag.span(token_set.name, class: "thematiq-brand--organisation") if emblem
+                concat tag.strong(Setting.app_title, class: ["thematiq-brand--app", ("sr-only" unless named)].compact)
+              end)
+            end
+          end
+        rescue StandardError => e
+          Rails.logger.error("[openproject-thematiq] The brand block fell back to core's logo: #{e.class}: #{e.message}")
+          super
         end
 
         private

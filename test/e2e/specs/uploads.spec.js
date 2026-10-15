@@ -49,8 +49,10 @@ test.describe("uploads", () => {
     await expect(page.getByText("The font is uploaded and in use.").filter({ visible: true }).first()).toBeVisible();
 
     await page.goto("/projects");
-    // The variant for the coloured top bar comes first when both are there.
-    await expect(page.locator(".op-logo--link").first()).toHaveCSS("background-image", new RegExp(inverseUrl));
+    // The variant for the bar comes first when both are there. The set is based on Cunningham, whose header colour is
+    // white, so the bar is light and the plain logo wins; the variant for dark backgrounds is uploaded all the same.
+    await expect(page.locator(".op-logo--link").first()).toHaveCSS("background-image", new RegExp(logoUrl));
+    expect(inverseUrl).toMatch(/^\/thematiq\/files\/[0-9a-f]{64}$/);
     // The plugin writes its icon links before and after OpenProject's own, on purpose (docs/layouts.md). The last one counts.
     await expect(page.locator('link[rel="icon"]').last()).toHaveAttribute("href", faviconUrl);
     await expect(page.locator('link[rel="apple-touch-icon"]').last()).toHaveAttribute("href", touchUrl);

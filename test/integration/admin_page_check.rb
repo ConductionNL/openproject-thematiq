@@ -538,7 +538,8 @@ begin
     %w[logo logo-inverse logo-mobile favicon touch-icon font].all? { |kind| body.include?(%(id="thematiq-file-#{kind}-form")) }
   end
   check("each field states its limits") { body.include?("At most 512 KB") && body.include?("2000 by 1000 px") && body.include?("12 files per design system") }
-  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 6 }
+  # Seven since the sign-in background joined the six (#87).
+  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 7 }
 
   body = send_file.call("logo", UploadSamples.svg("clean-logo"), "logo.txt")
   logo = of_kind.call("logo")
@@ -568,9 +569,10 @@ begin
   check("the replaced file's address is gone") { anonymous.response.status == 404 }
 
   send_file.call("logo_inverse", UploadSamples.png(300, 80), "inverse.png")
-  check("the logo for the coloured bar wins in the top bar") do
+  # The set is based on Cunningham, whose header colour is white: the bar is light, so the plain logo wins there.
+  check("the logo for the light bar wins in the top bar") do
     admin.get "/admin/thematiq"
-    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
+    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo').url}"); }))
   end
   send_file.call("logo_mobile", UploadSamples.webp(64, 64), "mobile.webp")
   check("the mobile logo gets its rule on the element narrow screens show") do
@@ -592,7 +594,7 @@ begin
   check("the page head links the uploaded touch icon") { touch && page.include?(%(href="#{touch.url}")) && page.include?('rel="apple-touch-icon"') }
   admin.get "/this-page-does-not-exist-#{SecureRandom.hex(4)}"
   check("an error page links the uploaded icons and logo as well") do
-    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo_inverse").url)
+    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo").url)
   end
 
   body = send_file.call("font", UploadSamples.woff2, "check.woff2", { font_family: "Check Sans", font_weight: "400", font_style: "normal" })
@@ -1075,6 +1077,15 @@ begin
     manager_session.response.status != 200 && !manager_session.response.body.include?("create-work-package-form")
   end
 
+  # 18b. The top bar is the dossiq bar: the brand block, no row of tiles by default
+  bar_view = session_for("admin", ADMIN_PASSWORD)
+  bar_view.get "/projects"
+  check("the top bar has the brand block and no row of tiles") do
+    body = bar_view.response.body
+    # The class also names rules of the inlined stylesheet, so the check looks for the element.
+    bar_view.response.status == 200 && body.include?('data-test-selector="thematiq-brand"') && !body.include?('<ul class="thematiq-app-row"')
+  end
+
   # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
   scraper = session_for
   scraper.get "/thematiq/metrics"
@@ -1085,6 +1096,28 @@ begin
   else
     check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
   end
+
+  # 19b. The account menu: a dropdown with core's entries instead of core's sheet
+  menu_admin = session_for("admin", ADMIN_PASSWORD)
+  menu_admin.get "/projects"
+  admin_panel = menu_admin.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  check("the account menu is the plugin's dropdown with core's entries") do
+    body = menu_admin.response.body
+    body.include?('id="thematiq-account-button"') && !body.include?('id="op-app-header--user-menu-list"') &&
+      admin_panel.include?('/admin"') && admin_panel.include?('data-turbo="false"')
+  end
+  menu_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  menu_member.get "/my/account"
+  member_panel = menu_member.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  # Administration shows exactly when core would show it: the member holds a global role by now in this check.
+  menu_user = User.find_by(login: MEMBER_LOGIN)
+  may_admin = menu_user.allowed_globally?({ controller: "/admin", action: "index" })
+  check("a member's account menu has Administration only as core allows it") do
+    member_panel.include?("/my/account") && member_panel.include?('/admin"') == may_admin
+  end
+  signed_out = session_for
+  signed_out.get "/thematiq-check-no-such-page"
+  check("signed out, core's sign-in menu renders") { !signed_out.response.body.include?('id="thematiq-account-button"') }
 
   # 20. A CSS file of design tokens
   css_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)

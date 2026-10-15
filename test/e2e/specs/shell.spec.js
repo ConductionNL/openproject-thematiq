@@ -31,15 +31,29 @@ test.describe("shell", () => {
     await expect(page).toHaveURL(new RegExp(`${WORK_PACKAGES}$`));
   });
 
-  test("the row of tiles marks the current module", async ({ page }) => {
+  // The dossiq bar: the brand block, the app switcher, the search in the middle, the buttons, no tiles and no quick add.
+  test("the top bar is the dossiq bar", async ({ page }) => {
     await openWorkPackages(page);
-    const tiles = page.locator(".thematiq-app-row--item");
-    await expect(tiles.filter({ hasText: "Work packages" })).toHaveAttribute("aria-current", "page");
-    expect(await page.locator('.thematiq-app-row--item[aria-current="page"]').count()).toBe(1);
+    const header = page.locator(".op-app-header");
+    const brand = header.locator('[data-test-selector="thematiq-brand"]');
+    await expect(brand).toBeVisible();
+    await expect(brand.locator(".thematiq-brand--app")).toHaveText(/\S/);
+    await expect(header.locator(".thematiq-app-row--item")).toHaveCount(0);
+    const box = async (locator) => locator.first().boundingBox();
+    // Quick add stays: a round button before the bell, where the create dialog opens from a type.
+    const add = await box(header.locator("#op-app-header--quick-add-menu-button"));
+    expect([Math.round(add.width), Math.round(add.height)]).toEqual([44, 44]);
+    await expect(header.getByRole("button", { name: "All apps and modules" })).toBeVisible();
 
-    await page.goto("/projects");
-    await expect(tiles.filter({ hasText: "Projects" })).toHaveAttribute("aria-current", "page");
-    await expect(tiles.filter({ hasText: "Work packages" })).not.toHaveAttribute("aria-current", "page");
+    const brandBox = await box(header.locator(".thematiq-brand"));
+    expect(Math.round(brandBox.x)).toBe(14);
+    expect(Math.round(brandBox.width)).toBe(237);
+    const apps = await box(header.getByRole("button", { name: "All apps and modules" }));
+    expect([Math.round(apps.x), Math.round(apps.width)]).toEqual([276, 40]);
+    const search = await box(header.locator(".top-menu-search"));
+    expect([Math.round(search.x), Math.round(search.width), Math.round(search.height)]).toEqual([437, 560, 44]);
+    const bell = await box(header.locator(".op-ian-bell"));
+    expect([Math.round(bell.width), Math.round(bell.height)]).toEqual([44, 44]);
   });
 
   test("Home shows the grid and My page leads to Home", async ({ page }) => {
@@ -58,7 +72,7 @@ test.describe("shell", () => {
       return { width: Math.round(box.width * 10) / 10, height: Math.round(box.height * 10) / 10 };
     });
     expect((await size(".op-app-header")).height, "top bar").toBe(68);
-    expect((await size(".op-logo")).width, "logo block").toBe(264);
+    expect((await size(".op-logo")).width, "brand block").toBe(237);
     expect((await size("#main-menu")).width, "sidebar").toBe(264);
     expect((await size("#main-menu .main-item-wrapper")).height, "nav item").toBe(42);
     expect((await size("#main-menu .op-submenu--item-action")).height, "level two").toBe(36);
