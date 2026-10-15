@@ -1,0 +1,22 @@
+<%# The Gantt page as the OpGantt board draws it. Only on a project's Gantt page, only while the guarded core files are those of 17.9.1. See Shell::Gantt. %>
+<% gantt = OpenProject::Thematiq::Shell::Gantt %>
+<% project = local_assigns[:project] %>
+<% if gantt.installed? && gantt.page?(controller: local_assigns[:controller], project:) %>
+  <% kit = begin
+       gantt.kit(
+         chips: gantt.chips(project:,
+                            path: ->(params) { project_gantt_index_path(project, params) },
+                            open_count: gantt.open_count(project:, user: User.current)),
+         texts: gantt.texts(->(key) { t(key) })
+       )
+     rescue StandardError => e
+       Rails.logger.error("[openproject-thematiq] The Gantt additions are off on this page: #{e.class}: #{e.message}")
+       nil
+     end %>
+  <% if kit %>
+    <%= nonced_javascript_tag do %>
+window.thematiqGantt = <%= raw json_escape(kit.to_json) %>;
+<%= raw gantt.script %>
+    <% end %>
+  <% end %>
+<% end %>

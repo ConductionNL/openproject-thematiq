@@ -33,5 +33,11 @@ module OpenProject
       # The end of the body: the script of the two-layer project menu.
       render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/body_bottom"
     end
+
+    # A listener has one method per hook, so each addition to the end of the body is a listener of its own.
+    # The Gantt page as the OpGantt board draws it: the script and its texts, on a project's Gantt page only.
+    class GanttHooks < OpenProject::Hook::ViewListener
+      render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/gantt"
+    end
   end
 end
