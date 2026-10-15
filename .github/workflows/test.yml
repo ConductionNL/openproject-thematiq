@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Pull the OpenProject image
-        run: docker pull openproject/openproject:17
+        run: docker pull openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695
       - name: Unit tests
         run: bin/test
       - name: Syntax
