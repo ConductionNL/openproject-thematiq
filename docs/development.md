@@ -15,7 +15,7 @@ Run this from the repository root. The build takes under a minute once the base 
 docker build -f docker/Dockerfile -t openproject-thematiq:dev .
 ```
 
-The image starts from `openproject/openproject:17`. `docker/Gemfile.plugins` adds the plugin to the `opf_plugins` group, which is how OpenProject finds it.
+The image starts from `openproject/openproject:17.9.1`, pinned by its digest: the `:17` tag moves with each 17.x release. `docker/Gemfile.plugins` adds the plugin to the `opf_plugins` group, which is how OpenProject finds it.
 
 ## Run it
 
