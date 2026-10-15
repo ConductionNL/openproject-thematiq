@@ -19,7 +19,8 @@
 
 /* Primer buttons: radius, weight 600. Their 40 px height comes from --control-medium-size; the primary one is 48 px */
 .Button, .Button--medium { border-radius: var(--thematiq-radius); }
-.Button--primary.Button--medium { height: 48px; min-height: 48px; }
+/* Not in the top bar: its icon buttons, quick add among them, keep the bar's 44 x 44. */
+.Button--primary.Button--medium:not(.op-app-header *) { height: 48px; min-height: 48px; }
 .Button--primary, .Button--secondary, .Button--default { font-weight: 600; }
 
 /* input and select: 40 px high, 1 px field border, radius-lg, 15 px text */
