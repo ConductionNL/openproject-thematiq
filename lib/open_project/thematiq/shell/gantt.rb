@@ -7,7 +7,7 @@ module OpenProject
       # replaces core: stylesheets/shell/60-gantt.css restyles core's own markup, and assets/gantt.js adds what
       # the board has and core does not render: the row of chips, Today, the zoom list, the view switch,
       # Export PDF, the legend, the board's header labels and the dependency lines (core draws its lines for
-      # rows of 40 px; the table rows here are 48 px, see geometry/10-variables.css).
+      # rows of 40 px; the table rows here follow --table-timeline--row-height in geometry/10-variables.css).
       #
       # Everything is scoped to the class "thematiq-gantt" on the body, which only the script sets. When a
       # guarded core file differs from OpenProject 17.9.1, the partial renders no script, so the class is never
