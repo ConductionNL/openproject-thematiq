@@ -6,7 +6,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 
 | Spec | What |
 |---|---|
-| `signin.spec.js` | The sign-in page and a missing page carry the active design system; the admin page sends a visitor to sign in |
+| `signin.spec.js` | The sign-in page as Nextcloud Zuiddrecht draws it, without the top bar and with core's form; a missing page carries the active design system; the admin page sends a visitor to sign in |
 | `bundle.spec.js` | The whole setup downloads as a file and comes back after a dry run; a hostile file is refused; the history downloads as CSV |
 | `operations.spec.js` | The health report answers JSON for an administrator |
 | `nlds.spec.js` | An NL Design System theme converts into a custom design system, with a report and what the table left out |
@@ -28,7 +28,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `library.spec.js` | A font in the library loads for a design system that names its family |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `metrics.spec.js` | `/thematiq/metrics` answers 404 without `THEMATIQ_METRICS_TOKEN`; with it, 401 without the token and the text format with it. Set `THEMATIQ_E2E_METRICS_TOKEN` to check the second |
-| `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen |
+| `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen and the sign-in card fits |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 | `wave1.spec.js` | Each shipped design system says how much of the vocabulary it fills; a font named Marianne waits for the entitlement |
 | `vocabulary.spec.js` | A design system with values of thematiq's full vocabulary, imported as a file, reaches Primer's variables and OpenProject's own elements; a key it leaves out keeps OpenProject's value |

@@ -1,0 +1,115 @@
+/* openproject-thematiq, shell layer: the sign-in page as Nextcloud Zuiddrecht draws it (werkplek/NcLogin).
+ * No top bar. On the ground colour, in the middle of the window: the logo 56 px high, the card 420 px wide with
+ * the brand stripe on top, and a line under it, 28 px apart. The emblem large and faint at the bottom right.
+ * The card is core's #login-form with core's own fields, button and links. See Shell::SignIn.
+ * The pages of the account controller only: sign in, lost password, registration and activation. */
+
+body.controller-account .op-app-header,
+body.controller-account #menu-toggle--expand-button,
+body.controller-account #menu-toggle--expand-button + tool-tip { display: none; }
+body.controller-account { --header-height: 0px; background: var(--thematiq-ground); }
+body.controller-account #wrapper,
+body.controller-account #main { min-height: 100vh; grid-template-rows: auto 1fr; }
+body.controller-account #main { grid-template-rows: 1fr; }
+body.controller-account #content-wrapper {
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 48px 16px;
+  background: var(--thematiq-ground);
+}
+body.controller-account #content { display: block; }
+body.controller-account #content-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: calc(100vh - 96px);
+}
+
+.thematiq-sign-in--watermark {
+  position: absolute;
+  right: -90px;
+  bottom: -120px;
+  height: 720px;
+  width: auto;
+  opacity: 0.07;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+.thematiq-sign-in--brand { position: relative; display: flex; justify-content: center; }
+.thematiq-sign-in--logo { display: block; height: 56px; width: auto; max-width: 100%; }
+.thematiq-sign-in--name { font-size: 24px; font-weight: 700; color: var(--thematiq-ink); }
+.thematiq-sign-in--footnote { position: relative; margin: 0; font-size: 13px; color: var(--thematiq-muted); text-align: center; }
+
+/* The card. */
+body.controller-account #login-form {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  padding: 37px 32px 32px; /* 32 px under the 5 px stripe */
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid var(--thematiq-line);
+  border-radius: var(--thematiq-radius-lg);
+  background-color: var(--thematiq-surface);
+  background-image: var(--thematiq-v-brand-stripe, none);
+  background-size: 100% var(--thematiq-v-brand-stripe-height, 0);
+  background-repeat: no-repeat;
+  background-position: left top;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--thematiq-ink) 6%, transparent);
+  overflow: hidden;
+}
+body.controller-account #login-form > h1 { margin: 0; padding: 0; border: 0; font-size: 24px; font-weight: 700; line-height: 1.25; color: var(--thematiq-ink); }
+body.controller-account #login-form > .form--separator { display: none; }
+.thematiq-sign-in--lead { position: relative; margin: 0; font-size: 15px; color: var(--thematiq-muted); }
+#login-form > .thematiq-sign-in--lead { margin-top: -14px; } /* 4 px under the heading, as in the design */
+body.controller-account #login-form form { margin: 0; }
+body.controller-account #login-form .FormControl-spacingWrapper { display: flex; flex-direction: column; gap: 18px; }
+body.controller-account #login-form .FormControl-label { font-size: 14px; font-weight: 600; color: var(--thematiq-ink); }
+body.controller-account #login-form .FormControl-input {
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--thematiq-field);
+  border-radius: var(--thematiq-radius);
+  background: var(--thematiq-surface);
+  font-size: 15px;
+}
+
+/* The button under the fields, full width, and the links centred under it. In the design the main, filled button is
+ * the organisation's own sign-in, and the password button is the plain one. */
+/* Core's row is laid out with Primer's utility classes, which are !important. */
+body.controller-account #login-form .FormControl-spacingWrapper > .d-flex.flex-justify-between { flex-direction: column !important; align-items: stretch !important; gap: 18px; }
+body.controller-account #login-form .FormControl-spacingWrapper > .d-flex.flex-justify-between > div { width: 100%; }
+body.controller-account #login-form button[type="submit"],
+body.controller-account #login-form .Button--primary {
+  width: 100%;
+  height: 46px;
+  justify-content: center;
+  border: 1px solid var(--button-default-borderColor-rest, var(--thematiq-field));
+  border-radius: var(--thematiq-radius);
+  background: var(--thematiq-surface);
+  color: var(--thematiq-ink);
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: none;
+}
+body.controller-account #login-form button[type="submit"]:hover,
+body.controller-account #login-form .Button--primary:hover { background: var(--thematiq-soft); }
+body.controller-account #login-form .Button-content { justify-content: center; }
+body.controller-account #login-form .d-flex.flex-column { align-items: center; gap: 6px; }
+body.controller-account #login-form .Link { font-size: 14px; color: var(--thematiq-link); text-decoration: underline; }
+/* An organisation's own sign-in, when OpenProject has one, is the main button, as in the design. */
+body.controller-account .login-auth-providers { width: 100%; }
+
+@media screen and (max-width: 543px) {
+  body.controller-account #content-wrapper { padding: 32px 16px; }
+  body.controller-account #login-form { padding: 29px 20px 24px; }
+  .thematiq-sign-in--watermark { height: 420px; right: -80px; bottom: -80px; }
+}
