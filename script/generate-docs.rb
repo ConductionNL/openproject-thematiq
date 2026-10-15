@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 # Writes docs/contrast-report.md and docs/token-reference.md from the code, without Rails:
-#   docker run --rm -v "$PWD":/plugin -w /plugin --entrypoint ruby openproject/openproject:17 -Ilib script/generate-docs.rb
+#   docker run --rm -v "$PWD":/plugin -w /plugin --entrypoint ruby openproject/openproject:17.9.1 -Ilib script/generate-docs.rb
 # test/generated_docs_test.rb fails when the two pages and the code disagree.
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "yaml"
