@@ -52,6 +52,10 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 - Where OpenProject's canon and Nextcloud (Zuiddrecht) differ, OpenProject follows Nextcloud: the primary button is 48 px high (was 40), a table row 44 px (was 48) and body text 15 px (was 14).
 
+### OpenProject 17.9.2
+
+- A fresh install on OpenProject 17.9.2 starts: its image loads core's schema on an empty database and then refused to seed with the plugin's migrations pending; they now run right after the schema is loaded. The 37 core files the shell leans on are the same in 17.9.1 and 17.9.2.
+
 ### Database
 
 No new table since 0.2.0. Uploads take one more kind, `login_background`, and the font library uses the set id `library` in `thematiq_uploads`.
