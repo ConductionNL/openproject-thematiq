@@ -31,11 +31,22 @@ rescue StandardError => e
   $failures << label
 end
 
+# OpenProject bans a user name for 30 minutes after 20 sign-in attempts in a minute (RateLimiting::Login). The check
+# signs the same people in many times, because a refused CSRF token signs a session out. It keeps under the limit.
+$logins = Hash.new { |hash, key| hash[key] = [] }
+
+def wait_for_login_room(login)
+  recent = $logins[login].select { |time| time > Time.now - 61 }
+  sleep(recent.first + 62 - Time.now) if recent.size >= 15
+  $logins[login] = $logins[login].select { |time| time > Time.now - 61 } << Time.now
+end
+
 def session_for(login = nil, password = nil)
   session = ActionDispatch::Integration::Session.new(Rails.application)
   session.host! HOST
   return session unless login
 
+  wait_for_login_room(login)
   session.get "/login"
   token = session.response.body[/name="authenticity_token" value="([^"]+)"/, 1]
   session.post "/login", params: { username: login, password:, authenticity_token: CGI.unescapeHTML(token.to_s) }
