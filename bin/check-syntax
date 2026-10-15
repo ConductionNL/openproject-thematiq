@@ -3,7 +3,7 @@
 # Needs no database. It does not render a page: a wrong helper or component argument only shows in a running OpenProject.
 set -e
 cd "$(dirname "$0")/.."
-exec docker run --rm -v "$PWD":/plugin:ro --entrypoint bash "${OPENPROJECT_IMAGE:-openproject/openproject:17}" -c '
+exec docker run --rm -v "$PWD":/plugin:ro --entrypoint bash "${OPENPROJECT_IMAGE:-openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695}" -c '
 cd /app
 status=0
 for f in $(find /plugin/app /plugin/lib /plugin/config /plugin/test -name "*.rb" -o -name "*.rake"); do ruby -c "$f" >/dev/null || status=1; done

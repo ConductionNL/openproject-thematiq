@@ -67,7 +67,7 @@ Compose names the container `openproject-thematiq-try-openproject-1`. The comman
 
 ### What it was tested on
 
-OpenProject 17.9.1, community edition, on the official Docker image `openproject/openproject:17`. Nothing else was tested: no packaged installation, no `-slim` image, no other OpenProject version, no Enterprise edition.
+OpenProject 17.9.1, community edition, on the official Docker image `openproject/openproject:17.9.1`, pinned by digest in `docker/Dockerfile` because the `:17` tag moves with every 17.x release. Nothing else was tested: no packaged installation, no `-slim` image, no other OpenProject version, no Enterprise edition.
 
 ### With Docker
 
@@ -91,7 +91,7 @@ OpenProject installs a plugin by building your own image on top of theirs. These
    `docker/Dockerfile` copies the plugin into the image and installs it:
 
    ```dockerfile
-   FROM openproject/openproject:17
+   FROM openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695
 
    COPY . /app/custom-plugins/openproject-thematiq
    COPY docker/Gemfile.plugins /app/Gemfile.plugins
