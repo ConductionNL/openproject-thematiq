@@ -11,7 +11,10 @@ const headers = { "X-Requested-With": "XMLHttpRequest" };
 
 async function openDialog(page) {
   await page.goto(`/projects/${config.project}/work_packages`);
-  await page.locator("wp-create-button button.add-work-package").click();
+  // The Create button is Angular's: on a busy machine the page can take a while to draw it.
+  const create = page.locator("wp-create-button button.add-work-package");
+  await expect(create).toBeVisible({ timeout: 60_000 });
+  await create.click();
   await expect(dialog(page)).toBeVisible();
 }
 
