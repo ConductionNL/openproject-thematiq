@@ -16,6 +16,7 @@ module OpenProject
     #   Shell::AppSwitcher    the list under the nine-dot button, in place of core's
     #   Shell::AccountMenu    the account menu as a dropdown under the avatar, in place of core's sheet
     #   Shell::Logo           the logo of the active design system, as a CSS rule
+    #   Shell::Gantt          the Gantt page as the OpGantt board draws it: a script and a stylesheet on core's chart
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
     module Shell
@@ -60,6 +61,7 @@ module OpenProject
         require "open_project/thematiq/shell/project_menu"
 
         require "open_project/thematiq/shell/home"
+        require "open_project/thematiq/shell/gantt"
 
         { top_bar: [TopBar, AppSwitcher, AccountMenu], project_menu: [ProjectMenu], home: [Home] }.each do |part, overrides|
           changed = CoreGuard.changed_files(part:)

@@ -55,7 +55,7 @@ The design is the dossiq bar of Nextcloud Zuiddrecht (`werkplek/DqKop` on identi
 | Search | Core's own field, restyled: round, the bar's fill and line, the glass at 14 px | Built. The placeholder is core's text |
 | Bell with the unread dot | CSS mask on core's link and core's own indicator as a dot in the accent colour | Built |
 | Second round button | Core's help menu, outline icon by CSS mask. The design has Contacts there; OpenProject has no contacts | Built as help |
-| No quick add | CSS hides core's quick add menu. Its entries have other homes: "Create work package" in the project menu and on Home, a new project on the project list, members on a project's Members page | Built |
+| Quick add, though the design has none | Core's quick add menu as a round plus button before the bell, in the bar's colours. It is where a work package of a chosen type, a project and an invitation start, and the create dialog opens from it | Built, one button more than the design |
 | Account button with avatar, name and role | `Shell::AccountMenu`, see "The account menu" below. Signed out, core's button and sign-in form | Built |
 | Account menu as a dropdown under the avatar | `Shell::AccountMenu` overrides the private `render_user_drop_down(items)` for a signed in user | Built |
 | No brand stripe under the bar | The design has none. The stripe stays a variable for the surfaces that draw it | Built |
@@ -280,6 +280,37 @@ Nothing a user or an administrator had is gone: every Home block is on the page,
 - **Which widgets a new user starts with** is core's default: assigned to me, created by me. "Due this week", "my projects" and "my time this week" exist as widget types and a user can add them. Changing the default set is a small change in a later round.
 - **The two Nextcloud widgets are not built.** Each would need a widget type, so a frontend build, and a server side that calls Nextcloud for the signed in user: recent files through WebDAV or the files API, unread mail through the Mail app's API, with a token per user. OpenProject's own Nextcloud integration holds such tokens for file storages and could be the base.
 
+## The Gantt page
+
+The board `OpGantt` draws the Gantt page of a project: the table left and the timeline right, a header with the first day of each week over one letter per day, weekends shaded, a dashed today line with a label, bars of 20 px in the action colour, a parent as an outlined summary bar, milestone diamonds, dependency lines, a row of chips with Today, a zoom list and a view switch, Export PDF and Create, and a legend under the chart.
+
+OpenProject draws the chart in Angular (`frontend/src/app/features/work-packages/components/wp-table/timeline/`). A plugin without a frontend build cannot change those components, so `Shell::Gantt` works on core's markup:
+
+| Part of the board | Mechanism | Status |
+|---|---|---|
+| Rows of 48 px, the table frame, the header row of the table | The geometry layer, as on the work package page | Built |
+| Bars: 20 px, radius 4, the action colour | CSS on core's bar. Core colours each bar by its type with an `!important` rule, which the stylesheet overrides | Built |
+| A parent as an outlined summary bar | CSS on a timeline row with the class `__hierarchy-root-*`, which core gives only to a row with children | Built. The board says "Epic"; any parent gets the outline |
+| Milestone diamond | Core's diamond, 14 px, in the type colour of the milestone | Built |
+| Labels | The subject after the bar in 12 px. Core's date labels beside the bar are hidden: the dates are in the table | Built |
+| Header: the first day of each week over one letter per day | The script rewrites the text of core's header cells at the Days and Weeks levels. The dates come from the left of core's today line | Built. Core's own labels stay for Months and up |
+| Weekends shaded | CSS on core's `wp-timeline--non-working-day` | Built. Core only marks them at Days and Weeks |
+| Today line and its label | CSS on core's line; the label is `content: attr(data-label)`, set by the script from `en.yml` | Built |
+| Dependency lines | Core draws its lines for rows of 40 px (`wp-timeline-relations.directive.ts` multiplies by 40), so with rows of 48 px they miss the bars. The script reads which bar follows which from the classes of core's lines, hides those, and draws its own in one SVG | Built |
+| Chips "All open" and "Milestones only" | Links to core's own two default Gantt views (`Gantt::DefaultQueryGeneratorService`), with the count of open work packages on the first | Built. "Critical path" is left out: OpenProject has no critical path |
+| Today | Scrolls the timeline to the today line | Built |
+| Zoom | A list of core's five levels. It presses core's zoom buttons, which the stylesheet hides | Built. The board lists three levels |
+| View switch | Links to the project's Work packages and Boards, taken from the project menu, so a module that is off or not allowed has no link | Built |
+| Export PDF | Opens core's export dialog, the entry "Export" of core's "More actions" menu | Built. The dialog offers every format, PDF among them |
+| Create | Core's Create button | Built. It opens the create dialog, see below |
+| Legend | Rendered by the script under the chart | Built |
+| Title "Gantt chart" and the line under it | Core's title is the name of the view and can be edited and saved. It stays | Not built |
+| Core's other toolbar buttons (Include projects, Baseline, Filter, details, zen mode, More actions) | Not on the board. They stay, because each is a feature | Kept |
+
+Everything is scoped to the class `thematiq-gantt` on the body, which only the script sets. The script is rendered by the hook `view_layouts_base_body_bottom` on a project's Gantt page, and only while the core files of the part `gantt` in `core_guard.rb` are those of 17.9.1. When one differs, core's Gantt shows with the plugin's colours and nothing else.
+
+What it costs on an upgrade: eleven guarded frontend files. A change in the bar markup, the header or the line classes trips the guard; a change in the Angular bundle that keeps these files does not, and shows in the pixel diff.
+
 ## Icons
 
 OpenProject draws icons from three places:
@@ -320,6 +351,7 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 
 | `app/controllers/homescreen_controller.rb`, `app/views/homescreen/index.html.erb`, `app/components/homescreen/blocks_grid_component.rb`, `config/initializers/homescreen.rb` | `Shell::Home::HomePage#index`, and the plugin's Home template, which renders everything core's Home view renders | Checksum in `core_guard.rb` |
 | `modules/my_page/app/controllers/my/page_controller.rb` | `Shell::Home::MyPage#show`, a redirect to Home | Checksum in `core_guard.rb` |
+| Eleven files of core's Gantt, listed under `gantt` in `core_guard.rb`: the timeline cells, header, grid, today line and dependency lines, the zoom buttons, the "More actions" menu and the default Gantt views | `Shell::Gantt`: the script and `stylesheets/shell/60-gantt.css` | Checksum in `core_guard.rb`; the script is not rendered when one differs |
 
 `lib/open_project/thematiq/shell/core_guard.rb` records the SHA-256 of each file in OpenProject 17.9.1.
 
@@ -395,7 +427,7 @@ Eight guarded core files, the part `create_dialog` in `core_guard.rb`: the dialo
 
 ## Open questions
 
-- **Quick add.** The design has no quick add button. The plugin keeps it as a plain plus, because removing it takes "new project" and "invite user" out of the bar. Hide it with one CSS rule once those two have another home.
+- **Quick add.** The dossiq bar has no add button. The plugin keeps core's as a round plus before the bell, because the create dialog opens from its types and removing it takes "new project" and "invite user" out of the bar.
 - **Search placeholder.** The design says "Search files, work packages or people". Core's search finds work packages and projects, so the plugin keeps core's text.
 - **Nextcloud apps.** The fixed list should become a call to Nextcloud's navigation API, cached per user.
 - **Nextcloud address.** The setting `nextcloud_url` needs a field on the admin page.

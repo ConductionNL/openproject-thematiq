@@ -42,6 +42,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `short-form.spec.js` | Two colours open in the editor, unsaved, and save as a custom design system; a colour that is not a hex value is refused |
 | `surfaces.spec.js` | A brand stripe under the top bar; the legal links on every page and the sign-in page; an uploaded sign-in background |
 | `switch.spec.js` | The apply dialog lists what changes and applies nothing; Apply repaints the page without a reload; an unticked value is kept in a new custom design system; a trial is seen by the administrator only, then discarded or published |
+| `gantt.spec.js` | The Gantt page as the board draws it: chips, actions and view switch; the header, weekends and today at Weeks and Days; bars, the parent, the milestone, the dependency lines and the legend; Export PDF opens core's export dialog; 390 px |
 | `tour.spec.js` | OpenProject's introduction tour skips the step at core's return arrow, which the project menu does not have, and its close button sits below the top bar |
 
 A test that checks a known fault is marked with `test.fail()`. None is marked now: the two that were (the table header at 45 px, the top bar wider than the window on a module page) pass since findings 2 and 6 were fixed. When a marked test passes, Playwright reports it as failed with "expected to fail, but passed". Remove the `test.fail()` line then.
