@@ -2,12 +2,13 @@
 // Angular and server rendered alike, take the pack's drawing. On the default route the admin page says why not.
 const { test, expect } = require("@playwright/test");
 const { config } = require("../support/env");
+const { flash } = require("../support/thematiq");
 
 async function choose(page, value) {
   await page.goto("/admin/thematiq#thematiq-icon-pack");
   await page.locator("#thematiq-icon-pack-choice").selectOption(value);
   await Promise.all([page.waitForLoadState("load"), page.locator("#thematiq-icon-pack-form").getByRole("button", { name: "Save icon pack" }).click()]);
-  await expect(page.getByText("The icon pack is saved.")).toBeVisible();
+  await expect(flash(page).filter({ hasText: "The icon pack is saved." }).first()).toBeVisible();
 }
 
 // Every mapped icon on the page, Angular (svg[<name>-icon]) and server rendered (svg.octicon-<name>), with its paths.
