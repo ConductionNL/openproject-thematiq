@@ -50,7 +50,7 @@ module OpenProject
       end
 
       # The text on the selected menu item: the set's own primary-deep when it reads, else white or near black.
-      # Only a set with a menu colour gets this rule. The other sets keep the colour they were given.
+      # Only a set with a menu colour gets this rule; every set of the catalogue has one since thematiq #1300.
       def on_selected(token_set)
         return token_set["primary-deep"] unless token_set["menu"]
 
@@ -96,12 +96,15 @@ module OpenProject
         return nil unless token_set.dark?
 
         dark = token_set.dark_tokens
-        { "on-primary" => ratio(on(dark, "primary"), dark["primary"]),
-          "on-action" => ratio(on(dark, "action"), dark["action"]),
-          "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
-          "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
-          "link-on-ground" => ratio(dark["link"], dark["ground"]),
-          "primary-deep-on-primary-light" => ratio(dark_on_selected(dark), dark["primary-light"]) }
+        report = { "on-primary" => ratio(on(dark, "primary"), dark["primary"]),
+                   "on-action" => ratio(on(dark, "action"), dark["action"]),
+                   "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
+                   "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
+                   "link-on-ground" => ratio(dark["link"], dark["ground"]),
+                   "primary-deep-on-primary-light" => ratio(dark_on_selected(dark), dark["primary-light"]) }
+        # A dark block with a menu colour gets the text on it measured, as the light theme does.
+        report["text-on-menu"] = ratio(on_menu(dark), dark["menu"]) if dark["menu"]
+        report
       end
 
       def dark_failures(token_set)

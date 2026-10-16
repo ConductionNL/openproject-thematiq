@@ -266,6 +266,21 @@ class GeneratorTest < Minitest::Test
     refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#0b1f33"
   end
 
+  # thematiq's dark blocks carry a menu colour (thematiq #1300). The dark theme draws it, with the text by the same rule.
+  def test_a_dark_menu_colour_is_drawn_in_the_dark_theme_with_its_own_block
+    css = Generator.new(dark_set("primary" => "#0b1f33", "ink" => "#f0f6fc", "ground" => "#0d1117", "menu" => "#141414",
+                                 "primary-light" => "#13202e", "primary-deep" => "#84aad7")).css
+    dark = css[/#{Regexp.escape(Generator::DARK_SCOPE)} \{\n(.*?)\n\}/m, 1]
+    menu = css[/#{Regexp.escape(Generator::DARK_SCOPE)} #main-menu \{\n(.*?)\n\}/m, 1]
+
+    assert_includes dark, "  --main-menu-bg-color: #141414;"
+    assert_includes dark, "  --main-menu-font-color: #f0f6fc;", "the dark ink reads on the dark menu"
+    assert_includes menu, "  --thematiq-surface: #141414;"
+    assert_includes menu, "  --main-menu-selected-font-color: #84aad7;"
+    refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#141414"
+    refute_includes Generator.new(dark_set("primary" => "#0b1f33", "ink" => "#f0f6fc", "menu" => "#141414"), content: true).css, "#main-menu"
+  end
+
   def test_hostile_dark_values_are_dropped_and_listed
     token_set = dark_set("primary" => "red; } body { display:none", "ink" => "#f0f6fc", "radius" => "9px", "junk" => "#fff")
     css = Generator.new(token_set).css
