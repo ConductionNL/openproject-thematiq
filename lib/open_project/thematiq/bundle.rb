@@ -27,7 +27,7 @@ module OpenProject
       SETTING_KEYS = %w[active_id active_custom customs projects_may_choose project_choices nextcloud_url top_bar_apps
                         environment_label environment_colour deprecations custom_css custom_css_enabled own_tokens
                         planned_switches locked_projects footer_links email_styled email_footer gallery_enabled gallery_url
-                        appearance_link_enabled group_choices].freeze
+                        appearance_link_enabled group_choices icon_pack].freeze
 
       class Refused < StandardError
         attr_reader :code
@@ -178,6 +178,7 @@ module OpenProject
       # The environment marker and the deprecations, checked by the store's own rules on a store of their own.
       def self.check_marker_and_deprecations(settings)
         probe = Store.new(backend: ProbeBackend.new, catalogue: Catalogue.bundled, env: {})
+        raise Refused, "icon_pack" unless settings["icon_pack"].nil? || probe.save_icon_pack_choice(settings["icon_pack"])
         label = settings["environment_label"]
         unless label.nil? && settings["environment_colour"].nil?
           raise Refused, "environment_marker" unless label.is_a?(String) && probe.save_environment_marker(label, settings["environment_colour"])

@@ -50,11 +50,50 @@ module OpenProject
       end
 
       # The text on the selected menu item: the set's own primary-deep when it reads, else white or near black.
-      # Only a set with a menu colour gets this rule. The other sets keep the colour they were given.
+      # Only a set with a menu colour gets this rule; every set of the catalogue has one since thematiq #1300.
       def on_selected(token_set)
         return token_set["primary-deep"] unless token_set["menu"]
 
         best_on(token_set["primary-light"], [token_set["primary-deep"], "#ffffff", "#1b1c1d"])
+      end
+
+      NAV_KEYS = %w[component-navigation-active-background-color component-navigation-active-color].freeze
+      # thematiq draws its selected entry as a 16% wash of its colour over the menu, as Variables::Generator does.
+      NAV_WASH = 0.16
+
+      # thematiq's own selected entry, from a vocabulary on the menu of tokens (a token set or a dark block):
+      # [text, background], or nil when the vocabulary names neither colour.
+      def nav_selected(vocabulary, tokens)
+        background, text = NAV_KEYS.map { |key| vocabulary[key] }
+        return nil unless background || text
+
+        surface = tokens["menu"] || "#ffffff"
+        [text || tokens["primary-deep"], background ? mix(background, surface, NAV_WASH) : tokens["primary-light"]]
+      end
+
+      # Whether the set's own selected entry is drawn: always without a menu colour, as before the role existed;
+      # with one only when it reads on that menu. Otherwise the contrast rule of #on_selected decides.
+      def nav_drawn?(vocabulary, tokens)
+        pair = nav_selected(vocabulary, tokens)
+        return false unless pair
+        return true unless tokens["menu"]
+
+        value = ratio(*pair)
+        !value.nil? && value >= MINIMUM
+      end
+
+      # The selected entry as the plugin draws it: [text, background].
+      def selected_pair(vocabulary, tokens, rule)
+        nav_drawn?(vocabulary, tokens) ? nav_selected(vocabulary, tokens) : [rule, tokens["primary-light"]]
+      end
+
+      # A share of one opaque colour over another, as a hex colour. nil when either cannot be read.
+      def mix(color, over, share)
+        top = rgba(color)
+        bottom = rgba(over)
+        return nil unless top && bottom
+
+        "##{top.first(3).zip(bottom.first(3)).map { |t, b| format('%02x', ((t * share) + (b * (1 - share))).round) }.join}"
       end
 
       # The text colour the plugin puts on a set's main menu: its ink, or white when ink does not read on it.
@@ -69,7 +108,7 @@ module OpenProject
         end
         result["on-primary"] = ratio(on(token_set, "primary"), token_set["primary"])
         result["on-action"] = ratio(on(token_set, "action"), token_set["action"])
-        result["primary-deep-on-primary-light"] = ratio(on_selected(token_set), token_set["primary-light"])
+        result["primary-deep-on-primary-light"] = ratio(*selected_pair(token_set.vocabulary, token_set, on_selected(token_set)))
         result["text-on-menu"] = ratio(on_menu(token_set), token_set["menu"]) if token_set["menu"]
         result
       end
@@ -96,12 +135,15 @@ module OpenProject
         return nil unless token_set.dark?
 
         dark = token_set.dark_tokens
-        { "on-primary" => ratio(on(dark, "primary"), dark["primary"]),
-          "on-action" => ratio(on(dark, "action"), dark["action"]),
-          "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
-          "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
-          "link-on-ground" => ratio(dark["link"], dark["ground"]),
-          "primary-deep-on-primary-light" => ratio(dark_on_selected(dark), dark["primary-light"]) }
+        report = { "on-primary" => ratio(on(dark, "primary"), dark["primary"]),
+                   "on-action" => ratio(on(dark, "action"), dark["action"]),
+                   "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
+                   "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
+                   "link-on-ground" => ratio(dark["link"], dark["ground"]),
+                   "primary-deep-on-primary-light" => ratio(*selected_pair(token_set.dark_vocabulary, dark, dark_on_selected(dark))) }
+        # A dark block with a menu colour gets the text on it measured, as the light theme does.
+        report["text-on-menu"] = ratio(on_menu(dark), dark["menu"]) if dark["menu"]
+        report
       end
 
       def dark_failures(token_set)
@@ -153,11 +195,18 @@ module OpenProject
         case color.strip.downcase
         when /\A#(\h)(\h)(\h)\z/ then [$1, $2, $3].map { |digit| (digit * 2).hex.to_f } + [1.0]
         when /\A#(\h\h)(\h\h)(\h\h)\z/ then [$1, $2, $3].map { |pair| pair.hex.to_f } + [1.0]
-        when /\Argba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*(?:[,\/]\s*(\d?\.?\d+)\s*)?\)\z/
-          values = [$1, $2, $3].map(&:to_f)
-          alpha = $4 ? $4.to_f : 1.0
-          values.all? { |value| value <= 255 } && alpha.between?(0, 1) ? values + [alpha] : nil
+        when /\Argba?\(([^()]*)\)\z/ then rgb_arguments($1)
         end
+      end
+
+      def rgb_arguments(arguments)
+        parts = arguments.split(%r{[\s,/]+}).reject(&:empty?)
+        return nil unless parts.size.between?(3, 4) && parts.first(3).all? { |part| part.match?(/\A\d{1,3}\z/) }
+        return nil if parts[3] && !parts[3].match?(/\A\d?\.?\d+\z/)
+
+        values = parts.first(3).map(&:to_f)
+        alpha = parts[3] ? parts[3].to_f : 1.0
+        values.all? { |value| value <= 255 } && alpha.between?(0, 1) ? values + [alpha] : nil
       end
     end
   end

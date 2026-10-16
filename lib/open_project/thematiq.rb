@@ -45,6 +45,9 @@ module OpenProject
     require "open_project/thematiq/nlds_converter"
     require "open_project/thematiq/email"
     require "open_project/thematiq/icons"
+    require "open_project/thematiq/frontend_build"
+    require "open_project/thematiq/icon_packs"
+    require "open_project/thematiq/design_systems"
     require "open_project/thematiq/gallery"
     require "open_project/thematiq/gallery/client"
 
@@ -52,6 +55,24 @@ module OpenProject
     # (PageScope, a design system per project), else the instance's.
     # It never raises. A design plugin must not be the reason a page fails, least of all an error page
     # that is shown because the database is away. Then the default design system is used.
+    # The icon pack of the page being drawn (ast-icon-pack): the administrator's choice, else what the token set's
+    # design system names. A custom design system follows the one it is based on.
+    def self.icon_pack(store: Store.new, token_set: active_token_set)
+      base_id = store.custom_draft(token_set.id)&.base&.id
+      IconPacks.resolve(token_set.id, choice: store.icon_pack_choice, base_id:)
+    end
+
+    # The pack's drawing as the page carries it, for the frontend module. nil on the default route, where nothing
+    # would read it, and when no pack draws OpenProject's icons. It never raises.
+    def self.icon_pack_payload
+      return nil unless FrontendBuild.cached_status.linked?
+
+      pack = icon_pack.drawn_by
+      pack && IconPacks.payload(pack)
+    rescue StandardError
+      nil
+    end
+
     def self.active_token_set
       current_page_scope&.page_set || Store.new.active_token_set
     rescue StandardError

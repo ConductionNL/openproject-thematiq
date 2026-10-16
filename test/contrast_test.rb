@@ -10,11 +10,12 @@ class ContrastTest < Minitest::Test
   # The bundled sets with a text pair under 4.5:1, measured on the vendored catalogue.
   # The plugin does not change their colours. It marks them in the picker.
   # When the catalogue changes this list changes with it: update it here and in docs/accessibility.md.
-  KNOWN_FAILURES = {
-    "haarlemmermeer" => { "primary-deep-on-primary-light" => 4.23 },
-    "noordoostpolder" => { "primary-deep-on-primary-light" => 4.3 },
-    "vught" => { "primary-deep-on-primary-light" => 4.35 }
-  }.freeze
+  # Haarlemmermeer, Noordoostpolder and Vught were here for their selected menu item until every set got a menu
+  # colour (thematiq #1300): with one, the selected item's text follows the contrast rule, near black on theirs.
+  KNOWN_FAILURES = {}.freeze
+
+  # The sets whose own primary-deep does not read on their primary-light, so the selected item takes another text.
+  SELECTED_TEXT_REPLACED = %w[haarlemmermeer noordoostpolder vught].freeze
 
   def test_known_ratios
     assert_equal 21.0, Contrast.ratio("#000000", "#ffffff")
@@ -35,6 +36,10 @@ class ContrastTest < Minitest::Test
     assert_nil Contrast.ratio("hsl(0 0% 0%)", "#ffffff")
     assert_nil Contrast.ratio(nil, "#ffffff")
     assert_nil Contrast.ratio("rgb(300, 0, 0)", "#ffffff")
+    assert_equal 4.54, Contrast.ratio("rgb(118 118 118)", "#ffffff")
+    assert_in_delta Contrast.ratio("rgba(0, 0, 0, 0.68)", "#ffffff"), Contrast.ratio("rgb(0 0 0 / 0.68)", "#ffffff"), 0.01
+    assert_nil Contrast.ratio("rgb(1, 2)", "#ffffff")
+    assert_nil Contrast.ratio("rgb(#{" " * 50_000}1)", "#ffffff"), "a long run of spaces is read in linear time"
   end
 
   def test_white_on_primary_and_on_action_passes_for_every_bundled_set
@@ -83,7 +88,46 @@ class ContrastTest < Minitest::Test
 
       assert_equal "#ffffff", Contrast.on(token_set, "primary"), id
       assert_equal "#ffffff", Contrast.on(token_set, "action"), id
-      assert_equal token_set["primary-deep"], Contrast.on_selected(token_set), id
+      selected = Contrast.on_selected(token_set)
+      assert_operator Contrast.ratio(selected, token_set["primary-light"]), :>=, Contrast::MINIMUM, id
+      assert_equal token_set["primary-deep"], selected, id unless SELECTED_TEXT_REPLACED.include?(id)
+    end
+    replaced = (Catalogue.bundled.sets.map(&:id) - Catalogue.own_ids).reject do |id|
+      token_set = Catalogue.bundled.find(id)
+      Contrast.on_selected(token_set) == token_set["primary-deep"]
+    end
+
+    assert_equal SELECTED_TEXT_REPLACED, replaced.sort
+  end
+
+  # The sets that bring thematiq's own selected entry keep it on their menu colour, in both themes: each reads there.
+  def test_the_sets_with_their_own_selected_entry_keep_it_on_their_menu
+    own = Catalogue.bundled.sets.select { |token_set| Contrast.nav_selected(token_set.vocabulary, token_set) }
+
+    assert_equal %w[esdoornveen vaartveld warmtepompacademie wilgenboom zuiddrecht], own.map(&:id).sort
+    own.each do |token_set|
+      assert Contrast.nav_drawn?(token_set.vocabulary, token_set), token_set.id
+      assert Contrast.nav_drawn?(token_set.dark_vocabulary, token_set.dark_tokens), "#{token_set.id}, dark"
+    end
+    zuiddrecht = Catalogue.bundled.find("zuiddrecht")
+    assert_equal ["#a30000", "#f7d6d6"], Contrast.nav_selected(zuiddrecht.vocabulary, zuiddrecht)
+    assert_equal 6.08, Contrast.report(zuiddrecht)["primary-deep-on-primary-light"]
+  end
+
+  def test_an_own_selected_entry_that_does_not_read_on_the_menu_gives_way_to_the_rule
+    vocabulary = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000" }
+
+    assert Contrast.nav_drawn?(vocabulary, { "menu" => "#ffffff" })
+    refute Contrast.nav_drawn?(vocabulary, { "menu" => "#0e2045" }), "dark red on a navy menu"
+    assert Contrast.nav_drawn?(vocabulary, {}), "without a menu colour it is drawn, as before the role existed"
+    refute Contrast.nav_drawn?({}, { "menu" => "#ffffff" })
+  end
+
+  def test_the_text_on_every_menu_reads_in_both_themes
+    Catalogue.bundled.sets.each do |token_set|
+      assert_operator Contrast.report(token_set)["text-on-menu"], :>=, Contrast::MINIMUM, token_set.id
+      dark = Contrast.dark_report(token_set)
+      assert_operator dark["text-on-menu"], :>=, Contrast::MINIMUM, token_set.id if dark&.key?("text-on-menu")
     end
   end
 

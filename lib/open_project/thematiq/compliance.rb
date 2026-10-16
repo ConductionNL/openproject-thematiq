@@ -88,7 +88,8 @@ module OpenProject
       # docs/token-reference.md: every value a design system can hold, its CSS name, its kind and where it shows.
       def token_document(labels)
         roles = Tokens::TokenSet::ALL_KINDS.map do |key, kind|
-          "| `#{key}` | `--thematiq-#{key == 'font-family' ? 'font' : key}` | #{kind} | #{labels.fetch(key, '')} |"
+          css = Tokens::TokenSet::PRINT_KEYS.include?(key) ? "none, PDF export only" : "`--thematiq-#{key == 'font-family' ? 'font' : key}`"
+          "| `#{key}` | #{css} | #{kind} | #{labels.fetch(key, '')} |"
         end
         vocabulary = Editor::VOCABULARY_GROUPS.flat_map do |group|
           group.keys.map do |key|

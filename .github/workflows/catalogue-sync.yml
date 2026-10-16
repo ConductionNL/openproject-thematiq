@@ -30,13 +30,34 @@ jobs:
           curl --fail --silent --show-error --max-time 60 --proto '=https' \
             https://raw.githubusercontent.com/ConductionNL/thematiq/development/docs/reference/shell-catalogue.json -o /tmp/catalogue.json
           python3 -c "import json; d=json.load(open('/tmp/catalogue.json')); assert d.get('version') == 1 and d.get('sets'), 'not a catalogue'"
+      # thematiq publishes generated_from as "sets:<hash>". The plugin names the thematiq commit as well, as
+      # "thematiq development <commit> sets:<hash>": the last commit on thematiq's development that wrote the file.
+      # Only the generated_from value changes; the rest of the file stays byte for byte as thematiq wrote it.
+      - name: Name the thematiq commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          commit=$(gh api "repos/ConductionNL/thematiq/commits?path=docs/reference/shell-catalogue.json&sha=development&per_page=1" --jq '.[0].sha[0:8]')
+          echo "$commit" | grep -Eq '^[0-9a-f]{8}$'
+          COMMIT="$commit" python3 - <<'PY'
+          import json, os
+          path = "/tmp/catalogue.json"
+          text = open(path, encoding="utf-8").read()
+          published = json.loads(text)["generated_from"]
+          assert published.startswith("sets:"), published
+          old = '"generated_from": ' + json.dumps(published)
+          assert text.count(old) == 1, "generated_from is not written once as expected"
+          text = text.replace(old, '"generated_from": ' + json.dumps(f"thematiq development {os.environ['COMMIT']} {published}"))
+          open(path, "w", encoding="utf-8").write(text)
+          PY
       - name: Compare
         id: compare
         run: |
+          # Compared by the sets hash only, so a new thematiq commit that wrote the same sets proposes nothing.
           new=$(python3 -c "import json; print(json.load(open('/tmp/catalogue.json')).get('generated_from',''))")
           old=$(python3 -c "import json; print(json.load(open('data/catalogue/shell-catalogue.json')).get('generated_from',''))")
           echo "new=$new" >> "$GITHUB_OUTPUT"
-          if [ "$new" = "$old" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; else echo "same=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "${new##* }" = "${old##* }" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; else echo "same=false" >> "$GITHUB_OUTPUT"; fi
       - name: Open a pull request
         if: steps.compare.outputs.same == 'false'
         env:

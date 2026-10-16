@@ -4,6 +4,7 @@
 .thematiq-files__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
 .thematiq-files__item { min-width: 0; background: var(--thematiq-surface); border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius-lg); padding: 16px; }
 .thematiq-files__item--fonts { margin-top: 16px; }
+.thematiq-files__pdf { margin-top: 24px; }
 .thematiq-files__name { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 700; margin: 0 0 12px; }
 .thematiq-files__preview { display: flex; align-items: center; justify-content: center; height: 96px; padding: 12px; box-sizing: border-box; border: 1px solid var(--thematiq-line); border-radius: var(--thematiq-radius); }
 .thematiq-files__preview img { max-width: 100%; max-height: 100%; object-fit: contain; }

@@ -120,7 +120,33 @@ OpenProject installs a plugin by building your own image on top of theirs. These
 
 5. Sign in as an administrator and open **Administration**. The menu has a new item, **Thematiq design**. **Administration**, **Plugins** lists "Thematiq" with its version.
 
-OpenProject's own instructions for this route are in [Using this container with custom plugins](https://www.openproject.org/docs/installation-and-operations/installation/docker/). They end with an asset precompile step. This plugin does not need it, because it has no frontend code of its own.
+OpenProject's own instructions for this route are in [Using this container with custom plugins](https://www.openproject.org/docs/installation-and-operations/installation/docker/). They end with an asset precompile step. On this image that step reuses OpenProject's prebuilt frontend, and the default route needs nothing more: the plugin's styles and scripts come in through view hooks.
+
+### With Docker, the frontend route
+
+A second route rebuilds OpenProject's Angular frontend with the plugin's own Angular module (`frontend/module/`) linked in. Use it for the parts that live in OpenProject's frontend and are off on the default route, today [the icon pack](#the-icon-pack-of-the-design-system); the admin page says which route an instance runs. [docs/design/frontend-build-variant.md](docs/design/frontend-build-variant.md) has how it works and what it costs.
+
+What you need on top of the default route: about 6 GB of memory for the build step (keep 10 GB free), about 1.3 GB of disk for the build cache, and a few minutes. On the machine it was measured on, the whole build took four and a half minutes. The image is 143 MB larger.
+
+1. Build the `frontend` target of the same Dockerfile. Without `--target` you get the default route.
+
+   ```bash
+   docker build -f docker/Dockerfile --target frontend -t openproject-thematiq:frontend .
+   ```
+
+   The build argument `THEMATIQ_NODE_MEMORY_MB` sets the heap of the Angular build in MB, 6144 by default. OpenProject's own build uses 4096.
+
+2. Run `openproject-thematiq:frontend` the way you run the default image. Nothing else changes.
+
+To try it with compose, on port 8081 and with volumes of its own, name the service:
+
+```bash
+docker compose -f docker/compose.yml --profile frontend up -d --build openproject-frontend
+```
+
+Without the service name, `--profile frontend` starts both instances. Put `THEMATIQ_FRONTEND_PORT=8091` in front for another port. The end-to-end tests know the route by `THEMATIQ_E2E_FRONTEND=1`.
+
+Rebuild the image after every update of the plugin or of OpenProject: the bundle holds the plugin's module as it was at build time. When the module on disk differs from the one in the bundle, the admin page says so.
 
 ### With a packaged installation (DEB or RPM)
 
@@ -134,7 +160,7 @@ The plugin lives in your image, so a new OpenProject needs a new image.
 2. Build the image again with the command from step 3.
 3. Start OpenProject on the new image.
 
-The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar, the project menu and the home page also lean on 17 files of OpenProject itself; when one of them changed, the plugin turns those parts off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) tells you what to do then.
+The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar, the project menu and the home page also lean on files of OpenProject itself, and PDF export styling on four more; when one of them changed, the plugin turns that part off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) and [docs/enterprise-parity.md](docs/enterprise-parity.md#when-an-openproject-upgrade-changes-a-file) tell you what to do then.
 
 ### Remove the plugin
 
@@ -162,7 +188,7 @@ This was tested on the Docker route with OpenProject 17.9.1, on the compose inst
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system, and the files of PDF exports; the catalogue's design systems bring none for PDF, so their exports keep OpenProject's look. [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
@@ -173,6 +199,8 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 3. Select a design system and select **Apply**. A page shows what changes: the shell now and after, and every value that differs, light and dark. Nothing is applied yet.
 4. Untick a value to keep its value of now. Then the result is saved as a new custom design system.
 5. Select **Apply**. The page repaints at once. Everyone else sees the design system on their next page.
+
+Each design system in the picker says which whole design system it belongs to, as thematiq groups them: NL Design System, La Suite, high contrast, a soft light theme, Cunningham or none. **Design system** next to the search field shows the sets of one of them.
 
 ### Try a design system first
 
@@ -191,6 +219,10 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 ### Government icons
 
 The plugin ships thematiq's government icon sets (RVO, OpenGemeenten, Den Haag, DSFR; 2,526 icons, each rebuilt by the plugin's SVG check), with their licences. Any app on the instance uses an icon by name at `/thematiq/icons/<set>/<name>.svg`; `/thematiq/api/v1/icons` lists them. **Icon library** on Thematiq design shows the sets.
+
+### The icon pack of the design system
+
+On the [frontend route](#with-docker-the-frontend-route), OpenProject's own icons follow the icon pack of the design system, as in thematiq: a Dutch government design system draws them with Den Haag's interface icons, La Suite with DSFR's. This covers the Angular icons and the icons the server renders; an icon without a counterpart in the pack, and the old icon font, keep OpenProject's look. **Icon pack** on Thematiq design says which pack is active and how many icons follow it, and lets you choose one pack for every design system, or none. On the default route the choice is kept but not drawn, and the page says so. The table of which icon takes which place is `data/icon-packs.json`; after a change, run `script/build-icon-packs.rb`.
 
 ### The gallery and the catalogue notice
 
@@ -263,6 +295,16 @@ A custom design system can carry your own files.
 4. The file is in use at once. **Replace** swaps it, **Remove** takes it away after you confirm.
 
 You can upload a logo, a logo for the coloured top bar, a mobile logo, a favicon, a touch icon and up to 12 font files. For a font, type its family name and pick its weight and style. Then name the same family in the value **Font**.
+
+### Style PDF exports
+
+PDF exports of work packages, reports and meetings carry the design system of the exported project.
+
+1. In the editor of a custom design system, under **PDF export**, upload a PDF logo, a cover picture and a footer picture as PNG or JPEG, and the regular cut of a TrueType font. Bold, italic and bold italic are optional.
+2. In the group **PDF export** of the values, give **Cover text** a colour for the text on the cover page, and save.
+3. Export a work package as PDF. It carries the logo, the footer picture and the font; a report with a cover also the cover picture and its colour.
+
+A value you leave empty keeps OpenProject's own. The plugin patches four of OpenProject's exporter files for this and turns the patch off when one of them changes; [docs/enterprise-parity.md](docs/enterprise-parity.md#pdf-export-styling) says how.
 
 The plugin checks every file by its content and refuses what it does not know. It rebuilds an SVG file without script. [docs/uploads.md](docs/uploads.md) has the limits and the checks.
 

@@ -1,0 +1,90 @@
+# The frontend route: OpenProject's Angular frontend rebuilt with the plugin's module (docker/Dockerfile --target frontend).
+# The build adds about five minutes to the twenty of the default e2e job, so it does not run on every pull request:
+# - on a pull request or push that changes the module, the Dockerfile, the compose file or the code that reads the stamp;
+# - every night on development, so a plugin change elsewhere that breaks the build shows the next day. GitHub runs a
+#   schedule from the default branch (main), so the nightly run starts once this file is on main;
+# - by hand (workflow_dispatch).
+name: Frontend route
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "docker/**"
+      - "script/stamp-frontend-build.rb"
+      - "lib/open_project/thematiq/frontend_build.rb"
+      - "lib/open_project/thematiq/icon_packs.rb"
+      - "data/icon-packs.json"
+      - "test/e2e/**"
+      - ".github/workflows/frontend-route.yml"
+  push:
+    branches: [development, main]
+    paths:
+      - "frontend/**"
+      - "docker/**"
+      - "script/stamp-frontend-build.rb"
+      - "lib/open_project/thematiq/frontend_build.rb"
+      - ".github/workflows/frontend-route.yml"
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-route-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: End-to-end on the frontend route
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      THEMATIQ_FRONTEND_PORT: "8081"
+      THEMATIQ_E2E_URL: http://localhost:8081
+      THEMATIQ_E2E_FRONTEND: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'schedule' && 'development' || '' }}
+      - name: Build the frontend route
+        # The heap of the Angular build, in MB. The runner has 16 GB.
+        run: THEMATIQ_NODE_MEMORY_MB=6144 docker compose -f docker/compose.yml --profile frontend build openproject-frontend
+      - name: Start it
+        run: docker compose -f docker/compose.yml --profile frontend up -d openproject-frontend
+      - name: Wait for the first start
+        run: |
+          for attempt in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8081/login || true)
+            if [ "$code" = "200" ]; then echo "OpenProject answers after about $((attempt * 10)) s"; exit 0; fi
+            sleep 10
+          done
+          docker compose -f docker/compose.yml --profile frontend logs --tail 200 openproject-frontend
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: test/e2e/package-lock.json
+      - name: Install the suite
+        working-directory: test/e2e
+        run: npm ci && npx playwright install --with-deps chromium
+      - name: Run the suite
+        working-directory: test/e2e
+        # A throwaway instance: the password only lives for this job.
+        run: THEMATIQ_E2E_PASSWORD="E2e-$(openssl rand -hex 12)-Aa1!" npm test
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-frontend-route-report
+          path: test/e2e/.results/
+          retention-days: 14
+      - name: Log of OpenProject on failure
+        if: failure()
+        run: docker compose -f docker/compose.yml --profile frontend logs --tail 300 openproject-frontend
+      - name: Stop
+        if: always()
+        run: docker compose -f docker/compose.yml --profile frontend down -v

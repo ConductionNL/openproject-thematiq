@@ -1,1 +1,2 @@
-#<struct OpenProject::Thematiq::Uploads::Svg::Sanitised text="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 24 24\" width=\"24\" height=\"24\"><path d=\"M9 3V5H6V19H9V21H4V3H9ZM15 3H20V21H15V19H18V5H15V3Z\"/></svg>\n", removed=0>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" width="24" height="24"><path d="M9 3V5H6V19H9V21H4V3H9ZM15 3H20V21H15V19H18V5H15V3Z"/></svg>

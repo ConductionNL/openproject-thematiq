@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "open_project/thematiq/icons"
+require "open_project/thematiq/uploads"
 
 class IconsTest < Minitest::Test
   Icons = OpenProject::Thematiq::Icons
@@ -14,6 +15,14 @@ class IconsTest < Minitest::Test
       files = Dir[File.join(ROOT, "public/thematiq/icons", set, "*.svg")].map { |path| File.basename(path, ".svg") }.sort
       assert_equal entry["names"].sort, files, set
       assert_equal entry["count"], files.size, set
+    end
+  end
+
+  def test_every_icon_is_an_svg_document_the_sanitiser_keeps_as_it_is
+    Dir[File.join(ROOT, "public/thematiq/icons/**/*.svg")].each do |path|
+      text = File.read(path)
+      assert_match(/\A<\?xml version="1\.0" encoding="UTF-8"\?>\n<svg\b[^>]*>.*<\/svg>\n\z/m, text, path)
+      assert_equal text, OpenProject::Thematiq::Uploads::Svg.sanitise(text).text, path
     end
   end
 
