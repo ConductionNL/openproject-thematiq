@@ -15,7 +15,8 @@ module OpenProject
       #     "logo": { "file": "...", "inverse_file": "...", "licence": "...", "redistributable": true },
       #     "dark": { "tokens": { colour roles for the dark theme },
       #               "vocabulary": { vocabulary values for the dark theme } },   optional
-      #     "vocabulary": { thematiq names without "--nldesign-" => value } }   optional, see Vocabulary
+      #     "vocabulary": { thematiq names without "--nldesign-" => value },   optional, see Vocabulary
+      #     "documentation_url": "https://..." }   optional, the design system's own documentation
       class TokenSet
         class InvalidSet < StandardError; end
 
@@ -41,13 +42,13 @@ module OpenProject
 
         # "uploads" is a note an export file carries when the design system had uploaded files. They do not
         # travel in the file. Transfer writes and reads the note. A token set does not keep it.
-        SET_KEYS = %w[id name tokens logo dark uploads vocabulary].freeze
+        SET_KEYS = %w[id name tokens logo dark uploads vocabulary documentation_url].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
         DARK_KEYS = (ALL_KINDS.select { |_key, kind| kind == :color }.keys - PRINT_KEYS).freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :dark_tokens, :vocabulary, :dark_vocabulary, :logo_file, :logo_inverse_file, :logo_licence,
-                    :rejected
+                    :documentation_url, :rejected
 
         # The dark block as the catalogue writes it is { "tokens" => { roles } }. The roles on their own are
         # read as well. Either way only the colour roles count: radius and font do not change with the theme.
@@ -96,21 +97,24 @@ module OpenProject
                       unknown_dark_keys(set["dark"]) + ((set["vocabulary"] || {}).keys - Vocabulary.keys)
             raise InvalidSet, "unknown_keys" if unknown.any?
             raise InvalidSet, "name_invalid" unless Validator.label(set["name"])
+            raise InvalidSet, "documentation_url_invalid" unless set["documentation_url"].nil? || Validator.web_address(set["documentation_url"])
           end
 
           token_set = new(id: set["id"], name: Validator.label(set["name"]) || set["id"], tokens:, base:, dark: set["dark"],
                           vocabulary: set["vocabulary"],
                           logo_file: logo["redistributable"] == true ? Validator.file_name(logo["file"]) : nil,
                           logo_inverse_file: logo["redistributable"] == true ? Validator.file_name(logo["inverse_file"]) : nil,
-                          logo_licence: Validator.label(logo["licence"], max: 300))
+                          logo_licence: Validator.label(logo["licence"], max: 300),
+                          documentation_url: Validator.web_address(set["documentation_url"]))
           raise InvalidSet, "token_invalid" if strict && token_set.rejected.any?
 
           token_set
         end
 
         def initialize(id:, name:, tokens:, base: Defaults::TOKENS, dark: nil, vocabulary: nil, logo_file: nil, logo_inverse_file: nil,
-                       logo_licence: nil)
+                       logo_licence: nil, documentation_url: nil)
           @id = id
+          @documentation_url = Validator.web_address(documentation_url)
           @name = name
           @logo_file = logo_file
           @logo_inverse_file = logo_inverse_file
@@ -142,6 +146,7 @@ module OpenProject
           (set["dark"] ||= { "tokens" => {} })["vocabulary"] = dark_vocabulary.dup if dark_vocabulary.any?
           # Only when there is one, so a set without a vocabulary exports exactly as before.
           set["vocabulary"] = vocabulary.dup if vocabulary.any?
+          set["documentation_url"] = documentation_url if documentation_url
           set
         end
 

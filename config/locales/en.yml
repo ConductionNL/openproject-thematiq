@@ -640,6 +640,10 @@ en:
         confirm: "Delete for good"
       error_invalid: "Some values cannot be used. Correct the marked fields and save again."
       error_name: "Give the design system a name of at most 80 characters."
+      documentation_url:
+        label: "Address of its documentation"
+        hint: "Optional. The picker links to it. Use an http or https address."
+        error: "Use an http or https address of at most 500 characters, or leave the field empty."
       error_color: "This is not a colour the plugin accepts. Use a hex value, a colour name or rgb()."
       error_length: "This is not a length the plugin accepts. Use a number with px, rem, em or %."
       error_font_family: "This is not a font stack the plugin accepts. Use names separated by commas, with quotes around names that have spaces."
@@ -699,6 +703,9 @@ en:
       filter: "Design system"
       all: "All design systems"
       of_set: "Design system: %{name}"
+      docs: "Documentation"
+      docs_label: "Documentation of %{name}, opens in a new tab"
+      docs_active: "Read the documentation of %{name}. It opens in a new tab."
       names:
         none: "None, Nextcloud's own look"
         nldesign: "NL Design System"
@@ -757,6 +764,7 @@ en:
         unknown_keys: "The file holds entries this plugin does not know. Nothing was imported."
         token_invalid: "The file holds a value that cannot be used as a colour, a length or a font. Nothing was imported."
         name_invalid: "The file has no usable name. Nothing was imported."
+        documentation_url_invalid: "The file's documentation address is not an http or https address. Nothing was imported."
         too_many: "There are 50 custom design systems, which is the most the plugin keeps. Delete one first."
     figma:
       title: "Figma token sets"
