@@ -124,7 +124,7 @@ OpenProject's own instructions for this route are in [Using this container with 
 
 ### With Docker, the frontend route
 
-A second route rebuilds OpenProject's Angular frontend with the plugin's own Angular module (`frontend/module/`) linked in. Use it for the parts that live in OpenProject's frontend and are off on the default route; the admin page says which route an instance runs. [docs/design/frontend-build-variant.md](docs/design/frontend-build-variant.md) has how it works and what it costs.
+A second route rebuilds OpenProject's Angular frontend with the plugin's own Angular module (`frontend/module/`) linked in. Use it for the parts that live in OpenProject's frontend and are off on the default route, today [the icon pack](#the-icon-pack-of-the-design-system); the admin page says which route an instance runs. [docs/design/frontend-build-variant.md](docs/design/frontend-build-variant.md) has how it works and what it costs.
 
 What you need on top of the default route: about 6 GB of memory for the build step (keep 10 GB free), about 1.3 GB of disk for the build cache, and a few minutes. On the machine it was measured on, the whole build took four and a half minutes. The image is 143 MB larger.
 
@@ -217,6 +217,10 @@ On the page of step 3, select **Try it yourself first**. Only you see that desig
 ### Government icons
 
 The plugin ships thematiq's government icon sets (RVO, OpenGemeenten, Den Haag, DSFR; 2,526 icons, each rebuilt by the plugin's SVG check), with their licences. Any app on the instance uses an icon by name at `/thematiq/icons/<set>/<name>.svg`; `/thematiq/api/v1/icons` lists them. **Icon library** on Thematiq design shows the sets.
+
+### The icon pack of the design system
+
+On the [frontend route](#with-docker-the-frontend-route), OpenProject's own icons follow the icon pack of the design system, as in thematiq: a Dutch government design system draws them with Den Haag's interface icons, La Suite with DSFR's. This covers the Angular icons and the icons the server renders; an icon without a counterpart in the pack, and the old icon font, keep OpenProject's look. **Icon pack** on Thematiq design says which pack is active and how many icons follow it, and lets you choose one pack for every design system, or none. On the default route the choice is kept but not drawn, and the page says so. The table of which icon takes which place is `data/icon-packs.json`; after a change, run `script/build-icon-packs.rb`.
 
 ### The gallery and the catalogue notice
 
