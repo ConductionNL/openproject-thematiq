@@ -195,11 +195,18 @@ module OpenProject
         case color.strip.downcase
         when /\A#(\h)(\h)(\h)\z/ then [$1, $2, $3].map { |digit| (digit * 2).hex.to_f } + [1.0]
         when /\A#(\h\h)(\h\h)(\h\h)\z/ then [$1, $2, $3].map { |pair| pair.hex.to_f } + [1.0]
-        when /\Argba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*(?:[,\/]\s*(\d?\.?\d+)\s*)?\)\z/
-          values = [$1, $2, $3].map(&:to_f)
-          alpha = $4 ? $4.to_f : 1.0
-          values.all? { |value| value <= 255 } && alpha.between?(0, 1) ? values + [alpha] : nil
+        when /\Argba?\(([^()]*)\)\z/ then rgb_arguments($1)
         end
+      end
+
+      def rgb_arguments(arguments)
+        parts = arguments.split(%r{[\s,/]+}).reject(&:empty?)
+        return nil unless parts.size.between?(3, 4) && parts.first(3).all? { |part| part.match?(/\A\d{1,3}\z/) }
+        return nil if parts[3] && !parts[3].match?(/\A\d?\.?\d+\z/)
+
+        values = parts.first(3).map(&:to_f)
+        alpha = parts[3] ? parts[3].to_f : 1.0
+        values.all? { |value| value <= 255 } && alpha.between?(0, 1) ? values + [alpha] : nil
       end
     end
   end
