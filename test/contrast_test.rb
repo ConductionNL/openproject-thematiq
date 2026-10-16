@@ -36,6 +36,10 @@ class ContrastTest < Minitest::Test
     assert_nil Contrast.ratio("hsl(0 0% 0%)", "#ffffff")
     assert_nil Contrast.ratio(nil, "#ffffff")
     assert_nil Contrast.ratio("rgb(300, 0, 0)", "#ffffff")
+    assert_equal 4.54, Contrast.ratio("rgb(118 118 118)", "#ffffff")
+    assert_in_delta Contrast.ratio("rgba(0, 0, 0, 0.68)", "#ffffff"), Contrast.ratio("rgb(0 0 0 / 0.68)", "#ffffff"), 0.01
+    assert_nil Contrast.ratio("rgb(1, 2)", "#ffffff")
+    assert_nil Contrast.ratio("rgb(#{" " * 50_000}1)", "#ffffff"), "a long run of spaces is read in linear time"
   end
 
   def test_white_on_primary_and_on_action_passes_for_every_bundled_set
