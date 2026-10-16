@@ -6,9 +6,11 @@ require "test_helper"
 # define ReadAPI, or OpenProject does not start in production (found live: the web process exited on boot).
 class AutoloadNamesTest < Minitest::Test
   ROOT = File.expand_path("..", __dir__)
+  # OpenProject's config/initializers/zeitwerk.rb: "pdf" is "PDF" as well, so pdf_export.rb defines PDFExport.
+  ACRONYMS = { "api" => "API", "pdf" => "PDF" }.freeze
 
   def expected_constant(path)
-    File.basename(path, ".rb").split("_").map { |part| part == "api" ? "API" : part.capitalize }.join
+    File.basename(path, ".rb").split("_").map { |part| ACRONYMS.fetch(part) { part.capitalize } }.join
   end
 
   def test_every_file_defines_the_constant_its_name_gives

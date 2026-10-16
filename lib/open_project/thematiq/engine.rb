@@ -98,6 +98,10 @@ module OpenProject
         require "open_project/thematiq/shell"
         OpenProject::Thematiq::Shell.install!
 
+        # The design system's logo, pictures, fonts and cover colour in PDF exports, while core's exporters are unchanged.
+        require "open_project/thematiq/pdf_export"
+        OpenProject::Thematiq::PDFExport.install!(logger: Rails.logger)
+
         # A planned switch is made by the first page after its time; the history names it.
         OpenProject::Thematiq::Store.on_switch = lambda do |token_set, store|
           ::Thematiq::Change.record("scheduled_switch", user: nil, detail: token_set.name, store:)

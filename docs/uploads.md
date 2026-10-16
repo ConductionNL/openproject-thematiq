@@ -65,6 +65,7 @@ The page tells you when parts were left out, a processing instruction included. 
 | Mobile logo | A rule of the same shape for the element OpenProject shows below 850 px |
 | Favicon, touch icon | `link` elements in the page head, on every layout the plugin reaches. [layouts.md](layouts.md) says where they sit |
 | Font | One `@font-face` rule per file, with `font-display: swap` |
+| PDF logo, pictures and fonts | PDF exports of a project with this design system, through `PDFExport`. See [enterprise-parity.md](enterprise-parity.md#pdf-export-styling) |
 
 Only a custom design system has uploads. A design system of the catalogue keeps its bundled files. An upload on a custom design system wins over the files of its base.
 

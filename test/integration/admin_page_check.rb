@@ -690,6 +690,94 @@ begin
   imported_id = (OpenProject::Thematiq::Store.new.custom_drafts.map(&:id) - [set_id]).first
   check("the imported design system has no files") { imported_id && Thematiq::Upload.records_for(imported_id).empty? }
 
+  # 7b. PDF exports carry the design system: its PDF logo, cover and footer pictures, fonts and cover text colour.
+  # The export is asked for over HTTP for one work package, and run through core's exporter for the report with a cover,
+  # which OpenProject runs as a job. The PDF bytes are read here: Prawn writes the dictionaries as text and the page
+  # content as Flate streams, which are inflated. Prawn sets a text colour with scn.
+  pdf_streams = lambda do |bytes|
+    bytes.b.scan(/stream\r?\n(.*?)\r?\nendstream/m).flatten.map do |stream|
+      Zlib::Inflate.inflate(stream)
+    rescue Zlib::Error
+      stream
+    end.join("\n")
+  end
+  image_of = ->(bytes, width, height) { bytes.b.match?(%r{/Width #{width}\b(?:(?!>>).)*?/Height #{height}\b|/Height #{height}\b(?:(?!>>).)*?/Width #{width}\b}m) }
+  core_fonts = Rails.public_path.join("fonts/spacemono")
+  check("the PDF export patches are installed on OpenProject 17.9") do
+    OpenProject::Thematiq::Shell::CoreGuard.changed_files(part: :pdf_export).empty? &&
+      WorkPackage::PDFExport::WorkPackageToPdf.ancestors.include?(OpenProject::Thematiq::PDFExport::Patches::Logo) &&
+      Exports::PDF::Common::View.singleton_class.ancestors.include?(OpenProject::Thematiq::PDFExport::Patches::View::ClassMethods)
+  end
+  body = send_file.call("export_logo", UploadSamples.png(200, 50, interlace: 1), "logo.png")
+  check("an interlaced PNG is refused as a PDF logo") { body.include?("is interlaced") && of_kind.call("export_logo").nil? }
+  body = send_file.call("export_font_regular", UploadSamples.woff2, "font.woff2")
+  check("a WOFF2 file is refused as a PDF font") { body.include?("does not fit here") && of_kind.call("export_font_regular").nil? }
+  { "export_logo" => [UploadSamples.solid_png(173, 37, "123456"), "pdf-logo.png"],
+    "export_cover" => [UploadSamples.solid_png(400, 300, "345678"), "pdf-cover.png"],
+    "export_footer" => [UploadSamples.solid_png(90, 30, "567890"), "pdf-footer.png"],
+    "export_font_regular" => [File.binread(core_fonts.join("SpaceMono-Regular.ttf")), "regular.ttf"],
+    "export_font_bold" => [File.binread(core_fonts.join("SpaceMono-Bold.ttf")), "bold.ttf"] }.each do |kind, (content, name)|
+    body = send_file.call(kind, content, name)
+    check("the #{kind.tr('_', ' ')} is uploaded") { of_kind.call(kind) && body.include?("is uploaded and in use") }
+  end
+  check("a PDF font shows its type and size, not a preview") do
+    font = of_kind.call("export_font_regular")
+    item = body[%r{<form[^>]*id="thematiq-file-export-font-regular-form".*?</form>}m].to_s
+    item.include?("TTF, ") && !item.include?(%(<img src="#{font.url}"))
+  end
+  admin.post "/admin/thematiq/custom", params: { id: set_id, name: "Upload check", based_on: default.id, save: "1",
+                                                 tokens: { "font-family" => "'Check Sans', sans-serif", "pdf-cover-text" => "#c0ffee" },
+                                                 authenticity_token: form_token(admin, editor, "thematiq-editor-form") }
+  check("the cover text colour is a value of the design system") do
+    OpenProject::Thematiq::Store.new.custom_draft(set_id)&.token_set&.[]("pdf-cover-text") == "#c0ffee"
+  end
+
+  demo_project = Project.find_by(identifier: "demo-project")
+  work_package = WorkPackage.where(project: demo_project).order(:id).first
+  admin.get "/work_packages/#{work_package.id}.pdf"
+  single = admin.response.body.to_s.b
+  check("a work package exports as a PDF over HTTP") { admin.response.status == 200 && single.start_with?("%PDF") }
+  check("the PDF carries the design system's logo") { image_of.call(single, 173, 37) }
+  check("the PDF carries the design system's footer picture") { image_of.call(single, 90, 30) }
+  check("the PDF is set in the design system's font") { single.include?("SpaceMono-Regular") && single.include?("SpaceMono-Bold") }
+
+  render_report = lambda do |project|
+    query = Query.new_default(name: "_", project:)
+    result = WorkPackage::PDFExport::WorkPackageListToPdf.new(query, { pdf_export_type: "report" }).export!
+    content = result.content
+    content = File.binread(content.path) if content.respond_to?(:path)
+    content = File.binread(content) if content.is_a?(String) && !content.start_with?("%PDF") && File.file?(content)
+    content.to_s.b
+  end
+  report = User.execute_as(User.find_by(login: "admin")) { render_report.call(demo_project) }
+  check("a report with a cover exports") { report.start_with?("%PDF") }
+  check("the cover carries the design system's cover picture and logo") { image_of.call(report, 400, 300) && image_of.call(report, 173, 37) }
+  check("the cover text has the design system's colour") { pdf_streams.call(report).include?("0.75294 1.0 0.93333 scn") }
+
+  # A project with a design system of its own exports with that one. The catalogue's default has no PDF files,
+  # so that export keeps OpenProject's logo, cover, colour and fonts.
+  other_project = Project.find_by(identifier: "your-scrum-project")
+  Thematiq::Scope.choose(project: other_project, module_name: "", design_system_id: default.id)
+  begin
+    other_package = WorkPackage.where(project: other_project).order(:id).first
+    admin.get "/work_packages/#{other_package.id}.pdf"
+    other = admin.response.body.to_s.b
+    check("a project with its own design system exports with that one") do
+      admin.response.status == 200 && other.start_with?("%PDF") && !image_of.call(other, 173, 37) && !image_of.call(other, 90, 30) &&
+        !other.include?("SpaceMono-Bold")
+    end
+    other_report = User.execute_as(User.find_by(login: "admin")) { render_report.call(other_project) }
+    check("and its cover keeps OpenProject's picture and colour") do
+      other_report.start_with?("%PDF") && !image_of.call(other_report, 400, 300) && !pdf_streams.call(other_report).include?("0.75294 1.0 0.93333 scn")
+    end
+  ensure
+    Thematiq::Scope.choose(project: other_project, module_name: "", design_system_id: nil)
+  end
+  check("the PDF files of a design system stay behind in its export file, by kind") do
+    admin.get "/admin/thematiq/export", params: { id: set_id }
+    (JSON.parse(admin.response.body)["uploads"]["kinds"] & %w[export_logo export_cover export_footer export_font_regular export_font_bold]).size == 5
+  end
+
   gone = of_kind.call("favicon")
   admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "favicon", remove: gone.token,
                                                        authenticity_token: form_token(admin, editor, "thematiq-file-favicon-form") }

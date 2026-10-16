@@ -21,7 +21,7 @@ module OpenProject
       KILOBYTE = 1024
 
       # formats: what the content may be. single: one file per design system, an upload replaces it.
-      # pdf: the file goes into PDF exports, see PdfExport. Prawn embeds PNG without interlacing and JPEG, and TrueType fonts.
+      # pdf: the file goes into PDF exports, see PDFExport. Prawn embeds PNG without interlacing and JPEG, and TrueType fonts.
       Kind = Struct.new(:name, :formats, :max_bytes, :min_side, :max_width, :max_height, :single, :pdf, keyword_init: true) do
         def image? = !formats.intersect?(FONT_FORMATS)
         def pdf? = pdf == true
