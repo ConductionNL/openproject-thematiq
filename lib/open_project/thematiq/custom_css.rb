@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open_project/thematiq/css_comments"
+
 module OpenProject
   module Thematiq
     # Free CSS from an administrator, for what tokens cannot say (thematiq's custom-css-freeform). Hostile input of the
@@ -38,7 +40,7 @@ module OpenProject
 
         errors = []
         rules = []
-        blocks(text.gsub(%r{/\*.*?\*/}m, " "), errors) do |prelude, body|
+        blocks(CssComments.strip(text), errors) do |prelude, body|
           if prelude.start_with?("@")
             unless MEDIA.match?(prelude)
               errors << ["at_rule", prelude]
