@@ -22,20 +22,14 @@ module Thematiq
       preference = User.current.pref
       preference.theme = theme
       preference.save
-      redirect_to safe_return_to(store), allow_other_host: true
-    end
-
-    private
-
-    # Only a path on this OpenProject, or an address under the Nextcloud address the administrator gave. Else home.
-    def safe_return_to(store)
-      target = params[:return_to].to_s
-      return target if target.start_with?("/") && !target.start_with?("//") && !target.include?("\\") && target.length <= 500
-
-      nextcloud = store.nextcloud_url
-      return target if nextcloud && target.start_with?("#{nextcloud.chomp('/')}/") && target.length <= 500 && !target.match?(/[\s<>"]/)
-
-      home_path
+      return_to = params[:return_to]
+      if (path = OpenProject::Thematiq::ReturnTo.path(return_to))
+        redirect_to path
+      elsif (address = OpenProject::Thematiq::ReturnTo.nextcloud(return_to, store.nextcloud_url))
+        redirect_to address, allow_other_host: true
+      else
+        redirect_to home_path
+      end
     end
   end
 end

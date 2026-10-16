@@ -30,5 +30,7 @@ class MetricsTest < Minitest::Test
 
   def test_a_label_cannot_break_the_format
     assert_equal 'a\\"b\\nc', Metrics.escape("a\"b\nc")
+    assert_equal 'a\\\\b', Metrics.escape("a\\b")
+    assert_equal 'a\\\\\\"', Metrics.escape('a\\"')
   end
 end

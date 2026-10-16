@@ -2,6 +2,7 @@
 
 require "open_project/thematiq/tokens"
 require "open_project/thematiq/figma"
+require "open_project/thematiq/css_comments"
 
 module OpenProject
   module Thematiq
@@ -42,7 +43,7 @@ module OpenProject
         light = {}
         dark = {}
         count = 0
-        walk(text.gsub(%r{/\*.*?\*/}m, " "), false) do |name, value, is_dark|
+        walk(CssComments.strip(text), false) do |name, value, is_dark|
           count += 1
           raise Refused, "too_many" if count > MAX_DECLARATIONS
 
