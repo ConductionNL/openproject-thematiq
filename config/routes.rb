@@ -39,6 +39,11 @@ Rails.application.routes.draw do
   post "admin/thematiq/playground", to: "thematiq/admin#component_preview"
   get "admin/thematiq/gallery", to: "thematiq/admin#gallery", as: :admin_thematiq_gallery
   post "admin/thematiq/gallery", to: "thematiq/admin#update_gallery"
+  # The setup shared with one other instance. Administrators only, and both sides off until turned on.
+  get "admin/thematiq/share", to: "thematiq/share#show", as: :admin_thematiq_share
+  post "admin/thematiq/share", to: "thematiq/share#update"
+  # Read only, for that other instance: no session, a share key in a header instead (docs/api.md).
+  get "thematiq/api/v1/setup", to: "thematiq/setup_endpoint#show", as: :thematiq_api_setup, format: false
   get "admin/thematiq/compliance", to: "thematiq/admin#compliance", as: :admin_thematiq_compliance
   get "admin/thematiq/health", to: "thematiq/admin#health", as: :admin_thematiq_health, defaults: { format: :json }
   post "admin/thematiq/bundle", to: "thematiq/admin#bundle_import"

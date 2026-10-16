@@ -10,6 +10,7 @@ require "time"
 require "open_project/thematiq/custom_css"
 require "open_project/thematiq/email"
 require "open_project/thematiq/gallery"
+require "open_project/thematiq/federation"
 require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
@@ -238,6 +239,64 @@ module OpenProject
 
       def dismiss_gallery_notice
         write("gallery_dismissed" => gallery_status["generated_from"])
+      end
+
+      # --- the setup shared with one other instance: serving and pulling, each off until an admin turns it on ---
+      #
+      # None of these keys is part of the setup (Bundle::SETTING_KEYS), so a share key never travels in a file.
+
+      def share_serving_enabled?
+        data["share_serving_enabled"] == true && !share_key.nil?
+      end
+
+      # The key another instance must send to read the setup, or nil when there is none yet.
+      def share_key
+        key = data["share_key"]
+        Federation.valid_key?(key) ? key : nil
+      end
+
+      # Turning serving on makes a key when there is none. new_key: true replaces the key, so the old one stops working.
+      def save_share_serving(enabled:, new_key: false)
+        key = new_key || share_key.nil? ? Federation.generate_key : share_key
+        write("share_serving_enabled" => enabled == true, "share_key" => key)
+      end
+
+      def share_pull_enabled?
+        data["share_pull_enabled"] == true
+      end
+
+      def share_pull_url
+        url = data["share_pull_url"]
+        Federation.valid_url?(url) ? url : nil
+      end
+
+      def share_pull_key
+        key = data["share_pull_key"]
+        Federation.valid_key?(key) ? key : nil
+      end
+
+      # false, and nothing stored: the address is not an https address, or the key is not a share key.
+      # An empty key keeps the stored one, so the form need not show it.
+      def save_share_pull(enabled:, url:, key:)
+        url = url.to_s.strip
+        key = key.to_s.strip
+        return false unless url.empty? || Federation.valid_url?(url)
+        return false unless key.empty? || Federation.valid_key?(key)
+        return false if enabled == true && (url.empty? || (key.empty? && share_pull_key.nil?))
+
+        write("share_pull_enabled" => enabled == true, "share_pull_url" => url.empty? ? nil : url,
+              "share_pull_key" => key.empty? ? share_pull_key : key)
+        true
+      end
+
+      # What the last pull found: "pulled_at" (epoch) and "error", a short code, or nil when it worked.
+      def share_pull_status
+        stored = data["share_pull_status"]
+        stored.is_a?(Hash) ? stored.slice("pulled_at", "error") : {}
+      end
+
+      def record_share_pull(error: nil, now: Time.now)
+        write("share_pull_status" => { "pulled_at" => now.to_i, "error" => error&.to_s&.slice(0, 60) })
       end
 
       # --- a shared light or dark choice: another product links here to set a person's choice ---
