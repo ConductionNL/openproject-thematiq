@@ -208,6 +208,17 @@ class ShellTest < Minitest::Test
     refute_includes script, "<!--"
   end
 
+  # The shell views write these files raw into a script tag. They ship with the plugin; nothing stored reaches them.
+  def test_no_shell_script_can_close_its_script_tag
+    scripts = Dir[File.expand_path("../../lib/open_project/thematiq/shell/assets/*.js", __dir__)]
+    assert_operator scripts.size, :>=, 7
+    scripts.each do |path|
+      script = File.read(path)
+      refute_match(%r{</script}i, script, path)
+      refute_includes script, "<!--", path
+    end
+  end
+
   def test_the_nested_menu_only_applies_while_the_overrides_are_on
     css = File.read(File.expand_path("../../stylesheets/shell/30-nested-menu.css", __dir__)).gsub(%r{/\*.*?\*/}m, "")
     selectors = css.gsub(/@media[^{]*\{/, "").scan(/([^{}]+)\{/).flatten.flat_map { |list| split_selectors(list) }
