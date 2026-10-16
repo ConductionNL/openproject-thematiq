@@ -10,7 +10,8 @@ module Thematiq
     KEEP_VERSIONS = 50
     ACTIONS = %w[apply save_custom delete_custom import figma_upload upload remove_upload shell top_bar scopes project_design
                  trial_publish restore bundle_import environment command_line environment_marker
-                 deprecation custom_css own_token scheduled_switch schedule lock footer_links email gallery appearance groups].freeze
+                 deprecation custom_css own_token scheduled_switch schedule lock footer_links email gallery appearance groups
+                 icon_pack].freeze
 
     validates :action, inclusion: { in: ACTIONS }
 

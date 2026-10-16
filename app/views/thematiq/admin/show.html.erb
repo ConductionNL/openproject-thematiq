@@ -364,6 +364,42 @@ end %>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.scopes.admin.save") } %>
 <% end %>
 
+<% icon_pack = OpenProject::Thematiq.icon_pack(store: @store, token_set: active) %>
+<% icon_pack_choice = @store.icon_pack_choice %>
+<% pack_names = ->(packs) { packs.map { |pack| t("thematiq.icon_pack.packs.#{pack}", default: pack) }.to_sentence } %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-icon-pack") { t("thematiq.icon_pack.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.icon_pack.hint") %></p>
+<p data-test-selector="thematiq-icon-pack-indicator" data-pack="<%= icon_pack.drawn_by %>" data-source="<%= icon_pack.source %>">
+  <% if icon_pack.packs.empty? %>
+    <%= t(icon_pack.source == :override ? "thematiq.icon_pack.none_chosen" : "thematiq.icon_pack.none_for_design_system") %>
+  <% elsif icon_pack.source == :override %>
+    <%= t("thematiq.icon_pack.chosen", packs: pack_names.call(icon_pack.packs)) %>
+  <% else %>
+    <%= t("thematiq.icon_pack.from_design_system", packs: pack_names.call(icon_pack.packs), design_system: t("thematiq.icon_pack.design_systems.#{icon_pack.design_system}", default: icon_pack.design_system.to_s)) %>
+  <% end %>
+  <% if icon_pack.drawn_by %>
+    <%= t("thematiq.icon_pack.drawn_by", pack: pack_names.call([icon_pack.drawn_by]), count: OpenProject::Thematiq::IconPacks.mapped_count(icon_pack.drawn_by)) %>
+    <% unless frontend.linked? %>
+      <strong><%= t("thematiq.icon_pack.needs_frontend_route") %></strong>
+    <% end %>
+  <% end %>
+</p>
+<%= form_with(url: admin_thematiq_icon_pack_path, method: :post, data: { turbo: false }, id: "thematiq-icon-pack-form", class: "thematiq-short-form") do %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-icon-pack-choice"><%= t("thematiq.icon_pack.choice") %></label>
+    <select name="icon_pack" id="thematiq-icon-pack-choice" class="FormControl-select FormControl-medium">
+      <option value="" <%= "selected" if icon_pack_choice.empty? %>><%= t("thematiq.icon_pack.follow") %></option>
+      <option value="none" <%= "selected" if icon_pack_choice == "none" %>><%= t("thematiq.icon_pack.none") %></option>
+      <% OpenProject::Thematiq::IconPacks.choosable.each do |pack| %>
+        <option value="<%= pack %>" <%= "selected" if icon_pack_choice == pack %>><%= pack_names.call([pack]) %></option>
+      <% end %>
+    </select>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.icon_pack.save") } %>
+<% end %>
+
 <% marker = @store.environment_marker %>
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium, id: "thematiq-marker") { t("thematiq.marker.title") }

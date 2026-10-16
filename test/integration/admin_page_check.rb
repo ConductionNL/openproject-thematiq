@@ -1389,6 +1389,28 @@ begin
   icon_view.get "/thematiq/icons/../../config/database.yml"
   check("the icon path does not leave its folder") { icon_view.response.status != 200 || !icon_view.response.body.include?("adapter") }
 
+  # 29b. The icon pack (ast-icon-pack): an admin choice, refused for a member and for a pack that maps nothing
+  pack_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  pack_member.post "/admin/thematiq/icon_pack", params: { icon_pack: "dsfr" }
+  check("a non-admin cannot choose the icon pack") { [403, 422].include?(pack_member.response.status) && OpenProject::Thematiq::Store.new.icon_pack_choice.empty? }
+  pack_token = form_token(admin, "/admin/thematiq", "thematiq-icon-pack-form")
+  admin.post "/admin/thematiq/icon_pack", params: { icon_pack: "rvo", authenticity_token: pack_token }
+  check("a pack that maps no OpenProject icon is refused") { OpenProject::Thematiq::Store.new.icon_pack_choice.empty? }
+  pack_token = form_token(admin, "/admin/thematiq", "thematiq-icon-pack-form")
+  admin.post "/admin/thematiq/icon_pack", params: { icon_pack: "dsfr", authenticity_token: pack_token }
+  check("an admin chooses the DSFR pack") { OpenProject::Thematiq::Store.new.icon_pack_choice == "dsfr" }
+  admin.get "/admin/thematiq"
+  check("the indicator names the chosen pack") do
+    admin.response.body.include?('data-test-selector="thematiq-icon-pack-indicator" data-pack="dsfr" data-source="override"')
+  end
+  linked = OpenProject::Thematiq::FrontendBuild.status.linked?
+  check("the page carries the pack's drawing only on the frontend route (#{linked ? 'frontend' : 'default'})") do
+    admin.response.body.include?('<script type="application/json" id="thematiq-icon-pack-data"') == linked
+  end
+  pack_token = form_token(admin, "/admin/thematiq", "thematiq-icon-pack-form")
+  admin.post "/admin/thematiq/icon_pack", params: { icon_pack: "", authenticity_token: pack_token }
+  check("the icon pack follows the design system again") { OpenProject::Thematiq::Store.new.icon_pack_choice.empty? }
+
   # 30. The gallery: off by default, https only; and the shared light or dark choice
   check("the gallery is off by default and opens nothing") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
   gallery_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)

@@ -13,6 +13,7 @@ require "open_project/thematiq/gallery"
 require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
+require "open_project/thematiq/icon_packs"
 
 module OpenProject
   module Thematiq
@@ -417,6 +418,23 @@ module OpenProject
       #
       # The key and the check are the shell's: Shell::NEXTCLOUD_URL_SETTING, read by Shell.nextcloud_url
       # and checked by Shell::NextcloudApps.normalize. The plugin never opens this address. It only links to it.
+
+      # --- the icon pack: follow the design system (empty), none, or one pack by name ---
+
+      ICON_PACK_KEY = "icon_pack"
+
+      def icon_pack_choice
+        value = data[ICON_PACK_KEY].to_s
+        IconPacks.valid_choice?(value) ? value : IconPacks::FOLLOW
+      end
+
+      def save_icon_pack_choice(value)
+        value = value.to_s
+        return false unless IconPacks.valid_choice?(value)
+
+        write(ICON_PACK_KEY => value.empty? ? nil : value)
+        true
+      end
 
       NEXTCLOUD_URL_KEY = "nextcloud_url"
 

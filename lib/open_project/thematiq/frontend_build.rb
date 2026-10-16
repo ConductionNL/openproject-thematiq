@@ -43,6 +43,11 @@ module OpenProject
         Status.new(state: same ? :current : :stale, stamp:)
       end
 
+      # The status of this process's image. The bundle and the module on disk do not change while it runs.
+      def cached_status
+        @cached_status ||= status
+      end
+
       def read_stamp(path)
         return nil unless File.file?(path)
 

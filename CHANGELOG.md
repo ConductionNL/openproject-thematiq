@@ -65,6 +65,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 ### The frontend route
 
 - A second install route: `docker/Dockerfile --target frontend` rebuilds OpenProject's Angular frontend with the plugin's own module, and the compose profile `frontend` runs it. The default route does not change. The admin page says which route runs (#115, design in #114).
+- On the frontend route, OpenProject's own icons follow the icon pack of the design system: Den Haag for the NL Design System, DSFR for La Suite, or the pack an administrator chooses. **Icon pack** on the admin page says which one is active (#116).
 
 ### Database
 

@@ -13,6 +13,8 @@ on:
       - "docker/**"
       - "script/stamp-frontend-build.rb"
       - "lib/open_project/thematiq/frontend_build.rb"
+      - "lib/open_project/thematiq/icon_packs.rb"
+      - "data/icon-packs.json"
       - "test/e2e/**"
       - ".github/workflows/frontend-route.yml"
   push:

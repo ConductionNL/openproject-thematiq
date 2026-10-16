@@ -179,6 +179,17 @@ module Thematiq
       redirect_to action: :show, anchor: "thematiq-top-bar"
     end
 
+    # The icon pack: follow the design system, none, or one pack for every design system.
+    def update_icon_pack
+      if @store.save_icon_pack_choice(params[:icon_pack])
+        record_change("icon_pack", @store.icon_pack_choice.presence)
+        flash[:notice] = t("thematiq.icon_pack.notice_saved")
+      else
+        flash[:error] = t("thematiq.icon_pack.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-icon-pack"
+    end
+
     # The environment marker: a label on every page, such as "Test", in a colour. Empty clears it.
     def update_environment_marker
       if @store.save_environment_marker(params[:environment_label], params[:environment_colour])
@@ -748,7 +759,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups icon_pack].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
