@@ -504,7 +504,7 @@ begin
   fresh.post replaced.url
   check("the endpoint takes no POST") { fresh.response.status != 200 }
 
-  Thematiq::Upload.where(set_id: check_set, kind: "logo").update_all(kind: "export_logo")
+  Thematiq::Upload.where(set_id: check_set, kind: "logo").update_all(kind: "export_banner")
   fresh.get replaced.url
   check("a row that is not one of the kinds is not served") { fresh.response.status == 404 }
   Thematiq::Upload.remove_set(check_set)
@@ -549,8 +549,13 @@ begin
     %w[logo logo-inverse logo-mobile favicon touch-icon font].all? { |kind| body.include?(%(id="thematiq-file-#{kind}-form")) }
   end
   check("each field states its limits") { body.include?("At most 512 KB") && body.include?("2000 by 1000 px") && body.include?("12 files per design system") }
-  # Seven since the sign-in background joined the six (#87).
-  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 7 }
+  # Seven since the sign-in background joined the six (#87), fourteen with the seven files of PDF exports.
+  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 14 }
+  check("the editor has an upload form per file of PDF exports, in a group of its own") do
+    pdf = body[%r{<div class="thematiq-files__pdf".*}m].to_s
+    %w[export-logo export-cover export-footer export-font-regular export-font-bold export-font-italic export-font-bold-italic]
+      .all? { |kind| pdf.include?(%(id="thematiq-file-#{kind}-form")) } && pdf.include?('accept=".ttf"')
+  end
 
   body = send_file.call("logo", UploadSamples.svg("clean-logo"), "logo.txt")
   logo = of_kind.call("logo")
@@ -647,7 +652,7 @@ begin
   check("a file name with a path in it is only ever a label") do
     of_kind.call("logo").format == "png" && !body.include?("adapter:") && of_kind.call("logo").file_name == "logo.png"
   end
-  admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "export_logo", upload: "1", file: binary.call(UploadSamples.png, "x.png"),
+  admin.post "/admin/thematiq/custom/files", params: { id: set_id, kind: "export_banner", upload: "1", file: binary.call(UploadSamples.png, "x.png"),
                                                        authenticity_token: form_token(admin, editor, "thematiq-file-logo-form") }
   admin.follow_redirect!
   check("a kind the plugin does not have is refused") { admin.response.body.include?("does not know that kind of file") }

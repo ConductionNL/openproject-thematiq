@@ -181,7 +181,7 @@ class UploadsWiringTest < Minitest::Test
     text = Thematiq::Transfer.export(custom, uploads: [record("logo", "svg", "b")])
 
     assert_equal custom.tokens, Thematiq::Transfer.import(text).tokens
-    hostile = JSON.parse(text).merge("uploads" => { "kinds" => ["logo", "<script>alert(1)</script>", 7, nil, "export_logo"] })
+    hostile = JSON.parse(text).merge("uploads" => { "kinds" => ["logo", "<script>alert(1)</script>", 7, nil, "export_banner"] })
     assert_equal ["logo"], Thematiq::Transfer.left_behind(JSON.generate(hostile))
     assert_empty Thematiq::Transfer.left_behind("not json")
     assert_empty Thematiq::Transfer.left_behind(nil)
