@@ -689,7 +689,7 @@ begin
   # 7b. PDF exports carry the design system: its PDF logo, cover and footer pictures, fonts and cover text colour.
   # The export is asked for over HTTP for one work package, and run through core's exporter for the report with a cover,
   # which OpenProject runs as a job. The PDF bytes are read here: Prawn writes the dictionaries as text and the page
-  # content as Flate streams, which are inflated.
+  # content as Flate streams, which are inflated. Prawn sets a text colour with scn.
   pdf_streams = lambda do |bytes|
     bytes.b.scan(/stream\r?\n(.*?)\r?\nendstream/m).flatten.map do |stream|
       Zlib::Inflate.inflate(stream)
@@ -748,7 +748,7 @@ begin
   report = User.execute_as(User.find_by(login: "admin")) { render_report.call(demo_project) }
   check("a report with a cover exports") { report.start_with?("%PDF") }
   check("the cover carries the design system's cover picture and logo") { image_of.call(report, 400, 300) && image_of.call(report, 173, 37) }
-  check("the cover text has the design system's colour") { pdf_streams.call(report).include?("0.75294 1.0 0.93333 rg") }
+  check("the cover text has the design system's colour") { pdf_streams.call(report).include?("0.75294 1.0 0.93333 scn") }
 
   # A project with a design system of its own exports with that one. The catalogue's default has no PDF files,
   # so that export keeps OpenProject's logo, cover, colour and fonts.
@@ -764,7 +764,7 @@ begin
     end
     other_report = User.execute_as(User.find_by(login: "admin")) { render_report.call(other_project) }
     check("and its cover keeps OpenProject's picture and colour") do
-      other_report.start_with?("%PDF") && !image_of.call(other_report, 400, 300) && !pdf_streams.call(other_report).include?("0.75294 1.0 0.93333 rg")
+      other_report.start_with?("%PDF") && !image_of.call(other_report, 400, 300) && !pdf_streams.call(other_report).include?("0.75294 1.0 0.93333 scn")
     end
   ensure
     Thematiq::Scope.choose(project: other_project, module_name: "", design_system_id: nil)
