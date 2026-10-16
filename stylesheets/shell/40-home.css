@@ -13,3 +13,22 @@
   text-transform: uppercase;
   color: var(--thematiq-muted);
 }
+
+/* The workplace layout (x-workplace-layout): content as cards on a quiet surface, as OpHome draws it.
+ * The surface is the content area of Home; each widget of the grid and each Home block is a card with a line,
+ * the larger corner and a header row with a line under it. Core's widgets, moving and options stay as they are. */
+#content-wrapper:has(> .thematiq-home), #content:has(> .thematiq-home) { background: var(--thematiq-ground); }
+.thematiq-home .grid--area-content.widget-box,
+.thematiq-home .widget-box {
+  background: var(--thematiq-surface);
+  border: 1px solid var(--thematiq-line);
+  border-radius: var(--thematiq-radius-lg);
+  box-shadow: none;
+}
+.thematiq-home .grid--area-content.widget-box:hover { box-shadow: none; border-color: var(--thematiq-line); }
+.thematiq-home .op-widget-box--header {
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--thematiq-soft);
+}
+.thematiq-home .op-widget-box--header-title-wrapper { font-size: 16px; font-weight: 700; line-height: 1.3; }

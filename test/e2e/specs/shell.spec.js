@@ -65,6 +65,32 @@ test.describe("shell", () => {
     expect(new URL(response.headers().location).pathname).toBe("/");
   });
 
+  test("Home's widgets are cards on a quiet surface (OpHome)", async ({ page }) => {
+    await page.goto("/");
+    const card = page.locator(".thematiq-home--grid .grid--area-content.widget-box").first();
+    await expect(card).toBeVisible();
+    const looks = await card.evaluate((el) => {
+      // What the plugin's variables resolve to on this page, through a probe that takes them.
+      const probe = document.createElement("div");
+      probe.style.cssText = "background: var(--thematiq-ground); border-radius: var(--thematiq-radius-lg); color: var(--thematiq-surface)";
+      document.body.appendChild(probe);
+      const want = getComputedStyle(probe);
+      const result = {
+        ground: want.backgroundColor, radius: want.borderTopLeftRadius, surface: want.color,
+        page: getComputedStyle(el.closest("#content-wrapper") || el.closest("#content")).backgroundColor,
+        card: getComputedStyle(el).backgroundColor, cardRadius: getComputedStyle(el).borderTopLeftRadius,
+        line: getComputedStyle(el).borderTopWidth, shadow: getComputedStyle(el).boxShadow,
+      };
+      probe.remove();
+      return result;
+    });
+    expect(looks.page, "the quiet surface").toBe(looks.ground);
+    expect(looks.card, "the card").toBe(looks.surface);
+    expect(looks.cardRadius).toBe(looks.radius);
+    expect(looks.line).toBe("1px");
+    expect(looks.shadow).toBe("none");
+  });
+
   test("the sizes hold the canon", async ({ page }) => {
     await openWorkPackages(page);
     const size = (selector) => page.locator(selector).first().evaluate((el) => {
