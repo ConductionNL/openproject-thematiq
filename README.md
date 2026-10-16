@@ -200,6 +200,8 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 4. Untick a value to keep its value of now. Then the result is saved as a new custom design system.
 5. Select **Apply**. The page repaints at once. Everyone else sees the design system on their next page.
 
+Each design system in the picker says which whole design system it belongs to, as thematiq groups them: NL Design System, La Suite, high contrast, a soft light theme, Cunningham or none. **Design system** next to the search field shows the sets of one of them.
+
 ### Try a design system first
 
 On the page of step 3, select **Try it yourself first**. Only you see that design system, on every page, until you select **Publish to everyone** or **Discard** in the banner at the foot of the page. A trial ends by itself after a day.

@@ -17,6 +17,13 @@ module Thematiq
       @query = params[:q].to_s.strip.first(100)
       @sets = @store.catalogue.search(@query)
       @customs = @store.custom_drafts(@query)
+      # A whole design system narrows the list to its sets (cat-design-system-choice).
+      @design_system = OpenProject::Thematiq::DesignSystems.known?(params[:ds]) ? params[:ds].to_s : nil
+      if @design_system
+        systems = OpenProject::Thematiq::DesignSystems
+        @sets = @sets.select { |set| systems.for_set(set.id) == @design_system }
+        @customs = @customs.select { |custom| systems.for_set(custom.id, base_id: custom.base.id) == @design_system }
+      end
       @total = @store.catalogue.sets.size + @store.custom_drafts.size
     end
 

@@ -692,6 +692,17 @@ en:
         warning-on-white: "warning text on white"
         success-on-ground: "success text on the page background"
         success-on-white: "success text on white"
+    design_systems:
+      filter: "Design system"
+      all: "All design systems"
+      of_set: "Design system: %{name}"
+      names:
+        none: "None, Nextcloud's own look"
+        nldesign: "NL Design System"
+        summer-breeze: "Summer breeze, a soft light theme"
+        high-contrast: "High contrast"
+        lasuite: "La Suite"
+        cunningham: "Cunningham"
     icon_pack:
       title: "Icon pack"
       hint: "OpenProject's own icons can follow the icon pack of the design system, as in thematiq: the Dutch government packs for the NL Design System, the French one for La Suite. An icon the pack has no counterpart for keeps OpenProject's. This needs the frontend route."

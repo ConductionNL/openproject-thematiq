@@ -79,9 +79,18 @@
         value: @query,
         input_width: :large
       )) %>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-design-system-filter"><%= t("thematiq.design_systems.filter") %></label>
+    <select name="ds" id="thematiq-design-system-filter" class="FormControl-select FormControl-medium">
+      <option value=""><%= t("thematiq.design_systems.all") %></option>
+      <% OpenProject::Thematiq::DesignSystems.ids.each do |id| %>
+        <option value="<%= id %>" <%= "selected" if @design_system == id %>><%= t("thematiq.design_systems.names.#{id}", default: id) %></option>
+      <% end %>
+    </select>
+  </div>
   <div class="thematiq-picker__search-actions">
     <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.admin.search") } %>
-    <% if @query.present? %>
+    <% if @query.present? || @design_system %>
       <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_path, scheme: :invisible)) { t("thematiq.admin.show_all") } %>
     <% end %>
   </div>
@@ -121,6 +130,9 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.custom_meta", count: custom.changed_count, name: custom.base.name) %></span>
+              <% if (system = OpenProject::Thematiq::DesignSystems.for_set(custom.id, base_id: custom.base.id)) %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-design-system" data-design-system="<%= system %>"><%= t("thematiq.design_systems.of_set", name: t("thematiq.design_systems.names.#{system}", default: system)) %></span>
+              <% end %>
               <% low = OpenProject::Thematiq::Contrast.failures(custom_set) %>
               <% if low.any? %>
                 <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
@@ -153,6 +165,9 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+              <% if (system = OpenProject::Thematiq::DesignSystems.for_set(token_set.id)) %>
+                <span class="thematiq-picker__meta" data-test-selector="thematiq-design-system" data-design-system="<%= system %>"><%= t("thematiq.design_systems.of_set", name: t("thematiq.design_systems.names.#{system}", default: system)) %></span>
+              <% end %>
               <span class="thematiq-picker__meta" data-test-selector="thematiq-completeness"><%= t("thematiq.admin.completeness", filled: token_set.vocabulary.size, total: OpenProject::Thematiq::Tokens::Vocabulary.keys.size, dark: token_set.dark? ? t("thematiq.admin.completeness_dark") : t("thematiq.admin.completeness_no_dark")) %></span>
               <% low = OpenProject::Thematiq::Contrast.failures(token_set) %>
               <% if low.any? %>
