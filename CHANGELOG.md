@@ -53,6 +53,10 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 - Where OpenProject's canon and Nextcloud (Zuiddrecht) differ, OpenProject follows Nextcloud: the primary button is 48 px high (was 40), a table row 44 px (was 48) and body text 15 px (was 14).
 
+### PDF export
+
+- The files of PDF exports per custom design system: a logo, a cover picture, a footer picture and four TrueType font cuts, on the editor page; and the value "Cover text" for the text colour of the cover page.
+
 ### OpenProject 17.9.2
 
 - A fresh install on OpenProject 17.9.2 starts: its image loads core's schema on an empty database and then refused to seed with the plugin's migrations pending; they now run right after the schema is loaded. The 37 core files the shell leans on are the same in 17.9.1 and 17.9.2.
@@ -63,7 +67,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 ### Database
 
-No new table since 0.2.0. Uploads take one more kind, `login_background`, and the font library uses the set id `library` in `thematiq_uploads`.
+No new table since 0.2.0. Uploads take eight more kinds, `login_background` and the seven `export_*` kinds of PDF exports, and the font library uses the set id `library` in `thematiq_uploads`.
 
 ## 0.2.0, not yet released
 

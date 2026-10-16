@@ -16,11 +16,45 @@ class UploadsInspectorTest < Minitest::Test
 
   # --- the kinds ---
 
-  def test_the_kinds_are_the_seven_the_admin_page_offers
-    assert_equal %w[logo logo_inverse logo_mobile favicon touch_icon login_background font], Uploads::KINDS.keys
+  def test_the_kinds_are_the_fourteen_the_admin_page_offers
+    assert_equal %w[logo logo_inverse logo_mobile favicon touch_icon login_background font export_logo export_cover export_footer
+                    export_font_regular export_font_bold export_font_italic export_font_bold_italic], Uploads::KINDS.keys
     assert(Uploads::KINDS.values.all? { |kind| kind.max_bytes.between?(64 * 1024, 2 * 1024 * 1024) })
     assert(Uploads::KINDS.values.all? { |kind| (kind.formats - Uploads::FORMATS.keys).empty? })
     assert_equal ["font"], Uploads::KINDS.values.reject(&:single).map(&:name)
+  end
+
+  # Prawn embeds PNG and JPEG pictures and TrueType fonts, nothing else.
+  def test_the_pdf_kinds_take_only_what_a_pdf_can_embed
+    pdf = Uploads::KINDS.values.select(&:pdf?)
+    assert_equal %w[export_logo export_cover export_footer], pdf.select(&:image?).map(&:name)
+    pdf.select(&:image?).each { |kind| assert_equal %w[png jpeg], kind.formats, kind.name }
+    pdf.reject(&:image?).each { |kind| assert_equal %w[ttf], kind.formats, kind.name }
+    assert(pdf.all?(&:single))
+    refute Uploads.kind("logo").pdf?
+  end
+
+  def test_a_pdf_picture_takes_png_and_jpeg_and_refuses_the_rest
+    assert_equal "png", inspect_upload("export_logo", UploadSamples.png(200, 50)).format
+    assert_equal "jpeg", inspect_upload("export_cover", UploadSamples.jpeg(800, 600)).format
+    assert_equal "png", inspect_upload("export_footer", UploadSamples.png(100, 20)).format
+    assert_equal "wrong_type", refused("export_logo", UploadSamples.svg("clean-logo"))
+    assert_equal "wrong_type", refused("export_logo", UploadSamples.webp)
+    assert_equal "too_small", refused("export_cover", UploadSamples.png(100, 100))
+    assert_equal "too_wide", refused("export_footer", UploadSamples.png(2000, 600))
+  end
+
+  def test_an_interlaced_png_is_refused_for_a_pdf_only
+    interlaced = UploadSamples.png(200, 50, interlace: 1)
+    assert_equal "interlaced", refused("export_logo", interlaced)
+    assert_equal "png", inspect_upload("logo", interlaced).format
+  end
+
+  def test_a_pdf_font_is_truetype_only
+    assert_equal "ttf", inspect_upload("export_font_regular", UploadSamples.ttf).format
+    assert_equal "ttf", inspect_upload("export_font_bold_italic", UploadSamples.ttf("true".b)).format
+    %w[woff2 woff otf].each { |format| assert_equal "wrong_type", refused("export_font_bold", UploadSamples.public_send(format)), format }
+    assert_equal "too_large", refused("export_font_italic", UploadSamples.ttf + ("\x00".b * (2048 * 1024)))
   end
 
   def test_sizes_are_stated_in_units_of_1024
@@ -29,7 +63,7 @@ class UploadsInspectorTest < Minitest::Test
   end
 
   def test_an_unknown_kind_is_refused
-    ["", "export_logo", "../logo", nil, 7].each { |kind| assert_equal "unknown_kind", refused(kind, UploadSamples.png) }
+    ["", "export_banner", "../logo", nil, 7].each { |kind| assert_equal "unknown_kind", refused(kind, UploadSamples.png) }
   end
 
   # --- the type comes from the content ---

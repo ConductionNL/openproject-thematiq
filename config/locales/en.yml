@@ -554,6 +554,9 @@ en:
         typography:
           label: "Typography"
           hint: "Text colours and the font."
+        pdf_export:
+          label: "PDF export"
+          hint: "The cover page of a PDF export. Its logo, pictures and fonts are files, uploaded below."
         status:
           label: "Status colours"
           hint: "Errors, warnings, success and information, and the badges that show them."
@@ -821,6 +824,9 @@ en:
       font_style: "Style"
       font_face: "%{weight}, %{style}."
       font_sample: "Sphinx of black quartz"
+      pdf_title: "PDF export"
+      pdf_description: "The logo, pictures and fonts of PDF exports of work packages, projects and meetings. A file left empty keeps what OpenProject uses. The cover text colour is a value above, in the group PDF export."
+      limit_pdf_font: "%{types}. At most %{size}."
       notice_stored: "The %{kind} is uploaded and in use."
       notice_stored_cleaned: "The %{kind} is uploaded and in use. Parts of the SVG file that the plugin does not allow were left out. Check the preview."
       notice_removed: "The file is removed."
@@ -838,6 +844,13 @@ en:
         touch_icon: { label: "touch icon", hint: "home screen of a phone or tablet" }
         login_background: { label: "sign-in background", hint: "a photo behind the sign-in page" }
         font: { label: "font", hint: "text that names its family" }
+        export_logo: { label: "PDF logo", hint: "the top of each page of a PDF export" }
+        export_cover: { label: "PDF cover picture", hint: "the background of the cover page" }
+        export_footer: { label: "PDF footer picture", hint: "the bottom of each page, beside the footer text" }
+        export_font_regular: { label: "PDF font, regular", hint: "all text of a PDF export; needed for the other three" }
+        export_font_bold: { label: "PDF font, bold", hint: "the regular font when empty" }
+        export_font_italic: { label: "PDF font, italic", hint: "the regular font when empty" }
+        export_font_bold_italic: { label: "PDF font, bold italic", hint: "the bold, then the italic font when empty" }
       weights:
         w100: "Thin, 100"
         w200: "Extra light, 200"
@@ -871,6 +884,7 @@ en:
         not_stored: "That file is no longer there."
         not_ready: "The table for uploaded files is missing. Run the database migration of the plugin first."
         unknown_kind: "The plugin does not know that kind of file. Nothing was uploaded."
+        interlaced: "The PNG file is interlaced, which a PDF cannot hold. Save it without interlacing and try again."
     tokens:
       primary: { label: "Primary", hint: "top bar" }
       primary-deep: { label: "Primary, deep", hint: "hover in the top bar, selected text" }
@@ -891,6 +905,7 @@ en:
       radius-lg: { label: "Radius, large", hint: "inputs and panels" }
       font-family: { label: "Font", hint: "all text" }
       menu: { label: "Menu", hint: "background of the main menu, white when empty" }
+      pdf-cover-text: { label: "Cover text", hint: "text on the cover page of a PDF export, a hex or rgb() colour; OpenProject's colour when empty" }
     scopes:
       modules:
         work_packages: "Work packages"

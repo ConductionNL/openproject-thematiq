@@ -142,7 +142,8 @@ class EditorTest < Minitest::Test
     assert_empty css.scan(/var\((--tqp-[a-z-]+)/).flatten.uniq - written
   end
   def test_every_colour_has_a_dark_field_and_nothing_else_has
-    assert_equal Editor::KINDS.select { |_key, kind| kind == :color }.keys, Editor::DARK_FIELDS
+    assert_equal Editor::KINDS.select { |_key, kind| kind == :color }.keys - ["pdf-cover-text"], Editor::DARK_FIELDS
+    refute_includes TokenSet::DARK_KEYS, "pdf-cover-text", "a printed page has no dark theme"
     assert_includes Editor::DARK_FIELDS, "primary"
     assert_includes Editor::DARK_FIELDS, "color-error"
     refute_includes Editor::DARK_FIELDS, "radius"

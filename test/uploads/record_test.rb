@@ -32,7 +32,7 @@ class UploadsRecordTest < Minitest::Test
   end
 
   def test_a_record_that_does_not_hold_together_is_not_built
-    assert_nil record(kind: "export_logo")
+    assert_nil record(kind: "export_banner")
     assert_nil record(kind: "logo", format: "woff2")
     assert_nil record(kind: "touch_icon", format: "svg")
     assert_nil record(format: "exe")

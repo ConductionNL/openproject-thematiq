@@ -21,9 +21,16 @@ module OpenProject
       KILOBYTE = 1024
 
       # formats: what the content may be. single: one file per design system, an upload replaces it.
-      Kind = Struct.new(:name, :formats, :max_bytes, :min_side, :max_width, :max_height, :single, keyword_init: true) do
-        def image? = name != "font"
+      # pdf: the file goes into PDF exports, see PdfExport. Prawn embeds PNG without interlacing and JPEG, and TrueType fonts.
+      Kind = Struct.new(:name, :formats, :max_bytes, :min_side, :max_width, :max_height, :single, :pdf, keyword_init: true) do
+        def image? = !formats.intersect?(FONT_FORMATS)
+        def pdf? = pdf == true
       end
+
+      FONT_FORMATS = %w[woff2 woff ttf otf].freeze
+
+      # The four cuts of the PDF export font, as OpenProject's exporter names them. Only regular is needed.
+      PDF_FONT_CUTS = %w[regular bold italic bold_italic].freeze
 
       KINDS = [
         Kind.new(name: "logo", formats: %w[svg png jpeg webp], max_bytes: 512 * KILOBYTE, min_side: 16, max_width: 2000, max_height: 1000, single: true),
@@ -34,7 +41,14 @@ module OpenProject
         # The background of the sign-in page (ast-upload-background). A photo, so larger, and never SVG.
         Kind.new(name: "login_background", formats: %w[jpeg png webp], max_bytes: 2048 * KILOBYTE, min_side: 200, max_width: 4000, max_height: 4000,
                  single: true),
-        Kind.new(name: "font", formats: %w[woff2 woff ttf otf], max_bytes: 2048 * KILOBYTE, single: false)
+        Kind.new(name: "font", formats: %w[woff2 woff ttf otf], max_bytes: 2048 * KILOBYTE, single: false),
+        Kind.new(name: "export_logo", formats: %w[png jpeg], max_bytes: 512 * KILOBYTE, min_side: 16, max_width: 2000, max_height: 1000,
+                 single: true, pdf: true),
+        Kind.new(name: "export_cover", formats: %w[png jpeg], max_bytes: 2048 * KILOBYTE, min_side: 200, max_width: 4000, max_height: 4000,
+                 single: true, pdf: true),
+        Kind.new(name: "export_footer", formats: %w[png jpeg], max_bytes: 256 * KILOBYTE, min_side: 8, max_width: 2000, max_height: 500,
+                 single: true, pdf: true),
+        *PDF_FONT_CUTS.map { |cut| Kind.new(name: "export_font_#{cut}", formats: %w[ttf], max_bytes: 2048 * KILOBYTE, single: true, pdf: true) }
       ].to_h { |kind| [kind.name, kind.freeze] }.freeze
 
       # How many font files one design system may hold.

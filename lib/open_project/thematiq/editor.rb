@@ -45,7 +45,8 @@ module OpenProject
         Group.new(id: "branding", keys: %w[primary primary-deep primary-light accent], vocabulary: false),
         Group.new(id: "content", keys: %w[ground soft chip line field menu radius radius-lg], vocabulary: false),
         Group.new(id: "buttons", keys: %w[action action-deep link], vocabulary: false),
-        Group.new(id: "typography", keys: %w[ink text muted font-family], vocabulary: false)
+        Group.new(id: "typography", keys: %w[ink text muted font-family], vocabulary: false),
+        Group.new(id: "pdf_export", keys: %w[pdf-cover-text], vocabulary: false)
       ] + VOCABULARY_GROUPS).freeze
 
       # Every key the form has a field for, with its kind: the roles, then the vocabulary.
@@ -53,7 +54,7 @@ module OpenProject
 
       # Every key with a dark field: each colour, roles and vocabulary alike. Left empty, the dark theme keeps the dark
       # value of the base, else OpenProject's own. Nothing is derived from the light value.
-      DARK_FIELDS = KINDS.select { |_key, kind| kind == :color }.keys.freeze
+      DARK_FIELDS = (KINDS.select { |_key, kind| kind == :color }.keys - Tokens::TokenSet::PRINT_KEYS).freeze
 
       # One contrast check the shell draws: the text, what it sits on, and the tokens it is shown next to.
       # A name that starts with "@" is a colour the plugin works out itself, see Preview#derived.

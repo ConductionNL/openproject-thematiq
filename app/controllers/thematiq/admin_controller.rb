@@ -841,7 +841,7 @@ module Thematiq
 
     UPLOAD_ERRORS = %w[empty too_large unknown_type wrong_type broken too_small too_wide svg_declares svg_not_svg svg_too_complex
                        font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind
-                       font_not_entitled].freeze
+                       font_not_entitled interlaced].freeze
 
     def upload_error_key(code)
       UPLOAD_ERRORS.include?(code) ? code : "broken"

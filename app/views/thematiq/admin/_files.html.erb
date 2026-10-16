@@ -20,50 +20,8 @@
     <p class="thematiq-editor__error"><%= t("thematiq.uploads.errors.not_ready") %></p>
   <% else %>
     <div class="thematiq-files__list">
-      <% uploads::KINDS.each_value.select(&:single).each do |kind| %>
-        <% record = records.reverse.find { |candidate| candidate.kind == kind.name } %>
-        <% field_id = "thematiq-file-#{kind.name.tr('_', '-')}" %>
-        <%= form_with(url: admin_thematiq_custom_files_path, method: :post, multipart: true, data: { turbo: false },
-                      id: "#{field_id}-form", class: "thematiq-files__item") do %>
-          <input type="hidden" name="id" value="<%= @draft.id %>">
-          <input type="hidden" name="kind" value="<%= kind.name %>">
-          <h4 class="thematiq-files__name">
-            <%= t("thematiq.uploads.kinds.#{kind.name}.label").upcase_first %>
-            <span class="thematiq-editor__role"><%= t("thematiq.uploads.kinds.#{kind.name}.hint") %></span>
-          </h4>
-
-          <% if record %>
-            <div class="thematiq-files__preview" <% if kind.name == "logo_inverse" && primary %>style="background: <%= primary %>"<% end %>>
-              <img src="<%= record.url(root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>"
-                   alt="<%= t("thematiq.uploads.preview_alt", kind: t("thematiq.uploads.kinds.#{kind.name}.label")) %>">
-            </div>
-            <p class="thematiq-editor__hint">
-              <%= t("thematiq.uploads.current", type: uploads::FORMATS.fetch(record.format)[:label], size: uploads.human_size(record.byte_size)) %>
-              <% if record.width && record.height %><%= t("thematiq.uploads.current_pixels", width: record.width, height: record.height) %><% end %>
-              <% if record.label %><%= t("thematiq.uploads.current_name", name: record.label) %><% end %>
-            </p>
-          <% else %>
-            <p class="thematiq-files__empty"><%= t("thematiq.uploads.none") %></p>
-          <% end %>
-
-          <label class="thematiq-editor__label" for="<%= field_id %>">
-            <%= t(record ? "thematiq.uploads.choose_replacement" : "thematiq.uploads.choose",
-                  kind: t("thematiq.uploads.kinds.#{kind.name}.label")) %>
-          </label>
-          <input type="file" name="file" id="<%= field_id %>" accept="<%= accept.call(kind) %>" required aria-describedby="<%= field_id %>-limits">
-          <p class="thematiq-editor__hint" id="<%= field_id %>-limits">
-            <%= t(kind.formats.include?("svg") ? "thematiq.uploads.limit_image" : "thematiq.uploads.limit_raster",
-                  types: type_names.call(kind), size: uploads.human_size(kind.max_bytes),
-                  min: kind.min_side, width: kind.max_width, height: kind.max_height) %>
-          </p>
-          <div class="thematiq-files__actions">
-            <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t(record ? "thematiq.uploads.replace" : "thematiq.uploads.upload") } %>
-            <% if record %>
-              <%= render(Primer::Beta::Button.new(type: :submit, scheme: :danger, name: "remove", value: record.token, formnovalidate: true,
-                                                  "aria-label": t("thematiq.uploads.remove_label", kind: t("thematiq.uploads.kinds.#{kind.name}.label")))) { t("thematiq.uploads.remove") } %>
-            <% end %>
-          </div>
-        <% end %>
+      <% uploads::KINDS.each_value.select { |kind| kind.single && !kind.pdf? }.each do |kind| %>
+        <%= render partial: "thematiq/admin/file_item", locals: { kind:, records:, primary: } %>
       <% end %>
     </div>
 
@@ -144,5 +102,16 @@
         <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.uploads.upload_font") } %>
       </div>
     <% end %>
+
+    <%# The files of PDF exports. OpenProject::Thematiq::PdfExport hands them to the exporters. %>
+    <div class="thematiq-files__pdf" id="thematiq-files-pdf" role="group" aria-labelledby="thematiq-files-pdf-title">
+      <h4 class="thematiq-files__name" id="thematiq-files-pdf-title"><%= t("thematiq.uploads.pdf_title") %></h4>
+      <p class="thematiq-editor__hint"><%= t("thematiq.uploads.pdf_description") %></p>
+      <div class="thematiq-files__list">
+        <% uploads::KINDS.each_value.select(&:pdf?).each do |kind| %>
+          <%= render partial: "thematiq/admin/file_item", locals: { kind:, records:, primary: } %>
+        <% end %>
+      </div>
+    </div>
   <% end %>
 </section>

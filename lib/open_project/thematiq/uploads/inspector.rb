@@ -40,7 +40,14 @@ module OpenProject
 
           result = read(kind, format, bytes)
           check_dimensions(kind, result)
+          raise Refused, "interlaced" if kind.pdf? && format == "png" && png_interlaced?(bytes)
+
           result
+        end
+
+        # The interlace byte of the header. Prawn cannot embed an interlaced PNG file in a PDF.
+        def png_interlaced?(bytes)
+          bytes.getbyte(PNG_SIGNATURE.bytesize + 8 + 12) != 0
         end
 
         # The type of a file by its first bytes. nil when it is none the plugin knows.
