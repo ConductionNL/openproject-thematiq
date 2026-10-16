@@ -297,7 +297,11 @@ module OpenProject
                                bar_declarations(@token_set, @token_set.vocabulary))
           ]
           blocks << block("#{LIGHT_SCOPE} #main-menu", menu_declarations) if @token_set["menu"] && !@content
-          blocks << block(DARK_SCOPE, dark_declarations) if Contrast.dark_usable?(@token_set)
+          if Contrast.dark_usable?(@token_set)
+            blocks << block(DARK_SCOPE, dark_declarations)
+            dark = @token_set.dark_tokens
+            blocks << block("#{DARK_SCOPE} #main-menu", menu_declarations(dark, Contrast.dark_on_selected(dark))) if dark["menu"] && !@content
+          end
           blocks.join("\n")
         end
 
@@ -350,12 +354,20 @@ module OpenProject
           return nil unless value
           return "rgb(#{value})" if key == "color-focus-rgb"
           return nil if key == "color-focus" && Contrast.rgba(value)&.last != 1.0
-          # A set with a menu colour has the plugin's contrast rule for the text on it. The navigation colours of
-          # thematiq are chosen for a white menu, so they stay off a coloured one.
-          return nil if NAV_KEYS.include?(key) && @token_set["menu"]
+          # thematiq's selected entry is drawn as thematiq draws it, also on a menu colour, unless it does not read
+          # there: then the plugin's contrast rule for the selected item decides. See Contrast.nav_drawn?.
+          if NAV_KEYS.include?(key)
+            tokens = nav_tokens(source)
+            return nil if Contrast.nav_selected(source, tokens) && !Contrast.nav_drawn?(source, tokens)
+          end
           return "color-mix(in srgb, #{value} #{NAV_WASH}%, var(--thematiq-surface))" if key == "component-navigation-active-background-color"
 
           value
+        end
+
+        # The tokens a vocabulary is drawn with: the dark block for the dark vocabulary, else the set.
+        def nav_tokens(source)
+          source.equal?(@token_set.dark_vocabulary) ? @token_set.dark_tokens : @token_set
         end
 
         # The role lines without the variables the vocabulary fills, so each variable is written once.
@@ -418,21 +430,21 @@ module OpenProject
 
         # A set with a menu colour gets the menu's variables from that colour, and the text on it from a
         # contrast rule: the set's ink when it reads on the menu, white or near black otherwise.
-        def menu_color_declarations
-          menu = @token_set["menu"]
+        # source: the token set, or the dark block of one.
+        def menu_color_declarations(source = @token_set)
+          menu = source["menu"]
           return [] unless menu
 
-          text = Contrast.on_menu(@token_set)
+          text = Contrast.on_menu(source)
           ["  --main-menu-bg-color: #{menu};", "  --main-menu-font-color: #{text};", "  --main-menu-hover-font-color: #{text};",
            "  --main-menu-bg-hover-background: #{MENU_OVERLAY};", "  --thematiq-menu: #{menu};", "  --thematiq-on-menu: #{text};"]
         end
 
         # Inside the main menu the aliases get the menu's values, so every rule written for a white menu
         # keeps working on a coloured one without knowing about it.
-        def menu_declarations
-          text = Contrast.on_menu(@token_set)
-          selected = Contrast.on_selected(@token_set)
-          ["  --thematiq-surface: #{@token_set['menu']};", "  --thematiq-ink: #{text};", "  --thematiq-text: #{text};",
+        def menu_declarations(source = @token_set, selected = Contrast.on_selected(@token_set))
+          text = Contrast.on_menu(source)
+          ["  --thematiq-surface: #{source['menu']};", "  --thematiq-ink: #{text};", "  --thematiq-text: #{text};",
            "  --thematiq-muted: #{text};", "  --thematiq-soft: #{MENU_OVERLAY};", "  --thematiq-line: #{MENU_OVERLAY};",
            # A link inside a coloured menu, such as "Show all", takes the menu's text colour. The link colour
            # is chosen for a white page and read 2.7 to 1 on the navy menu.
@@ -455,7 +467,7 @@ module OpenProject
           end
           # The dark variant's own vocabulary, where the light value is drawn. It replaces the role's line.
           vocabulary = @token_set.dark_vocabulary
-          without_drawn(colours, VOCABULARY_COLORS, vocabulary) +
+          without_drawn(colours, VOCABULARY_COLORS, vocabulary) + menu_color_declarations(dark) +
             bar_tint_declarations(dark["primary"] && [dark["primary"], Contrast.on(dark, "primary")]) +
             dark_selected_declarations(dark) + vocabulary_declarations(VOCABULARY_COLORS, vocabulary) +
             bar_declarations(dark, vocabulary)

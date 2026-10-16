@@ -202,6 +202,16 @@ class GeneratorTest < Minitest::Test
     assert_includes menu, "  --thematiq-primary-deep: #ffffff;", "the selected item's text is white on the blue item"
   end
 
+  def test_a_sets_own_selected_entry_is_drawn_on_its_menu_colour_when_it_reads
+    nav = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000" }
+    on_white = Generator.new(TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL.merge("menu" => "#ffffff"), "vocabulary" => nav })).css
+    on_navy = Generator.new(TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL.merge("menu" => "#0e2045"), "vocabulary" => nav })).css
+
+    assert_includes on_white, "  --thematiq-v-nav-active-ink: #a30000;"
+    assert_includes on_white, "--thematiq-v-nav-active-wash: color-mix(in srgb, #cc0000 16%, var(--thematiq-surface));"
+    refute_includes on_navy, "--thematiq-v-nav-active", "dark red does not read on navy, so the contrast rule decides"
+  end
+
   def test_a_light_header_gets_dark_text
     light = blocks(Generator.new(set(FULL.merge("primary" => "#fafafa"))).css)[Generator::LIGHT_SCOPE]
 
@@ -264,6 +274,21 @@ class GeneratorTest < Minitest::Test
     assert_includes dark, "  --button--primary-font-color: #1b1c1d;", "white does not read on this green, so the text goes dark"
     refute_includes dark, "--main-menu-bg-color", "what the dark block does not name stays OpenProject's"
     refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#0b1f33"
+  end
+
+  # thematiq's dark blocks carry a menu colour (thematiq #1300). The dark theme draws it, with the text by the same rule.
+  def test_a_dark_menu_colour_is_drawn_in_the_dark_theme_with_its_own_block
+    css = Generator.new(dark_set("primary" => "#0b1f33", "ink" => "#f0f6fc", "ground" => "#0d1117", "menu" => "#141414",
+                                 "primary-light" => "#13202e", "primary-deep" => "#84aad7")).css
+    dark = css[/#{Regexp.escape(Generator::DARK_SCOPE)} \{\n(.*?)\n\}/m, 1]
+    menu = css[/#{Regexp.escape(Generator::DARK_SCOPE)} #main-menu \{\n(.*?)\n\}/m, 1]
+
+    assert_includes dark, "  --main-menu-bg-color: #141414;"
+    assert_includes dark, "  --main-menu-font-color: #f0f6fc;", "the dark ink reads on the dark menu"
+    assert_includes menu, "  --thematiq-surface: #141414;"
+    assert_includes menu, "  --main-menu-selected-font-color: #84aad7;"
+    refute_includes blocks(css)[Generator::LIGHT_SCOPE], "#141414"
+    refute_includes Generator.new(dark_set("primary" => "#0b1f33", "ink" => "#f0f6fc", "menu" => "#141414"), content: true).css, "#main-menu"
   end
 
   def test_hostile_dark_values_are_dropped_and_listed

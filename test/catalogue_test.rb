@@ -43,7 +43,8 @@ class CatalogueTest < Minitest::Test
       css = OpenProject::Thematiq::Variables::Generator.new(token_set).css
 
       refute_match(/[<>\\@]|url\(|!important/, css, token_set.id)
-      expected = 3 + (token_set["menu"] ? 1 : 0) + (OpenProject::Thematiq::Contrast.dark_usable?(token_set) ? 1 : 0)
+      dark = OpenProject::Thematiq::Contrast.dark_usable?(token_set)
+      expected = 3 + (token_set["menu"] ? 1 : 0) + (dark ? 1 : 0) + (dark && token_set.dark_tokens["menu"] ? 1 : 0)
       assert_equal expected, css.count("{"), token_set.id
     end
   end
@@ -63,7 +64,8 @@ class CatalogueTest < Minitest::Test
   end
 
   def test_the_last_resort_values_are_cunningham_from_the_catalogue
-    assert_equal Catalogue.bundled.find("cunningham").tokens, Defaults::TOKENS
+    # The last resort holds the eighteen roles; an optional role such as menu has none.
+    assert_equal Catalogue.bundled.find("cunningham").tokens.slice(*OpenProject::Thematiq::Tokens::TokenSet::KINDS.keys), Defaults::TOKENS
     assert_equal Catalogue.bundled.find("cunningham").name, Defaults::NAME
   end
 
@@ -72,7 +74,7 @@ class CatalogueTest < Minitest::Test
 
     assert_equal %w[nextcloud], without
     Catalogue.bundled.sets.select(&:dark?).each do |token_set|
-      assert_equal OpenProject::Thematiq::Tokens::TokenSet::DARK_KEYS - ["menu"], token_set.dark_tokens.keys, token_set.id
+      assert_equal OpenProject::Thematiq::Tokens::TokenSet::DARK_KEYS, token_set.dark_tokens.keys, token_set.id
     end
   end
 
@@ -91,10 +93,12 @@ class CatalogueTest < Minitest::Test
     assert_equal ["#1a67a3", "#fafafa", "#05002c"], themes.map { |token_set| token_set["primary"] }
   end
 
-  def test_only_the_plugins_own_sets_have_a_menu_colour
-    with_menu = Catalogue.bundled.sets.select { |token_set| token_set["menu"] }.map(&:id)
+  # thematiq made the menu colour a shell role (thematiq #1300), so every set carries one. Most are white.
+  def test_every_set_has_a_menu_colour
+    assert(Catalogue.bundled.sets.all? { |token_set| token_set["menu"] })
+    coloured = Catalogue.bundled.sets.reject { |token_set| token_set["menu"].casecmp?("#ffffff") }.map(&:id)
 
-    assert_equal Catalogue.own_ids.sort, with_menu.sort
+    assert_equal %w[noordwijk openproject-gray openproject-navy-blue], coloured.sort
   end
 
   def test_the_own_file_cannot_replace_a_generated_set

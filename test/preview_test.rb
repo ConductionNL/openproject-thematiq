@@ -83,11 +83,11 @@ class PreviewTest < Minitest::Test
   end
 
   def test_a_swatch_for_an_optional_role_the_set_does_not_have_is_white
-    cunningham = OpenProject::Thematiq::Catalogue.bundled.default
+    without = set({})
 
-    assert_nil cunningham["menu"]
-    OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.each_key { |key| assert_match(/\Abackground: /, Preview.new(cunningham).swatch(key)) }
-    assert_includes Preview.new(cunningham).swatch("menu"), "background: linear-gradient(#ffffff, #ffffff)"
+    assert_nil without["menu"]
+    OpenProject::Thematiq::Tokens::TokenSet::ALL_KINDS.each_key { |key| assert_match(/\Abackground: /, Preview.new(without).swatch(key)) }
+    assert_includes Preview.new(without).swatch("menu"), "background: linear-gradient(#ffffff, #ffffff)"
   end
 
   # The colour lies over a checkerboard, so a colour with transparency shows as such.
