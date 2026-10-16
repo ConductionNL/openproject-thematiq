@@ -118,11 +118,13 @@ module OpenProject
           base = catalogue.find(definition["based_on"]) || catalogue.default
           draft = CustomDraft.new(base:, name: definition["name"], overrides: definition["overrides"], id:, logo: definition["logo"],
                                   dark: definition["dark"], vocabulary: definition["vocabulary"],
-                                  dark_vocabulary: definition["dark_vocabulary"], dark_errors: true)
+                                  dark_vocabulary: definition["dark_vocabulary"], dark_errors: true,
+                                  documentation_url: definition["documentation_url"])
           raise Refused, "customs" unless [nil, true, false].include?(definition["lock_primary"])
           raise Refused, "custom_invalid" unless draft.valid?
         end
-        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary", "lock_primary") }
+        customs.transform_values { |definition| definition.slice("name", "based_on", "overrides", "logo", "dark", "vocabulary", "dark_vocabulary", "lock_primary",
+                                                                  "documentation_url") }
       end
 
       def self.check_settings(settings, known)

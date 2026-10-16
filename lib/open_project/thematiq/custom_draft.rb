@@ -32,8 +32,10 @@ module OpenProject
       # Nothing is derived from a light value.
       # lock_primary: the main button follows the primary colour (thematiq's primary lock). Then action and action-deep
       # take primary and primary-deep, whatever they hold, and the stored overrides of the two are kept for when it is off.
+      # documentation_url: the address of the design system's own documentation, http or https. Empty is none; anything
+      # else that is not such an address is an error under "documentation_url".
       def initialize(base:, name:, overrides:, id: ID, logo: nil, dark: nil, vocabulary: nil, dark_vocabulary: nil, dark_errors: false,
-                     lock_primary: false)
+                     lock_primary: false, documentation_url: nil)
         @base = base
         @id = id.is_a?(String) && ID_PATTERN.match?(id) ? id : ID
         @logo = logo.is_a?(Hash) ? logo : {}
@@ -49,6 +51,9 @@ module OpenProject
         @overrides = clean(Tokens::TokenSet::ALL_KINDS)
         @vocabulary = clean(Tokens::Vocabulary::KINDS)
         @errors << "name" unless self.name
+        @raw_documentation_url = documentation_url.is_a?(String) ? documentation_url.strip : documentation_url
+        @documentation_url = Tokens::Validator.web_address(@raw_documentation_url)
+        @errors << "documentation_url" unless @raw_documentation_url.nil? || @raw_documentation_url == "" || @documentation_url
         @errors.freeze
       end
 
@@ -58,6 +63,14 @@ module OpenProject
 
       def lock_primary?
         @lock_primary
+      end
+
+      # The valid documentation address, or nil.
+      attr_reader :documentation_url
+
+      # What goes back into the documentation field: the address, or the refused text so it can be corrected.
+      def documentation_field_value
+        documentation_url || (error?("documentation_url") ? @raw_documentation_url.to_s[0, 500] : "")
       end
 
       LOCKED = { "action" => "primary", "action-deep" => "primary-deep" }.freeze
@@ -125,7 +138,8 @@ module OpenProject
                              vocabulary: base.vocabulary.merge(resolved(vocabulary)),
                              logo_file: logo_file || base.logo_file,
                              logo_inverse_file: logo_file ? logo_inverse_file : base.logo_inverse_file,
-                             logo_licence: base.logo_licence)
+                             logo_licence: base.logo_licence,
+                             documentation_url: documentation_url || base.documentation_url)
       end
 
       # The shape the store keeps.
@@ -136,6 +150,7 @@ module OpenProject
         definition["vocabulary"] = vocabulary.dup if vocabulary.any?
         definition["dark_vocabulary"] = dark_vocabulary.dup if dark_vocabulary.any?
         definition["lock_primary"] = true if lock_primary?
+        definition["documentation_url"] = documentation_url if documentation_url
         definition
       end
 

@@ -202,6 +202,8 @@ The plugin is early work. It styles the light and the dark theme. In OpenProject
 
 Each design system in the picker says which whole design system it belongs to, as thematiq groups them: NL Design System, La Suite, high contrast, a soft light theme, Cunningham or none. **Design system** next to the search field shows the sets of one of them.
 
+When a design system has its own documentation, its entry in the picker has a **Documentation** link, and the line under **Active now** links to the documentation of the one in use. The link opens in a new tab. NL Design System, La Suite and Cunningham name theirs in thematiq; the nightly catalogue sync keeps those addresses up to date. A custom design system can name its own: see below.
+
 ### Try a design system first
 
 On the page of step 3, select **Try it yourself first**. Only you see that design system, on every page, until you select **Publish to everyone** or **Discard** in the banner at the foot of the page. A trial ends by itself after a day.
@@ -259,7 +261,8 @@ Every change is kept in **History**, a link on **Thematiq design**: when, who, a
 3. Watch the preview beside the form. It follows what you type, and nothing is saved yet. Each colour shows the contrast of the text that goes with it.
    Each colour also has a field for the dark theme, empty to keep the dark value of the base, and an opacity control next to its colour picker. Above the preview, choose whether to see it as the design system of the instance or a project (the whole page) or of a module (the content area only).
 4. A changed value has the badge **Changed**. **Reset** puts one value back, **Reset group** a whole group.
-5. Select **Save and apply**.
+5. Optional: give **Address of its documentation**, an http or https address. The picker then links to it, in place of the documentation of the design system it is based on. It travels in the export file and in the whole setup.
+6. Select **Save and apply**.
 
 You can keep up to 50 custom design systems.
 

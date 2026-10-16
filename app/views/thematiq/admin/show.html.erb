@@ -37,6 +37,11 @@
 <p class="thematiq-picker__status" data-test-selector="thematiq-active">
   <%= t("thematiq.admin.active_now_html", name: active.name) %>
 </p>
+<% active_docs = OpenProject::Thematiq::DesignSystems.documentation_for(active, base_id: @store.custom_draft(@store.active_custom_id.to_s)&.base&.id) %>
+<% if active_docs %>
+  <p><%= link_to t("thematiq.design_systems.docs_active", name: active.name), active_docs, target: "_blank", rel: "noopener noreferrer",
+                 data: { test_selector: "thematiq-active-docs" } %></p>
+<% end %>
 <p><%= link_to t("thematiq.history.link"), admin_thematiq_history_path, data: { test_selector: "thematiq-history-link" } %></p>
 <p><%= link_to t("thematiq.gallery.link"), admin_thematiq_gallery_path, data: { test_selector: "thematiq-gallery-link" } %></p>
 <% if (gallery_notice = @store.gallery_notice) %>
@@ -141,6 +146,10 @@
               <% end %>
             </span>
           </label>
+          <% if (docs = OpenProject::Thematiq::DesignSystems.documentation_for(custom_set, base_id: custom.base.id)) %>
+            <%= link_to t("thematiq.design_systems.docs"), docs, target: "_blank", rel: "noopener noreferrer", class: "thematiq-picker__docs",
+                        "aria-label": t("thematiq.design_systems.docs_label", name: custom_set.name), data: { test_selector: "thematiq-docs-link" } %>
+          <% end %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(id: custom.id),
                                               "aria-label": t("thematiq.admin.edit_label", name: custom_set.name))) { t("thematiq.admin.edit_tokens") } %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: custom.id), scheme: :invisible,
@@ -177,6 +186,10 @@
               <% end %>
             </span>
           </label>
+          <% if (docs = OpenProject::Thematiq::DesignSystems.documentation_for(token_set)) %>
+            <%= link_to t("thematiq.design_systems.docs"), docs, target: "_blank", rel: "noopener noreferrer", class: "thematiq-picker__docs",
+                        "aria-label": t("thematiq.design_systems.docs_label", name: token_set.name), data: { test_selector: "thematiq-docs-link" } %>
+          <% end %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_custom_path(from: token_set.id),
                                               "aria-label": t("thematiq.admin.customise_label", name: token_set.name))) { t("thematiq.admin.customise") } %>
           <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_export_path(id: token_set.id), scheme: :invisible,
