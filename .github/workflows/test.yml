@@ -1,5 +1,5 @@
 # The checks of the plugin.
-# - unit: bin/test and bin/check-syntax, on every pull request and push. They need Docker and the OpenProject image, nothing else.
+# - unit: bin/test, bin/test-frontend and bin/check-syntax, on every pull request and push. They need Docker and the OpenProject image, nothing else.
 # - e2e: builds the image, starts the compose instance from the README and runs test/e2e. A fresh OpenProject
 #   seeds its database for a few minutes and the suite takes about ten, so the job takes about twenty minutes.
 #   It runs on every pull request anyway: this repository has few of them, and without it the suite would only
@@ -30,6 +30,8 @@ jobs:
         run: docker pull openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695
       - name: Unit tests
         run: bin/test
+      - name: Unit tests of the frontend module
+        run: bin/test-frontend
       - name: Syntax
         run: bin/check-syntax
 

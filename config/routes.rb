@@ -28,6 +28,7 @@ Rails.application.routes.draw do
   post "admin/thematiq/email", to: "thematiq/admin#update_email", as: :admin_thematiq_email
   post "admin/thematiq/footer", to: "thematiq/admin#update_footer_links", as: :admin_thematiq_footer
   post "admin/thematiq/marker", to: "thematiq/admin#update_environment_marker", as: :admin_thematiq_marker
+  post "admin/thematiq/icon_pack", to: "thematiq/admin#update_icon_pack", as: :admin_thematiq_icon_pack
   post "admin/thematiq/deprecations", to: "thematiq/admin#update_deprecation", as: :admin_thematiq_deprecations
   get "thematiq/api/v1/deprecations", to: "thematiq/api#deprecations", as: :thematiq_api_deprecations, format: false
   post "admin/thematiq/scopes", to: "thematiq/admin#update_scopes", as: :admin_thematiq_scopes
