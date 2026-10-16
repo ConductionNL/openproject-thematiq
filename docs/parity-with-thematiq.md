@@ -16,10 +16,10 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 155 |
+| in plugin | 156 |
 | being built | 0 |
 | to build, as is | 1 |
-| to build, adapted | 3 |
+| to build, adapted | 2 |
 | no counterpart | 6 |
 | Total | 165 |
 
@@ -192,7 +192,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-footer-links` | Add legal links (privacy statement, imprint, accessibility statement) to the footer and login page | Nextcloud core Theming page | in plugin | #87: a privacy statement, an imprint and an accessibility statement as links at the end of every page and on the sign-in page |  |
 | `sur-web-app-name` | Change the product name, slogan and web address shown to users | Nextcloud core Theming page | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`Setting.app_title`). Since #29 the top bar shows app tiles instead of the name |  |
 | `sur-selection-colour` | Have selected and highlighted text take the brand colour in a readable, translucent form | `specs/token-editor-ui` | in plugin | #98: selected text gets the primary colour, translucent; forced colours keep the system's selection |  |
-| `sur-generated-documents` | Have documents the system generates (letters, PDF exports, reports) carry the house style: logo, cover, footer and fonts (thematiq has this in part) | `specs/document-house-style` | to build, adapted | Stopped by the owner. OpenProject's PDF exports read `CustomStyle` only; a draft request for an extension point is in `docs/upstream/pdf-export-extension-point.md` | M |
+| `sur-generated-documents` | Have documents the system generates (letters, PDF exports, reports) carry the house style: logo, cover, footer and fonts (thematiq has this in part) | `specs/document-house-style` | in plugin | #117, #118: export logo, cover, footer, cover text colour and four TTF fonts per custom design system, through guarded patches on four exporter classes |
 | `sur-assistant-logo` | Show the organisation's logo as an approved mark inside the AI assistant, so users can see the assistant is the one their organisation sanctioned (thematiq has this in part) | `specs/assistant-approved-mark` | no counterpart | An AI assistant panel. The OpenProject 17.9.1 image has none in its controllers, views or modules |  |
 | `sur-per-app-brand` | Give a collaboration or social app of the suite its own brand name, large and small logo and theme colour from a central brand center | `specs/per-app-theming` | in plugin | #67: a project's design system brings its own colours and logo; a module's its own colours for the content. A brand name per project is not built: OpenProject has one app title |  |
 | `x-brand-stripe` | Draw an optional stripe of three colours under the top bar and on the login page (newer than thematiq's list) | `specs/brand-stripe` | in plugin | #87: the three colours in their ratios under the top bar, when a design system gives them |  |
