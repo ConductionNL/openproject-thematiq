@@ -11,7 +11,7 @@ module OpenProject
       # When OpenProject changes one of these files, the check fails and the helper overrides
       # switch themselves off. Read the new core file, adjust the shell, then update the checksum.
       module CoreGuard
-        # The checksums are those of 17.9.1; 17.9.2 has the same 37 files, byte for byte.
+        # The checksums are those of 17.9.1; 17.9.2 has the same 41 files, byte for byte.
         CORE_VERSION = "17.9.1 and 17.9.2"
 
         FILES = {
@@ -135,7 +135,19 @@ module OpenProject
             "fb8abe768c97a0719f2513d5b22e1e7069eff27d356c8f6ded7ae36bb1331e37",
           # The timeline cells and the containers the stylesheet and the lines are placed in.
           "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass" =>
-            "7c7c5185bf36be6d6ae8193812e5ab9908fe59311762135184d6acc1a482a589"
+            "7c7c5185bf36be6d6ae8193812e5ab9908fe59311762135184d6acc1a482a589",
+          # PDFExport::Patches prepends custom_logo_image_filename,
+          "app/models/exports/pdf/common/logo.rb" =>
+            "ce1a9dc7ee1c1eb112cfe03dc0a0093148e8d0ad5338d2eceb39886b8a6693d3",
+          # validate_cover_text_color and custom_cover_image_file,
+          "app/models/exports/pdf/components/cover.rb" =>
+            "822bc28d57d4956ea9b069791052efab758a90d4e85058a15918a01ff1ac2ae5",
+          # custom_footer_image and configure_page_size!, which every exporter with pages calls before its document exists,
+          "app/models/exports/pdf/components/page.rb" =>
+            "5a0bd8e5bd9e1c179e3b3608c4d718174d6bb1e0807e8d06378d1b47ca305ec1",
+          # and View.valid_custom_font? and View#custom_font_files, which register the font family "CustomFont".
+          "app/models/exports/pdf/common/view.rb" =>
+            "9b9d51c3fed100f6cfa090f73f638796cf621b4cec05eba56c32596741efae91"
         }.freeze
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
@@ -194,6 +206,12 @@ module OpenProject
             "frontend/src/app/shared/components/op-context-menu/handlers/op-settings-dropdown-menu.directive.ts",
             "modules/gantt/app/services/gantt/default_query_generator_service.rb",
             "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass"
+          ],
+          pdf_export: [
+            "app/models/exports/pdf/common/logo.rb",
+            "app/models/exports/pdf/components/cover.rb",
+            "app/models/exports/pdf/components/page.rb",
+            "app/models/exports/pdf/common/view.rb"
           ]
         }.freeze
 
