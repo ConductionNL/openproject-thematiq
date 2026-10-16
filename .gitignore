@@ -7,3 +7,5 @@
 /.bundle/
 Gemfile.lock
 __pycache__/
+# Written by the frontend target of docker/Dockerfile
+/frontend-build.json

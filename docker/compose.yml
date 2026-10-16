@@ -1,10 +1,14 @@
 # Try the plugin on your own machine: OpenProject 17 with this plugin, on localhost only.
 # From the repository root: docker compose -f docker/compose.yml up -d --build
 # This is for trying it out. It is not a production setup: it runs without HTTPS.
+#
+# The frontend route, with OpenProject's frontend rebuilt with the plugin's Angular module (docs/design/frontend-build-variant.md):
+#   docker compose -f docker/compose.yml --profile frontend up -d --build openproject-frontend
+# Name the service: without it, the profile starts both instances. They keep their data in separate volumes.
 name: openproject-thematiq-try
 
 services:
-  openproject:
+  openproject: &openproject
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -12,7 +16,7 @@ services:
     # Only this machine can reach it.
     ports:
       - "127.0.0.1:${THEMATIQ_PORT:-8080}:80"
-    environment:
+    environment: &environment
       OPENPROJECT_HOST__NAME: "localhost:${THEMATIQ_PORT:-8080}"
       OPENPROJECT_HTTPS: "false"
       OPENPROJECT_DEFAULT__LANGUAGE: "en"
@@ -50,7 +54,33 @@ services:
       - secret:/var/openproject/secret
     stop_grace_period: 90s
 
+  # The frontend route: the same instance from the frontend target of docker/Dockerfile, on a port and volumes of its own.
+  # Only started with --profile frontend. Building it rebuilds OpenProject's Angular frontend: about 10 GB of free
+  # memory and a long build, see docs/design/frontend-build-variant.md.
+  openproject-frontend:
+    <<: *openproject
+    profiles: [frontend]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: frontend
+      args:
+        THEMATIQ_NODE_MEMORY_MB: "${THEMATIQ_NODE_MEMORY_MB:-6144}"
+    image: openproject-thematiq:frontend
+    ports:
+      - "127.0.0.1:${THEMATIQ_FRONTEND_PORT:-8081}:80"
+    environment:
+      <<: *environment
+      OPENPROJECT_HOST__NAME: "localhost:${THEMATIQ_FRONTEND_PORT:-8081}"
+    volumes:
+      - frontend-pgdata:/var/openproject/pgdata
+      - frontend-assets:/var/openproject/assets
+      - frontend-secret:/var/openproject/secret
+
 volumes:
   pgdata:
   assets:
   secret:
+  frontend-pgdata:
+  frontend-assets:
+  frontend-secret:
