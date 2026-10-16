@@ -92,6 +92,10 @@ begin
   body = admin.response.body
   check("the admin menu has the item") { body.include?("Thematiq design") }
   default_name = OpenProject::Thematiq::Catalogue.bundled.default.name
+  frontend_state = OpenProject::Thematiq::FrontendBuild.status.state
+  check("the page says which frontend runs (#{frontend_state})") do
+    body.include?(%(data-test-selector="thematiq-frontend-build" data-state="#{frontend_state}"))
+  end
   check("the page names the active design system") { body.include?("Active now: <strong>#{ERB::Util.html_escape(default_name)}</strong>") }
   check("the head style carries the Cunningham primary colour") { head_style(admin).include?("--header-bg-color: #{OpenProject::Thematiq::Catalogue.bundled.default['primary']};") }
 

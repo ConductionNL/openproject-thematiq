@@ -57,6 +57,10 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 - A fresh install on OpenProject 17.9.2 starts: its image loads core's schema on an empty database and then refused to seed with the plugin's migrations pending; they now run right after the schema is loaded. The 37 core files the shell leans on are the same in 17.9.1 and 17.9.2.
 
+### The frontend route
+
+- A second install route: `docker/Dockerfile --target frontend` rebuilds OpenProject's Angular frontend with the plugin's own module, and the compose profile `frontend` runs it. The default route does not change. The admin page says which route runs (#115, design in #114).
+
 ### Database
 
 No new table since 0.2.0. Uploads take one more kind, `login_background`, and the font library uses the set id `library` in `thematiq_uploads`.

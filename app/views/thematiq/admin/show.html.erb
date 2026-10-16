@@ -49,6 +49,11 @@
   <% end %>
 <% end %>
 
+<% frontend = OpenProject::Thematiq::FrontendBuild.status %>
+<p class="color-fg-muted" data-test-selector="thematiq-frontend-build" data-state="<%= frontend.state %>">
+  <%= t("thematiq.frontend_build.#{frontend.state}") %>
+</p>
+
 <% assets = OpenProject::Thematiq::Assets.bundled %>
 <% named_font = assets.named_family(active) %>
 <% if named_font %>
