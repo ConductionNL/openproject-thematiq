@@ -26,6 +26,17 @@ module OpenProject
             "a4bf04e4779bf93fed8a69b614c8b3e49c845c7d0781ffbf815d8e6fdb95b718",
           "app/forms/work_packages/dialogs/create_form.rb" =>
             "d9150197884c933d48637ddf306d0ffe440b929c798a20ae030e52f5044c2a85",
+          # CreateDialogFields prepends render_custom_fields, which core's form calls after the description,
+          "app/forms/custom_fields/custom_field_rendering.rb" =>
+            "72ce5cfb1c12d9cad3244903b8dce3ffcf4d347fe2c4d6233312c8ed39d70f8f",
+          # adds its fields with core's form inputs (the work package and user autocompleters),
+          "lib/primer/open_project/forms/dsl/input_methods.rb" =>
+            "7ed07ed88e2ef1697d4deff1e116f6bc0e426e4a1b1fc810519ba4a073b418b5",
+          "lib/primer/open_project/forms/autocompleter.rb" =>
+            "a1cad1193919706e17f53586199f58dcbb3f4f1bac2e1e973214eab3edbca9fb",
+          # and relies on core permitting parent, assignee, priority and the dates of a new work package.
+          "app/models/permitted_params.rb" =>
+            "ce96f03a2b2d57780424887ca2a3f8a9f82baf61ef697dabf635147bb22dae72",
           # How core itself fetches that dialog: a GET with the Turbo stream type, rendered with renderStreamMessage.
           "frontend/src/stimulus/controllers/async-dialog.controller.ts" =>
             "075bf2b2ffb5b75ba32533defcba1e85a5e8d8eed97fdb5e95d63122a6dcff65",
@@ -133,6 +144,10 @@ module OpenProject
             "app/components/work_packages/dialogs/create_dialog_component.html.erb",
             "app/components/work_packages/dialogs/create_form_component.html.erb",
             "app/forms/work_packages/dialogs/create_form.rb",
+            "app/forms/custom_fields/custom_field_rendering.rb",
+            "lib/primer/open_project/forms/dsl/input_methods.rb",
+            "lib/primer/open_project/forms/autocompleter.rb",
+            "app/models/permitted_params.rb",
             "frontend/src/stimulus/controllers/async-dialog.controller.ts",
             "lib/redmine/menu_manager/top_menu/quick_add_menu.rb",
             "frontend/src/app/features/work-packages/components/wp-buttons/wp-create-button/wp-create-button.html",

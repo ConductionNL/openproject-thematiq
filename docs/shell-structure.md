@@ -436,15 +436,28 @@ and fetches core's dialog for that project, with the type and the parent of the 
 | A click with Ctrl, Cmd, Shift or the middle button | Opens core's page in a new tab, as before |
 | The board's look | `stylesheets/shell/70-create-modal.css`: 640 px wide, the project name above the title, the type label shown, fields of 40 px, a footer with a line on top. The title and the submit button say "Create work package" |
 
+### The board's fields
+
+Core's form, `WorkPackages::Dialogs::CreateForm`, renders the type, the subject, the description and the required custom fields, then a hidden field for every other attribute the new work package already has. `Shell::CreateDialogFields` prepends two of its methods:
+
+| Method | What the plugin adds |
+|---|---|
+| `render_custom_fields`, which core calls after the description | Parent (core's work package autocompleter), Assignee (core's user autocompleter, members of the project), Priority (a select of the active priorities), Start date and Finish date (date fields). Each only when core's create contract lets this user write that attribute. Then core's own custom fields |
+| `writable_attributes`, which decides core's hidden fields | Leaves out the attributes the plugin rendered, so the visible field is the one that is sent |
+
+The values go in `work_package[...]` like core's own fields: core's controller permits them, `CreateService` sets and validates them, an error shows in the dialog with what was filled in, and a change of type redraws the form with the values kept. The stylesheet puts them in the board's rows of two: Type and Parent, Subject, Description, Assignee and Priority, the two dates, then the Nextcloud line and the custom fields; one column on a phone. The type shows its name in the ink of the other fields, as drawn, not core's coloured capitals.
+
+**"Link the project folder in Nextcloud"** shows only when a Nextcloud address is set, and then disabled, with a note. Nothing in the plugin can link a folder: OpenProject links Nextcloud folders through a file storage that an administrator sets up per project. Ticking the box could only pretend, so it is drawn as the board has it and says where folders are linked.
+
 ### Differences from the board
 
-- **Fewer fields.** Core's dialog has the type, the subject, the description and the required custom fields. The board also draws Parent, Assignee, Priority, Start date, Due date and "Link the project folder in Nextcloud". Adding them means overriding core's form class, which is the part that keeps validation and custom fields core's. They are set on the work package after it is created. A parent comes along when the action had one, such as "new child".
+- **Finish date.** Core calls the board's "Due date" "Finish date"; the label is core's.
 - **The page's Create button opens the dialog directly.** Core shows a list of types first; the dialog has its own type field, as the board draws it.
 - **Outside a project** (the quick add menu on a page without a project, the global work package page), core's page opens. Core's dialog needs a project.
 
 ### What it costs on an upgrade
 
-Eight guarded core files, the part `create_dialog` in `core_guard.rb`: the dialog controller, the dialog and form components, the form class, core's `async-dialog` controller, the quick add menu, the Create button and its list of types. When one differs, the script is not rendered and every create action opens core's page again. The route `work_packages/dialog/new` itself is in `config/routes.rb`, which changes on every release and is not guarded: if it moves, the fetch fails and the script opens core's page.
+Twelve guarded core files, the part `create_dialog` in `core_guard.rb`: the dialog controller, the dialog and form components, the form class, the custom field rendering it calls, the form inputs and autocompleter the fields use, the permitted parameters, core's `async-dialog` controller, the quick add menu, the Create button and its list of types. When one differs, the script is not rendered, the fields are not added, and every create action opens core's page again. The route `work_packages/dialog/new` itself is in `config/routes.rb`, which changes on every release and is not guarded: if it moves, the fetch fails and the script opens core's page.
 
 ## Open questions
 

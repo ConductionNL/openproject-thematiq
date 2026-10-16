@@ -8,6 +8,7 @@ module OpenProject
     #
     #   Shell::CoreGuard      the core files the shell depends on, with their checksums
     #   Shell::CreateDialog   every create action of a project opens core's create dialog
+    #   Shell::CreateDialogFields  the board's fields in that dialog: parent, assignee, priority and dates
     #   Shell::TopBar         two small overrides of OpenProject's top menu helpers
     #   Shell::ProjectMenu    the overrides of the project menu helpers and the project switcher
     #   Shell::Home           Home and My page as one page
@@ -52,6 +53,7 @@ module OpenProject
       # unchanged and the log names the files that moved.
       def self.install!
         require "open_project/thematiq/shell/create_dialog"
+        require "open_project/thematiq/shell/create_dialog_fields"
         require "open_project/thematiq/shell/nextcloud_apps"
         require "open_project/thematiq/shell/app_row"
         require "open_project/thematiq/shell/logo"
@@ -65,7 +67,8 @@ module OpenProject
         require "open_project/thematiq/shell/home"
         require "open_project/thematiq/shell/gantt"
 
-        { top_bar: [TopBar, AppSwitcher, AccountMenu], project_menu: [ProjectMenu], home: [Home] }.each do |part, overrides|
+        { top_bar: [TopBar, AppSwitcher, AccountMenu], project_menu: [ProjectMenu], home: [Home],
+          create_dialog: [CreateDialogFields] }.each do |part, overrides|
           changed = CoreGuard.changed_files(part:)
           next overrides.each(&:install!) if changed.empty?
 

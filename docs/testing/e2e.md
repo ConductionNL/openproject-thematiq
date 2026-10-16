@@ -21,6 +21,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `uploads.spec.js` | Each kind of upload shows where it should, hostile files are cleaned or refused, the public file route serves without a session and refuses near misses |
 | `shell.spec.js` | The two-layer project menu, the dossiq bar (brand block, app switcher, search, buttons, no tiles), Home and `/my/page`, the sizes of the canon |
 | `top-bar.spec.js` | The field for the tiles of the top bar: an own row shows in its order, no row shows no tiles, an empty own row is refused |
+| `create-dialog-fields.spec.js` | The board's fields in the create dialog: every label in the board's rows of two; core saves parent, assignee, priority and dates; a refused value keeps what was filled in; the Nextcloud line only with an address, disabled with a note; one column at 390 px |
 | `create-dialog.spec.js` | The project menu's action, the Create button and a type in the quick add menu open core's create dialog; Escape and Close return focus; core validates in the dialog and a save refreshes the Gantt chart; a click with a modifier key still opens core's page; 390 px |
 | `api.spec.js` | The read endpoints for a signed-in person, and thematiq's shell-tokens answer without a session |
 | `app-switcher.spec.js` | The list under the nine-dot button: heading, tiles in four columns in a 640 px popover, a second line, the current entry, Manage apps, `aria-expanded`, arrow keys and Escape; one column without a Nextcloud address |
