@@ -11,6 +11,7 @@ module OpenProject
       # The address comes from Shell.nextcloud_url. Without one there is no column.
       module NextcloudApps
         App = Struct.new(:key, :path, :icon)
+        SLASH = "/".ord
 
         # The icon is the path data of the outline icon in the OpHeader design (24 px grid).
         APPS = [
@@ -32,7 +33,10 @@ module OpenProject
         # The address without a trailing slash, or nil when it is not an http or https address.
         # The value ends up in a link, so nothing else gets through.
         def self.normalize(value)
-          url = value.to_s.strip.sub(%r{/+\z}, "")
+          url = value.to_s.strip
+          length = url.bytesize
+          length -= 1 while length.positive? && url.getbyte(length - 1) == SLASH
+          url = url.byteslice(0, length)
           url.match?(%r{\Ahttps?://[^\s"'<>]+\z}i) ? url : nil
         end
 

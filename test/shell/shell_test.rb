@@ -115,6 +115,13 @@ class ShellTest < Minitest::Test
                  Shell::NextcloudApps.url_for(Shell::NextcloudApps::APPS.first, "https://cloud.example.org")
   end
 
+  def test_a_long_run_of_slashes_is_read_in_linear_time
+    started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    assert_nil Shell::NextcloudApps.normalize("#{'/' * 50_000}x")
+    assert_equal "https://cloud.example.org", Shell::NextcloudApps.normalize("https://cloud.example.org#{'/' * 50_000}")
+    assert_operator Process.clock_gettime(Process::CLOCK_MONOTONIC) - started, :<, 1
+  end
+
   def test_no_nextcloud_address_without_http
     [nil, "", "   ", "javascript:alert(1)", "cloud.example.org", 'https://cloud.example.org/"onclick="x'].each do |value|
       assert_nil Shell::NextcloudApps.normalize(value), value.inspect
