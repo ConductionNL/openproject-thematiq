@@ -8,6 +8,8 @@ require "open_project/thematiq/contrast"
 require "date"
 require "time"
 require "open_project/thematiq/custom_css"
+require "open_project/thematiq/email"
+require "open_project/thematiq/gallery"
 require "open_project/thematiq/variables/generator"
 require "open_project/thematiq/shell/nextcloud_apps"
 require "open_project/thematiq/shell/app_row"
@@ -161,6 +163,110 @@ module OpenProject
           cleaned[kind] = address
         end
         write("footer_links" => cleaned)
+        true
+      end
+
+      # --- a design system per group of people, in order: the first group of a person decides (sco-group-priority) ---
+
+      MAX_GROUP_CHOICES = 100
+
+      def group_choices
+        stored = data["group_choices"]
+        return [] unless stored.is_a?(Array)
+
+        stored.select do |entry|
+          entry.is_a?(Hash) && entry["group_id"].is_a?(Integer) && entry["group_id"].positive? && find_set(entry["design_system_id"].to_s)
+        end.first(MAX_GROUP_CHOICES)
+      end
+
+      # rows: [[group id, design system id]] in priority order; an empty design system leaves the group out.
+      # false: an unknown design system or too many rows; nothing is stored.
+      def save_group_choices(rows)
+        cleaned = []
+        Array(rows).each do |group_id, design_system_id|
+          next if design_system_id.to_s.empty?
+          return false unless group_id.to_s.match?(/\A[1-9]\d{0,9}\z/) && find_set(design_system_id.to_s)
+
+          cleaned << { "group_id" => group_id.to_i, "design_system_id" => design_system_id.to_s }
+        end
+        return false if cleaned.size > MAX_GROUP_CHOICES
+
+        write("group_choices" => cleaned.uniq { |entry| entry["group_id"] })
+        true
+      end
+
+      # --- the gallery and the catalogue notice: off until an admin turns it on (see Gallery) ---
+
+      def gallery_enabled?
+        data["gallery_enabled"] == true
+      end
+
+      def gallery_url
+        url = data["gallery_url"]
+        Gallery.valid_url?(url) ? url : Gallery::DEFAULT_URL
+      end
+
+      # false: the address is not an https address.
+      def save_gallery_settings(enabled:, url:)
+        url = url.to_s.strip
+        return false unless url.empty? || Gallery.valid_url?(url)
+
+        write("gallery_enabled" => enabled == true, "gallery_url" => url.empty? ? nil : url)
+        true
+      end
+
+      # What the last check found: "checked_at" (epoch), "generated_from", "sets", "new", "error".
+      def gallery_status
+        stored = data["gallery_status"]
+        stored.is_a?(Hash) ? stored.slice("checked_at", "generated_from", "sets", "new", "error") : {}
+      end
+
+      def record_gallery_status(status)
+        write("gallery_status" => status.slice("checked_at", "generated_from", "sets", "new", "error"))
+      end
+
+      # The notice is for a catalogue newer than the plugin's own, until it is dismissed.
+      def gallery_notice
+        status = gallery_status
+        published = status["generated_from"]
+        return nil unless gallery_enabled? && published.is_a?(String) && published != catalogue.generated_from
+        return nil if data["gallery_dismissed"] == published
+
+        status
+      end
+
+      def dismiss_gallery_notice
+        write("gallery_dismissed" => gallery_status["generated_from"])
+      end
+
+      # --- a shared light or dark choice: another product links here to set a person's choice ---
+
+      def appearance_link_enabled?
+        data["appearance_link_enabled"] == true
+      end
+
+      def save_appearance_link(enabled)
+        write("appearance_link_enabled" => enabled == true)
+      end
+
+      # --- e-mail in the house style: off until an admin turns it on ---
+
+      def email_styled?
+        data["email_styled"] == true
+      end
+
+      # The organisation's text under every e-mail: name, address, legal text. Plain text, lines kept.
+      def email_footer
+        text = data["email_footer"]
+        text.is_a?(String) && text.length <= Email::MAX_FOOTER && !text.match?(/[<>]/) ? text : ""
+      end
+
+      # false: the text is too long or holds markup characters.
+      def save_email_settings(styled:, footer:)
+        footer = footer.to_s.gsub("\r\n", "\n").strip
+        return false if footer.length > Email::MAX_FOOTER || footer.match?(/[<>]/)
+
+        write("email_styled" => styled == true, "email_footer" => footer)
         true
       end
 
@@ -340,8 +446,8 @@ module OpenProject
       def top_bar_apps
         text = data[TOP_BAR_APPS_KEY].to_s.strip
         keys = Shell::AppRow.wanted(text)
-        return ["none", []] if keys.empty?
         return ["default", Shell::AppRow::DEFAULT] if text.empty? || keys.equal?(Shell::AppRow::DEFAULT)
+        return ["none", []] if keys.empty?
 
         ["custom", keys]
       end

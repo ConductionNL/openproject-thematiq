@@ -42,25 +42,37 @@ A failing hook does not break the page. `OpenProject::Hook.call_hook` rescues th
 
 ## Top bar: item by item
 
+The design is the dossiq bar of Nextcloud Zuiddrecht (`werkplek/DqKop` on identity.conduction.nl/screens), so OpenProject and Nextcloud share one bar. The earlier OpenProject design, `OpHeader`, is no longer the canon.
+
 | Item in the design | Mechanism | Status |
 |---|---|---|
-| Bar height, order, spacing | CSS | Built |
-| Logo first, then the row of apps, then the app switcher | Override `top_menu_left_menu_items`: call `super`, add the row, move the app switcher to the end. Done in the markup so the focus order matches what you see | Built |
-| No app name in the bar | The logo names the product and the marked tile names the place. The logo link keeps core's name, "Home" | Built |
-| Brand block as wide as the sidebar | CSS in the geometry layer: the block takes `--main-menu-width`, the logo starts 24 px in, the rule is the block's last pixel. The geometry layer pins that width to 264 px, so the rule stays at 264 when the sidebar is collapsed, and on pages without a sidebar | Built |
-| Row of apps and modules | The same override renders it. See "The row of apps" below | Built |
-| Logo of the design system | One CSS rule from the head hook sets the background image of core's logo link. Without a logo in the token set, OpenProject's own logo stays | Built |
-| App switcher as a two column popover | CSS on core's dialog. It stays a modal dialog, so focus trap and Escape keep working | Built |
-| App switcher, Nextcloud column | Hook `module_menu_dialog_content_before` renders a fixed list of six links. Only when a Nextcloud address is set | Built. The list is fixed |
-| App switcher, OpenProject column | Core's own module list, restyled. It comes from core's menu and permission helpers | Built |
-| A second line under each app name | The plugin's own list, see "The list under the nine-dot button" | Built |
-| Search | Core's own field, restyled | Built. The placeholder is core's text |
-| Bell instead of the inbox icon | CSS mask on core's link. The link keeps its name, "Notifications" | Built |
-| Unread dot | Core's own indicator, restyled as a dot. It shows when the real unread count is above zero | Built |
-| Help | Core's own menu, outline icon by CSS mask | Built |
-| Account button with avatar, name and role | Override the private `lateral_user_menu_button(dialog, avatar)`: pass the avatar plus the name and role as the button content, then `super`. Core's own account menu opens | Built |
-| No green quick add button | CSS turns it into a plain icon button. Hiding it would take "new project" and "invite user" away from the bar, and the project menu does not offer those | Built as a plain plus. See open questions |
-| Outline icons in the bar | CSS mask per icon | Built for six icons |
+| Bar colour | thematiq's header colours where the set has them (`color-header-background`, `color-header-text`; white with ink for Zuiddrecht, Cunningham and 20 more), the primary colour and its text otherwise. The variable layer writes them as `--thematiq-bar`, `--thematiq-on-bar` and their fill, line, edge and muted text (`Variables::Generator#bar_declarations`). Core's own `--header-bg-color` keeps the primary | Built |
+| Bar height, columns, spacing | CSS: 68 px with a 1 px line, padding 0 20 px 0 14 px, three columns with the search (at most 560 px) in the middle | Built |
+| Brand block: emblem, organisation, app name | Override `render_logo`: one link home with core's logo element inside, the design system's name and `Setting.app_title`. The emblem is a file beside the bundled logo (`zuiddrecht-emblem.svg`); a design system without one shows its logo and the app name | Built |
+| App switcher as a filled 40 px square after a line | Override `top_menu_left_menu_items`: the logo first, the switcher after it. CSS for the square and the line | Built |
+| App menu as a popover of tiles | CSS on the plugin's list (see below): 640 px wide under the button, tiles in four columns, Nextcloud's in six, the current tile in the accent colour | Built |
+| No row of tiles | The default of `top_bar_apps` is no row. An administrator can still set an own row | Built |
+| Search | Core's own field, restyled: round, the bar's fill and line, the glass at 14 px | Built. The placeholder is core's text |
+| Bell with the unread dot | CSS mask on core's link and core's own indicator as a dot in the accent colour | Built |
+| Second round button | Core's help menu, outline icon by CSS mask. The design has Contacts there; OpenProject has no contacts | Built as help |
+| Quick add, though the design has none | Core's quick add menu as a round plus button before the bell, in the bar's colours. It is where a work package of a chosen type, a project and an invitation start, and the create dialog opens from it | Built, one button more than the design |
+| Account button with avatar, name and role | `Shell::AccountMenu`, see "The account menu" below. Signed out, core's button and sign-in form | Built |
+| Account menu as a dropdown under the avatar | `Shell::AccountMenu` overrides the private `render_user_drop_down(items)` for a signed in user | Built |
+| No brand stripe under the bar | The design has none. The stripe stays a variable for the surfaces that draw it | Built |
+
+### The account menu
+
+Core opens the account menu as a sheet that slides in from the right: a Primer dialog placed at the right edge, rendered in the private `TopMenu::UserMenu#render_user_drop_down(items)`. A dialog is modal, so it cannot open under the pointer, and its placement is the sheet. Nextcloud's account menu is a dropdown under the avatar. No board draws it open, so the plugin follows Nextcloud 32: a panel under the avatar, aligned to its right edge, with the person on top and one row per entry, in the look of the app menu (white, a 1 px line, the large radius, the same shadow).
+
+For a signed in user `Shell::AccountMenu` renders its own disclosure in that method's place:
+
+- A button with the avatar, the name and the role and a chevron, named "Menu of" and the person's name, with `aria-expanded` and `aria-controls`. It keeps core's test selector.
+- A `nav` named "Account" with the person on top, then core's own entries: the items core passes in, so each item's condition still holds (Administration only for who may open it), with core's address, caption, icon and options (sign out keeps `data-turbo="false"`). An item with a partial, such as the running timer, renders with core's partial.
+- A script inlined at the end of the page: a click opens and closes it and keeps it open; the pointer opens it after 150 ms and closes it 300 ms after leaving, unless a click opened it; Escape closes it and puts the focus back on the button; a click outside or the focus leaving it closes it; the arrow keys, Home and End move between the entries, and Tab works as well.
+
+Signed out, core's own dialog with the sign-in form renders. When rendering fails, core's dialog renders and the log says why. It leans on `user_menu.rb`, which the guard checks for the top bar.
+
+Differences from Nextcloud: there is no status and no "Appearance and accessibility" entry, because OpenProject has neither in its account menu; the entries are OpenProject's.
 
 ### The row of apps
 
@@ -96,11 +108,11 @@ Differences from the design: it is a dialog of links, not a `role="menu"`, becau
 
 **The setting.** `top_bar_apps` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.top_bar_apps`. It is a list of keys separated by commas. A Nextcloud app has the key of its name (`files`, `mail`, `calendar`, `tasks`, `talk`, `contacts`). A module has the name of its item in core's top menu (`home`, `my_page`, `projects`, `work_packages`, `gantt`, `team_planners`, `boards`, `meetings`, `news`, `cost_reports_global`, `wikis`). Empty gives the default, `none` gives no row, and there are at most twelve.
 
-**The field.** **Administration**, **Thematiq design**, **Tiles in the top bar**: the row of the design, an own row, or no tiles. An own row has twelve places, each a list of the keys in `Shell::AppRow::KNOWN` (the six Nextcloud apps and the fifteen modules of core's top menu in 17.9.1), filled from left to right. Empty places and repeats are dropped; an own row without a tile is refused. A key the setting already held, from another plugin for example, stays on offer.
+**The field.** **Administration**, **Thematiq design**, **Tiles in the top bar**: the bar of the design without tiles, an own row, or no tiles. An own row has twelve places, each a list of the keys in `Shell::AppRow::KNOWN` (the six Nextcloud apps and the fifteen modules of core's top menu in 17.9.1), filled from left to right. Empty places and repeats are dropped; an own row without a tile is refused. A key the setting already held, from another plugin for example, stays on offer.
 
-**The default** is the row of the design: `files, mail, calendar, work_packages, boards, gantt, meetings`.
+**The default** is no row, as the dossiq bar draws it. The places of the field start with the row of the earlier OpHeader design (`Shell::AppRow::OPHEADER`: `files, mail, calendar, work_packages, boards, gantt, meetings`), for an own row.
 
-**When an entry is not there for this user**, because no Nextcloud address is set or core hides the module, it is left out and the row is filled up to its length from core's own order: Home, My page, My time tracking, then Projects, Work packages, Gantt, Team planners, Boards, Meetings, News, Time and costs, Wiki. So without a Nextcloud address the default row is Work packages, Boards, Gantt, Meetings, Home, My page, My time tracking. A module the instance has no licence for is never in the row. It stays in the app switcher, where core marks it.
+**When an entry is not there for this user**, because no Nextcloud address is set or core hides the module, it is left out and the row is filled up to its length from core's own order: Home, My page, My time tracking, then Projects, Work packages, Gantt, Team planners, Boards, Meetings, News, Time and costs, Wiki. So without a Nextcloud address that OpHeader row becomes Work packages, Boards, Gantt, Meetings, Home, My page, My time tracking. A module the instance has no licence for is never in the row. It stays in the app switcher, where core marks it.
 
 ### What the account button shows
 
@@ -115,6 +127,27 @@ The list is Files, Mail, Calendar, Tasks, Talk and Contacts. It does not ask Nex
 The address is one optional plugin setting: the key `nextcloud_url` in `Setting.plugin_openproject_thematiq`, read through `OpenProject::Thematiq::Shell.nextcloud_url`. Only an `http` or `https` address counts. When it is empty the app switcher shows OpenProject's own modules and no Nextcloud column. The admin page has no field for it yet.
 
 OpenProject opens these links in a new tab, because its link handling treats another host as external.
+
+## Sign-in page
+
+The design is the sign-in board of Nextcloud Zuiddrecht (`werkplek/NcLogin`), so both products open the same way. `Shell::SignIn` builds it without an override.
+
+| Item in the design | Mechanism | Status |
+|---|---|---|
+| No top bar | CSS hides the bar on the pages of the account controller (`body.controller-account`): sign in, lost password, registration and activation | Built |
+| The ground colour, everything in the middle | CSS on core's page frame | Built |
+| The logo above the card, 56 px | Hook `view_account_login_top`: the design system's plain logo, or the name of OpenProject without one | Built |
+| The emblem large and faint behind it | The same hook, for a design system with an emblem | Built |
+| The card: 420 px, the brand stripe on top, 32 px inside | CSS on core's `#login-form` | Built |
+| A line under the heading that says who signs in | The same hook renders it; a small script with the page's nonce moves it under core's heading. Only for a design system with an emblem, the mark of an organisation | Built |
+| The fields, the button, the links | Core's own form, restyled: 44 px fields, the button full width, the links centred under it | Built |
+| A line under the card | Hook `view_account_login_bottom` | Built |
+
+Differences from the design:
+
+- **The heading is core's**, "Sign in", where the design says "Sign in to the workplace". It is core's text in every language.
+- **The organisation's own sign-in button** in the design is a single sign-on provider. OpenProject shows its providers in that place when one is set up; this instance has none, so the password button is the only one, plain as in the design.
+- **"Create a new account"** is core's link when self-registration is on. The design has no such link.
 
 ## Project menu: item by item
 
@@ -268,6 +301,37 @@ Nothing a user or an administrator had is gone: every Home block is on the page,
 - **Which widgets a new user starts with** is core's default: assigned to me, created by me. "Due this week", "my projects" and "my time this week" exist as widget types and a user can add them. Changing the default set is a small change in a later round.
 - **The two Nextcloud widgets are not built.** Each would need a widget type, so a frontend build, and a server side that calls Nextcloud for the signed in user: recent files through WebDAV or the files API, unread mail through the Mail app's API, with a token per user. OpenProject's own Nextcloud integration holds such tokens for file storages and could be the base.
 
+## The Gantt page
+
+The board `OpGantt` draws the Gantt page of a project: the table left and the timeline right, a header with the first day of each week over one letter per day, weekends shaded, a dashed today line with a label, bars of 20 px in the action colour, a parent as an outlined summary bar, milestone diamonds, dependency lines, a row of chips with Today, a zoom list and a view switch, Export PDF and Create, and a legend under the chart.
+
+OpenProject draws the chart in Angular (`frontend/src/app/features/work-packages/components/wp-table/timeline/`). A plugin without a frontend build cannot change those components, so `Shell::Gantt` works on core's markup:
+
+| Part of the board | Mechanism | Status |
+|---|---|---|
+| Rows of 44 px, the table frame, the header row of the table | The geometry layer, as on the work package page | Built |
+| Bars: 20 px, radius 4, the action colour | CSS on core's bar. Core colours each bar by its type with an `!important` rule, which the stylesheet overrides | Built |
+| A parent as an outlined summary bar | CSS on a timeline row with the class `__hierarchy-root-*`, which core gives only to a row with children | Built. The board says "Epic"; any parent gets the outline |
+| Milestone diamond | Core's diamond, 14 px, in the type colour of the milestone | Built |
+| Labels | The subject after the bar in 12 px. Core's date labels beside the bar are hidden: the dates are in the table | Built |
+| Header: the first day of each week over one letter per day | The script rewrites the text of core's header cells at the Days and Weeks levels. The dates come from the left of core's today line | Built. Core's own labels stay for Months and up |
+| Weekends shaded | CSS on core's `wp-timeline--non-working-day` | Built. Core only marks them at Days and Weeks |
+| Today line and its label | CSS on core's line; the label is `content: attr(data-label)`, set by the script from `en.yml` | Built |
+| Dependency lines | Core draws its lines for rows of 40 px (`wp-timeline-relations.directive.ts` multiplies by 40), so with rows of 44 px they miss the bars. The script reads which bar follows which from the classes of core's lines, hides those, and draws its own in one SVG | Built |
+| Chips "All open" and "Milestones only" | Links to core's own two default Gantt views (`Gantt::DefaultQueryGeneratorService`), with the count of open work packages on the first | Built. "Critical path" is left out: OpenProject has no critical path |
+| Today | Scrolls the timeline to the today line | Built |
+| Zoom | A list of core's five levels. It presses core's zoom buttons, which the stylesheet hides | Built. The board lists three levels |
+| View switch | Links to the project's Work packages and Boards, taken from the project menu, so a module that is off or not allowed has no link | Built |
+| Export PDF | Opens core's export dialog, the entry "Export" of core's "More actions" menu | Built. The dialog offers every format, PDF among them |
+| Create | Core's Create button | Built. It opens the create dialog, see below |
+| Legend | Rendered by the script under the chart | Built |
+| Title "Gantt chart" and the line under it | Core's title is the name of the view and can be edited and saved. It stays | Not built |
+| Core's other toolbar buttons (Include projects, Baseline, Filter, details, zen mode, More actions) | Not on the board. They stay, because each is a feature | Kept |
+
+Everything is scoped to the class `thematiq-gantt` on the body, which only the script sets. The script is rendered by the hook `view_layouts_base_body_bottom` on a project's Gantt page, and only while the core files of the part `gantt` in `core_guard.rb` are those of 17.9.1. When one differs, core's Gantt shows with the plugin's colours and nothing else.
+
+What it costs on an upgrade: eleven guarded frontend files. A change in the bar markup, the header or the line classes trips the guard; a change in the Angular bundle that keeps these files does not, and shows in the pixel diff.
+
 ## Icons
 
 OpenProject draws icons from three places:
@@ -303,10 +367,12 @@ None. `override_core_views!` is not called, and the plugin ships no file under `
 | `frontend/src/global_styles/layout/_main_menu.sass` | The two-layer menu: the rules that hide and show rows in the `open` and `closed` states, which the CSS undoes | Checksum in `core_guard.rb` |
 | `app/components/open_project/common/submenu_component.html.erb` and `.sass` | The two-layer menu: the classes of the links, group headers, search field and create button in a module's frame | Checksum in `core_guard.rb` |
 | `lib/redmine/menu_manager/top_menu/projects_menu.rb` | `Shell::ProjectMenu::Helper#render_projects_top_menu_node` | Checksum in `core_guard.rb` |
+| Eight files of core's create dialog and create actions, listed under `create_dialog` in `core_guard.rb` | `Shell::CreateDialog`: the script and `stylesheets/shell/70-create-modal.css` | Checksum in `core_guard.rb`; the script is not rendered when one differs |
 | `app/components/header/project_select_component.rb` and `.html.erb` | `Shell::ProjectMenu::Switcher#trigger_label`, which the template prints inside the button | Checksum in `core_guard.rb` |
 
 | `app/controllers/homescreen_controller.rb`, `app/views/homescreen/index.html.erb`, `app/components/homescreen/blocks_grid_component.rb`, `config/initializers/homescreen.rb` | `Shell::Home::HomePage#index`, and the plugin's Home template, which renders everything core's Home view renders | Checksum in `core_guard.rb` |
 | `modules/my_page/app/controllers/my/page_controller.rb` | `Shell::Home::MyPage#show`, a redirect to Home | Checksum in `core_guard.rb` |
+| Eleven files of core's Gantt, listed under `gantt` in `core_guard.rb`: the timeline cells, header, grid, today line and dependency lines, the zoom buttons, the "More actions" menu and the default Gantt views | `Shell::Gantt`: the script and `stylesheets/shell/60-gantt.css` | Checksum in `core_guard.rb`; the script is not rendered when one differs |
 
 `lib/open_project/thematiq/shell/core_guard.rb` records the SHA-256 of each file in OpenProject 17.9.1.
 
@@ -339,9 +405,63 @@ You notice it in one of three ways: `script/check-core.rb` exits 1, the log says
 
 Until someone does this, OpenProject keeps working. Its own top bar and project menu render with the plugin's colours and sizes, and without what the overrides add.
 
+## Create work package as a dialog
+
+The board `OpCreateWorkPackage` opens a new work package in a dialog over the page you are on. Core opens it as a page (`/projects/:id/work_packages/new`) or in the split view (`.../create_new`).
+
+### What 17.9.1 offers
+
+| Route | What it is | Fit |
+|---|---|---|
+| Core's create page or split view, in an iframe in a dialog | The whole Angular create form | Two Angular apps on one page, and the page's own layout inside the dialog. Dropped |
+| The Angular create form (`wp-new`) moved into a dialog | Angular components | Needs a frontend build. Dropped |
+| `WorkPackages::Dialogs::CreateDialogComponent`, a Primer dialog at `/projects/:id/work_packages/dialog/new` | Core's own dialog. Core uses it for "new child" on the relations tab and in Backlogs. It answers with a Turbo stream that opens the dialog, saves through `WorkPackages::CreateService`, shows errors in place, and redirects back on success | Chosen |
+
+### What is built
+
+`Shell::CreateDialog` renders a small script at the end of every page for a signed-in user. It catches a click on:
+
+- "Create work package" in the project menu,
+- the Create button of the work package, Gantt and other Angular pages (`button.add-work-package`),
+- a work package type in the quick add menu of the top bar, and any other link to `/projects/:id/work_packages/new` or `.../create_new`,
+
+and fetches core's dialog for that project, with the type and the parent of the link, the way core's own `async-dialog` links do. The type, subject, description, the required custom fields, the permission check (`add_work_packages`), the validation and the save are core's.
+
+| Need | How |
+|---|---|
+| Focus moves into the dialog | Core puts it in the subject |
+| Escape closes, focus returns | Core's Primer dialog closes on Escape. The script puts focus back on the control that opened it: the project menu action, the Create button, or the quick add button when the action was in its menu |
+| Closing returns to where you were | Nothing navigates until a save |
+| Saving refreshes the view | Core redirects back to the page the dialog was opened on, so the list, the Gantt chart or the board reloads with the new work package and core's notice |
+| A click with Ctrl, Cmd, Shift or the middle button | Opens core's page in a new tab, as before |
+| The board's look | `stylesheets/shell/70-create-modal.css`: 640 px wide, the project name above the title, the type label shown, fields of 40 px, a footer with a line on top. The title and the submit button say "Create work package" |
+
+### The board's fields
+
+Core's form, `WorkPackages::Dialogs::CreateForm`, renders the type, the subject, the description and the required custom fields, then a hidden field for every other attribute the new work package already has. `Shell::CreateDialogFields` prepends two of its methods:
+
+| Method | What the plugin adds |
+|---|---|
+| `render_custom_fields`, which core calls after the description | Parent (core's work package autocompleter), Assignee (core's user autocompleter, members of the project), Priority (a select of the active priorities), Start date and Finish date (date fields). Each only when core's create contract lets this user write that attribute. Then core's own custom fields |
+| `writable_attributes`, which decides core's hidden fields | Leaves out the attributes the plugin rendered, so the visible field is the one that is sent |
+
+The values go in `work_package[...]` like core's own fields: core's controller permits them, `CreateService` sets and validates them, an error shows in the dialog with what was filled in, and a change of type redraws the form with the values kept. The stylesheet puts them in the board's rows of two: Type and Parent, Subject, Description, Assignee and Priority, the two dates, then the Nextcloud line and the custom fields; one column on a phone. The type shows its name in the ink of the other fields, as drawn, not core's coloured capitals.
+
+**"Link the project folder in Nextcloud"** shows only when a Nextcloud address is set, and then disabled, with a note. Nothing in the plugin can link a folder: OpenProject links Nextcloud folders through a file storage that an administrator sets up per project. Ticking the box could only pretend, so it is drawn as the board has it and says where folders are linked.
+
+### Differences from the board
+
+- **Finish date.** Core calls the board's "Due date" "Finish date"; the label is core's.
+- **The page's Create button opens the dialog directly.** Core shows a list of types first; the dialog has its own type field, as the board draws it.
+- **Outside a project** (the quick add menu on a page without a project, the global work package page), core's page opens. Core's dialog needs a project.
+
+### What it costs on an upgrade
+
+Twelve guarded core files, the part `create_dialog` in `core_guard.rb`: the dialog controller, the dialog and form components, the form class, the custom field rendering it calls, the form inputs and autocompleter the fields use, the permitted parameters, core's `async-dialog` controller, the quick add menu, the Create button and its list of types. When one differs, the script is not rendered, the fields are not added, and every create action opens core's page again. The route `work_packages/dialog/new` itself is in `config/routes.rb`, which changes on every release and is not guarded: if it moves, the fetch fails and the script opens core's page.
+
 ## Open questions
 
-- **Quick add.** The design has no quick add button. The plugin keeps it as a plain plus, because removing it takes "new project" and "invite user" out of the bar. Hide it with one CSS rule once those two have another home.
+- **Quick add.** The dossiq bar has no add button. The plugin keeps core's as a round plus before the bell, because the create dialog opens from its types and removing it takes "new project" and "invite user" out of the bar.
 - **Search placeholder.** The design says "Search files, work packages or people". Core's search finds work packages and projects, so the plugin keeps core's text.
 - **Nextcloud apps.** The fixed list should become a call to Nextcloud's navigation API, cached per user.
 - **Nextcloud address.** The setting `nextcloud_url` needs a field on the admin page.

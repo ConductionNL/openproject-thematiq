@@ -7,13 +7,18 @@ module OpenProject
     # The shared top bar and the project menu. See docs/shell-structure.md for what each part uses and why.
     #
     #   Shell::CoreGuard      the core files the shell depends on, with their checksums
+    #   Shell::CreateDialog   every create action of a project opens core's create dialog
+    #   Shell::CreateDialogFields  the board's fields in that dialog: parent, assignee, priority and dates
     #   Shell::TopBar         two small overrides of OpenProject's top menu helpers
     #   Shell::ProjectMenu    the overrides of the project menu helpers and the project switcher
     #   Shell::Home           Home and My page as one page
     #   Shell::NextcloudApps  the Nextcloud column of the app switcher
     #   Shell::AppRow         which apps and modules the top bar shows as icons
     #   Shell::AppSwitcher    the list under the nine-dot button, in place of core's
+    #   Shell::AccountMenu    the account menu as a dropdown under the avatar, in place of core's sheet
     #   Shell::Logo           the logo of the active design system, as a CSS rule
+    #   Shell::Gantt          the Gantt page as the OpGantt board draws it: a script and a stylesheet on core's chart
+    #   Shell::SignIn         the sign-in page as Nextcloud draws it, from two hooks and a stylesheet
     #
     # The view hooks are registered in OpenProject::Thematiq::Hooks.
     module Shell
@@ -47,17 +52,23 @@ module OpenProject
       # they were written against. On any other OpenProject version the core top bar renders
       # unchanged and the log names the files that moved.
       def self.install!
+        require "open_project/thematiq/shell/create_dialog"
+        require "open_project/thematiq/shell/create_dialog_fields"
         require "open_project/thematiq/shell/nextcloud_apps"
         require "open_project/thematiq/shell/app_row"
         require "open_project/thematiq/shell/logo"
+        require "open_project/thematiq/shell/sign_in"
         require "open_project/thematiq/shell/top_bar"
         require "open_project/thematiq/shell/app_switcher"
+        require "open_project/thematiq/shell/account_menu"
 
         require "open_project/thematiq/shell/project_menu"
 
         require "open_project/thematiq/shell/home"
+        require "open_project/thematiq/shell/gantt"
 
-        { top_bar: [TopBar, AppSwitcher], project_menu: [ProjectMenu], home: [Home] }.each do |part, overrides|
+        { top_bar: [TopBar, AppSwitcher, AccountMenu], project_menu: [ProjectMenu], home: [Home],
+          create_dialog: [CreateDialogFields] }.each do |part, overrides|
           changed = CoreGuard.changed_files(part:)
           next overrides.each(&:install!) if changed.empty?
 

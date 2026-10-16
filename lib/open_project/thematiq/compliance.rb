@@ -20,7 +20,7 @@ module OpenProject
       def report(in_use, generated_at:)
         systems = in_use.group_by { |token_set, _where| token_set.id }.map do |_id, uses|
           token_set = uses.first.first
-          light = pairs(Contrast.report(token_set))
+          light = pairs(Contrast.report(token_set).merge(status_report(token_set)))
           dark = Contrast.dark_report(token_set)
           { "id" => token_set.id, "name" => token_set.name, "used_by" => uses.map(&:last).uniq,
             "light" => light, "dark" => dark ? pairs(dark) : nil,
@@ -29,6 +29,20 @@ module OpenProject
         end
         { "criterion" => CRITERION, "minimum" => Contrast::MINIMUM, "generated_at" => generated_at, "plugin_version" => VERSION,
           "passes" => systems.all? { |system| system["passes"] }, "design_systems" => systems }
+      end
+
+      STATUS_KEYS = %w[color-error color-warning color-success].freeze
+
+      # The status colours the set gives, as text on its page background and on white (sur-error-contrast).
+      def status_report(token_set)
+        STATUS_KEYS.each_with_object({}) do |key, result|
+          colour = token_set.vocabulary[key]
+          next unless colour
+
+          name = key.delete_prefix("color-")
+          result["#{name}-on-ground"] = Contrast.ratio(colour, token_set["ground"])
+          result["#{name}-on-white"] = Contrast.ratio(colour, "#ffffff")
+        end
       end
 
       def pairs(report)

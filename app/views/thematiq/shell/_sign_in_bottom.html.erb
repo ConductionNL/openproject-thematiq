@@ -1,0 +1,8 @@
+<%# The line under the sign-in card, and the script that puts the lead under the card's heading. See Shell::SignIn. %>
+<% sign_in = OpenProject::Thematiq::Shell::SignIn.view(OpenProject::Thematiq.active_token_set) %>
+<% if sign_in[:organisation] %>
+  <p class="thematiq-sign-in--footnote"><%= t("thematiq.shell.sign_in.footnote", organisation: sign_in[:organisation], app: Setting.app_title) %></p>
+<% end %>
+<%= nonced_javascript_tag do %>
+<%= raw OpenProject::Thematiq::Shell::SignIn.script %>
+<% end %>

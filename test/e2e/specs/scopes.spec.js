@@ -5,7 +5,8 @@ const { PICKER } = require("../support/thematiq");
 const { config } = require("../support/env");
 
 const DESIGN = `/projects/${config.project}/settings/design`;
-const bar = (page) => page.locator(".op-app-header").evaluate((el) => getComputedStyle(el).backgroundColor);
+// The design system of the page's frame, top bar included: its primary colour. Many sets share a white bar.
+const bar = (page) => page.locator(".op-app-header").evaluate((el) => getComputedStyle(el).getPropertyValue("--thematiq-primary").trim().toLowerCase());
 
 async function chooseForProject(page, id) {
   await page.goto(DESIGN);
@@ -36,7 +37,10 @@ test.describe("scopes", () => {
     const projectBar = await bar(page);
 
     // Leave the project by a link, the way Turbo moves, and come back by a link.
-    await page.locator(".thematiq-app-row--item").filter({ hasText: "Projects" }).first().click();
+    await page.getByRole("button", { name: "All apps and modules" }).click();
+    const switcher = page.getByRole("dialog", { name: "All apps and modules" });
+    // "Portfolios" has "Projects grouped as portfolios" as its second line, so the name must match whole.
+    await switcher.locator("[data-thematiq-switcher-entry]").filter({ has: page.locator(".thematiq-apps--name", { hasText: /^Projects$/ }) }).click();
     await page.waitForURL(/\/projects\/?$/);
     await expect.poll(() => bar(page)).toBe(instanceBar);
     await expect(page.locator("style#openproject-thematiq")).toHaveCount(1);

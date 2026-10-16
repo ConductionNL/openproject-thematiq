@@ -2,5 +2,5 @@
 # Runs the unit tests with the Ruby of the OpenProject image. They need no Rails and no database.
 set -e
 cd "$(dirname "$0")/.."
-exec docker run --rm -v "$PWD":/plugin:ro -w /plugin --entrypoint ruby "${OPENPROJECT_IMAGE:-openproject/openproject:17}" \
+exec docker run --rm -v "$PWD":/plugin:ro -w /plugin --entrypoint ruby "${OPENPROJECT_IMAGE:-openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695}" \
   -Ilib -Itest -e 'Dir["test/**/*_test.rb"].sort.each { |file| require "./#{file}" }'

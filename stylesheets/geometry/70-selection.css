@@ -1,0 +1,4 @@
+/* Selected text takes the brand colour, translucent, so the text keeps its own colour and stays readable
+ * (sur-selection-colour). In forced colours mode the system's own selection stays. */
+::selection { background: color-mix(in srgb, var(--thematiq-primary, Highlight) 28%, transparent); }
+@media (forced-colors: active) { ::selection { background: Highlight; color: HighlightText; } }

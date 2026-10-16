@@ -72,6 +72,45 @@ class GeneratorTest < Minitest::Test
     assert_nil OpenProject::Thematiq::Contrast.tint("red", "#ffffff", 0.12)
   end
 
+  # The shell's top bar is the dossiq bar: thematiq's header colours where the set has them, so Zuiddrecht's bar is
+  # white with ink, its fill the ground and its lines the line colour.
+  def test_the_bar_takes_the_header_colours_of_the_vocabulary
+    token_set = TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL,
+                                    "vocabulary" => { "color-header-background" => "#ffffff", "color-header-text" => "#1b1c1d" } })
+    light = blocks(Generator.new(token_set).css)[Generator::LIGHT_SCOPE]
+
+    assert_includes light, "  --thematiq-bar: #ffffff;"
+    assert_includes light, "  --thematiq-on-bar: #1b1c1d;"
+    assert_includes light, "  --thematiq-bar-fill: #f5f6f8;"
+    assert_includes light, "  --thematiq-bar-line: #e4e6ea;"
+    assert_includes light, "  --thematiq-bar-edge: #e4e6ea;"
+    assert_includes light, "  --thematiq-bar-muted: #5e6168;"
+    assert_includes light, "  --header-bg-color: #3669a5;", "core's variable keeps the primary"
+  end
+
+  def test_without_header_colours_the_bar_is_the_primary_with_a_layer_of_its_text
+    light = blocks(Generator.new(set(FULL)).css)[Generator::LIGHT_SCOPE]
+
+    assert_includes light, "  --thematiq-bar: #3669a5;"
+    assert_includes light, "  --thematiq-on-bar: #ffffff;"
+    fill = light[/--thematiq-bar-fill: (#\h{6});/, 1]
+    assert_operator OpenProject::Thematiq::Contrast.ratio("#ffffff", fill), :>, 4.5
+    assert_includes light, "  --thematiq-bar-edge: #3669a5;"
+    assert_includes light, "  --thematiq-bar-muted: #ffffff;", "muted grey does not read on the blue bar"
+  end
+
+  def test_a_header_text_that_does_not_read_is_replaced
+    token_set = TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL,
+                                    "vocabulary" => { "color-header-background" => "#ffffff", "color-header-text" => "#eeeeee" } })
+    light = blocks(Generator.new(token_set).css)[Generator::LIGHT_SCOPE]
+
+    assert_includes light, "  --thematiq-on-bar: #1b1c1d;"
+  end
+
+  def test_other_modes_take_the_bar_from_cores_header
+    assert_includes blocks(Generator.new(set(FULL)).css)["[data-color-mode]"], "--thematiq-bar: var(--header-bg-color);"
+  end
+
   def test_writes_three_blocks
     css = Generator.new(set(FULL)).css
 

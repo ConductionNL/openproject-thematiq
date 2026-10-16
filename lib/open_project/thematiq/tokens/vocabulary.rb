@@ -111,8 +111,13 @@ module OpenProject
         # The keys the plugin draws on the page. Every other key is carried, not drawn.
         # It grows with each group the variable layer learns, see Variables::Generator::VOCABULARY.
         DRAWN = %w[
+          component-textbox-border-color component-form-select-border-color component-textbox-hover-border-color
+          component-textbox-invalid-border-color component-textbox-background-color component-textbox-disabled-background-color
+          component-textbox-color component-textbox-disabled-color component-button-secondary-action-color
+          component-button-secondary-action-hover-background-color component-button-secondary-action-border-color
           animation-quick animation-slow brand-stripe-color-1 brand-stripe-color-2 brand-stripe-color-3 brand-stripe-height
           brand-stripe-ratio-1 brand-stripe-ratio-2 brand-stripe-ratio-3 color-footer-background color-footer-text
+          color-header-background color-header-text
           color-error color-success color-warning component-status-badge-error-background-color component-status-badge-error-color
           component-status-badge-info-background-color component-status-badge-success-background-color
           component-status-badge-success-color component-status-badge-warning-background-color component-status-badge-warning-color

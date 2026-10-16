@@ -1,0 +1,178 @@
+/* The Gantt page as the OpGantt board draws it. Every rule needs the class "thematiq-gantt" on the body, which only
+ * Shell::Gantt's script sets, and only while the guarded core files are those of OpenProject 17.9.1. Without it,
+ * core's own Gantt shows. Sizes are the board's: the row height of the table (--table-timeline--row-height in geometry/10-variables.css), a header of 44 px in
+ * two rows of 22, bars of 20 px with a radius of 4, a 14 px milestone, lines of 1.75 px. */
+
+/* ---- the row under the title: chips, Today, zoom, view switch ---- */
+body.thematiq-gantt .thematiq-gantt__bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0 4px;
+  font-family: var(--thematiq-font); font-size: 14px;
+}
+body.thematiq-gantt .thematiq-gantt__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+body.thematiq-gantt .thematiq-gantt__chip {
+  display: inline-flex; align-items: center; gap: 8px; height: 38px; box-sizing: border-box; padding: 0 14px;
+  border-radius: 19px; border: 1px solid var(--thematiq-field); background: var(--thematiq-surface);
+  color: var(--thematiq-ink); font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+body.thematiq-gantt .thematiq-gantt__chip:hover { background: var(--thematiq-ground); text-decoration: none; }
+body.thematiq-gantt .thematiq-gantt__chip[aria-current="page"] { border-color: var(--thematiq-ink); background: var(--thematiq-ink); color: var(--thematiq-surface); }
+body.thematiq-gantt .thematiq-gantt__count {
+  padding: 1px 7px; border-radius: 10px; font-size: 12px; line-height: 18px;
+  background: var(--thematiq-soft); color: var(--thematiq-text);
+}
+body.thematiq-gantt .thematiq-gantt__chip[aria-current="page"] .thematiq-gantt__count {
+  background: color-mix(in srgb, var(--thematiq-surface) 22%, var(--thematiq-ink)); color: var(--thematiq-surface);
+}
+body.thematiq-gantt .thematiq-gantt__spacer { flex: 1 1 auto; }
+body.thematiq-gantt .thematiq-gantt__button {
+  display: inline-flex; align-items: center; gap: 8px; height: 36px; margin: 0; padding: 0 12px; box-sizing: border-box;
+  border: 1px solid var(--thematiq-field); border-radius: var(--thematiq-radius); background: var(--thematiq-surface);
+  color: var(--thematiq-ink); font: 600 14px var(--thematiq-font); white-space: nowrap; cursor: pointer;
+}
+body.thematiq-gantt .thematiq-gantt__button:hover { background: var(--thematiq-ground); }
+body.thematiq-gantt .thematiq-gantt__export .thematiq-gantt__button { height: 40px; padding: 0 14px; }
+body.thematiq-gantt .thematiq-gantt__icon {
+  width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+body.thematiq-gantt .thematiq-gantt__zoom { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--thematiq-muted); font-weight: 400; }
+body.thematiq-gantt .thematiq-gantt__select {
+  height: 36px; box-sizing: border-box; margin: 0; padding: 0 32px 0 12px; border: 1px solid var(--thematiq-field);
+  border-radius: var(--thematiq-radius-lg); background-color: var(--thematiq-surface); color: var(--thematiq-ink);
+  font: 600 14px var(--thematiq-font);
+}
+body.thematiq-gantt .thematiq-gantt__views { display: flex; gap: 2px; padding: 3px; border-radius: var(--thematiq-radius); background: var(--thematiq-soft); }
+body.thematiq-gantt .thematiq-gantt__view {
+  display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 34px;
+  border-radius: var(--thematiq-radius); color: var(--thematiq-text);
+}
+body.thematiq-gantt .thematiq-gantt__view .thematiq-gantt__icon { width: 18px; height: 18px; }
+body.thematiq-gantt .thematiq-gantt__view:hover { background: var(--thematiq-surface); }
+body.thematiq-gantt .thematiq-gantt__view[aria-current="page"] {
+  background: var(--thematiq-surface); color: var(--thematiq-ink);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--thematiq-ink) 12%, transparent);
+}
+body.thematiq-gantt .thematiq-gantt__chip:focus-visible, body.thematiq-gantt .thematiq-gantt__button:focus-visible,
+body.thematiq-gantt .thematiq-gantt__select:focus-visible, body.thematiq-gantt .thematiq-gantt__view:focus-visible {
+  outline: 2px solid var(--thematiq-action); outline-offset: 2px;
+}
+
+/* The zoom list takes the place of core's three zoom buttons. They stay in the page: the list presses them. */
+body.thematiq-gantt .toolbar-items li:has(> #work-packages-timeline-mode-selection),
+body.thematiq-gantt #work-packages-timeline-mode-selection { display: none; }
+
+/* ---- the title row: 28 px bold, the actions at the right ---- */
+body.thematiq-gantt .toolbar-container .toolbar-items { margin-left: auto; }
+body.thematiq-gantt .toolbar-container .editable-toolbar-title--input,
+body.thematiq-gantt .toolbar-container .editable-toolbar-title--input-shim { font-size: 28px; font-weight: 700; font-style: normal; color: var(--thematiq-ink); }
+
+/* ---- the frame: table left, timeline right, one line between ---- */
+body.thematiq-gantt .work-packages-tabletimeline--timeline-side { border-left: 1px solid var(--thematiq-line); }
+body.thematiq-gantt .work-packages--tabletimeline--timeline--resizer { background: var(--thematiq-line); }
+
+/* ---- the timeline header: 44 px, the first day of each week over one letter per day ---- */
+body.thematiq-gantt .wp-table-timeline--header,
+body.thematiq-gantt .wp-table-timeline--header-inner { background: var(--thematiq-table-head); }
+body.thematiq-gantt .wp-timeline--header-element {
+  background: var(--thematiq-table-head); border-color: var(--thematiq-soft); color: var(--thematiq-muted);
+  font-family: var(--thematiq-font); font-weight: 600;
+}
+body.thematiq-gantt .wp-timeline--header-element[data-tq-row="hidden"] { display: none; }
+body.thematiq-gantt .wp-timeline--header-element[data-tq-row] { font-size: 12px; line-height: 22px; }
+body.thematiq-gantt .wp-timeline--header-element[data-tq-row="week"] {
+  top: 0 !important; height: 22px !important; padding: 0 0 0 6px; box-sizing: border-box; text-align: left;
+  border-top: 0; border-bottom: 0; border-right: 0; border-left: 1px solid var(--thematiq-soft);
+}
+body.thematiq-gantt .wp-timeline--header-element[data-tq-row="day"] {
+  top: 22px !important; height: 22px !important; padding: 0; box-sizing: border-box; border: 0;
+  font-weight: 400; text-align: center;
+}
+body.thematiq-gantt .wp-timeline--header-top-bold-element,
+body.thematiq-gantt .wp-timeline--header-middle-element { font-size: 12px; }
+
+/* ---- the grid: lines per week, weekends shaded ---- */
+body.thematiq-gantt .wp-timeline--grid-element { border-right: 1px solid var(--thematiq-soft); }
+body.thematiq-gantt .wp-timeline--grid-element_highlight { border-right-color: var(--thematiq-line); }
+body.thematiq-gantt[data-tq-gantt-zoom="weeks"] .wp-timeline--grid-element:not(.wp-timeline--grid-element_highlight) { border-right-color: transparent; }
+body.thematiq-gantt .wp-timeline--non-working-day { background-color: var(--thematiq-ground); }
+
+/* ---- today: a dashed line in the action colour with a small label at the top ---- */
+body.thematiq-gantt #wp-timeline-static-element-today-line {
+  width: 0; border-left: 1.5px dashed var(--thematiq-action); z-index: 1;
+}
+body.thematiq-gantt #wp-timeline-static-element-today-line[data-label]::before {
+  content: attr(data-label); position: absolute; top: 2px; left: 0; transform: translateX(-50%);
+  padding: 0 4px; border-radius: 4px; background: var(--thematiq-action); color: var(--thematiq-on-action);
+  font: 700 10px/16px var(--thematiq-font); white-space: nowrap;
+}
+
+/* ---- bars: 20 px, radius 4, the action colour; a parent as an outlined summary bar ---- */
+body.thematiq-gantt .timeline-element.bar { height: 20px; border-radius: 4px; }
+body.thematiq-gantt .timeline-element.bar .timeline-element--bg {
+  box-sizing: border-box; border: 1px solid var(--thematiq-action) !important; border-radius: 4px;
+  background: var(--thematiq-action) !important;
+}
+/* Core's label inside the bar carries the type colour too; it sits over the bar, without a colour of its own. */
+body.thematiq-gantt .timeline-element.bar .bar-label {
+  position: absolute; inset: 0; height: auto; border: 0 !important; background: transparent !important;
+  color: var(--thematiq-on-action); font: 400 12px/20px var(--thematiq-font); pointer-events: none;
+}
+body.thematiq-gantt .wp-timeline-cell[class*="__hierarchy-root-"] .timeline-element.bar .timeline-element--bg {
+  border-color: var(--thematiq-primary-deep) !important; background: var(--thematiq-primary-light) !important;
+}
+body.thematiq-gantt .wp-timeline-cell[class*="__hierarchy-root-"] .timeline-element.bar .bar-label { color: var(--thematiq-primary-deep); }
+body.thematiq-gantt .children-duration-bar { border-color: var(--thematiq-primary-deep); }
+
+/* milestone: core's diamond in the type colour, 14 px */
+body.thematiq-gantt .timeline-element.milestone .diamond { width: 14px !important; height: 14px !important; }
+
+/* labels: the subject after the bar in 12 px; the dates are in the table, so the date labels beside the bar go */
+body.thematiq-gantt .timeline-element .labelLeft,
+body.thematiq-gantt .timeline-element .labelRight { display: none !important; }
+body.thematiq-gantt .timeline-element .labelFarRight {
+  margin-left: 8px; font: 400 12px/22px var(--thematiq-font); font-style: normal; color: var(--thematiq-text);
+}
+body.thematiq-gantt .timeline-element .-label-style.not-empty {
+  border-color: var(--thematiq-line); border-radius: 4px; background: var(--thematiq-surface);
+  color: var(--thematiq-text); font: 400 12px var(--thematiq-font);
+}
+
+/* ---- dependency lines: core's are drawn for 40 px rows, so the script draws them for these rows ---- */
+body.thematiq-gantt .wp-table-timeline--relations .relation-line { visibility: hidden; }
+body.thematiq-gantt .thematiq-gantt__relations {
+  position: absolute; top: 0; left: 0; z-index: 1; overflow: visible; pointer-events: none;
+}
+body.thematiq-gantt .thematiq-gantt__relations path {
+  fill: none; stroke: var(--thematiq-action-deep); stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ---- the legend under the chart ---- */
+body.thematiq-gantt .thematiq-gantt__legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin: 16px 0 0; padding: 0; list-style: none;
+  color: var(--thematiq-muted); font: 400 13px var(--thematiq-font);
+}
+body.thematiq-gantt .thematiq-gantt__legend li { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+body.thematiq-gantt .thematiq-gantt__swatch { display: inline-block; flex: none; box-sizing: border-box; }
+body.thematiq-gantt .thematiq-gantt__swatch--bar { width: 24px; height: 10px; border-radius: 3px; background: var(--thematiq-action); }
+body.thematiq-gantt .thematiq-gantt__swatch--parent {
+  width: 24px; height: 10px; border-radius: 3px; border: 1px solid var(--thematiq-primary-deep); background: var(--thematiq-primary-light);
+}
+/* The milestone takes the type colour of the milestones on the chart (the script copies core's class); without one on screen, a deep action colour. */
+body.thematiq-gantt .thematiq-gantt__swatch--milestone { width: 10px; height: 10px; margin: 0 4px; transform: rotate(45deg); }
+body.thematiq-gantt .thematiq-gantt__swatch--milestone:not([class*="__hl_background_type_"]) { background: var(--thematiq-action-deep); }
+body.thematiq-gantt .thematiq-gantt__swatch--follows svg {
+  display: block; width: 28px; height: 12px; fill: none; stroke: var(--thematiq-action-deep); stroke-width: 1.75;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ---- without a timeline (core's cards on a phone): no Today, zoom or legend ---- */
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__today,
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__zoom,
+body.thematiq-gantt[data-tq-gantt-timeline="off"] .thematiq-gantt__legend { display: none; }
+
+/* ---- narrow screens: the row wraps, the view switch stays on the screen ---- */
+@media (max-width: 679px) {
+  body.thematiq-gantt .thematiq-gantt__spacer { display: none; }
+  body.thematiq-gantt .thematiq-gantt__bar { gap: 8px; }
+  body.thematiq-gantt .thematiq-gantt__legend { gap: 8px 16px; }
+}

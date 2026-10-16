@@ -14,6 +14,18 @@ function rgb(hex) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
+// The design system a page is drawn in: its primary colour as the variable layer writes it, in lower case.
+// The top bar no longer tells sets apart: many have a white header, as the dossiq bar of Nextcloud draws it.
+async function primaryOf(page) {
+  return page.locator("body").evaluate((el) => getComputedStyle(el).getPropertyValue("--thematiq-primary").trim().toLowerCase());
+}
+
+// The colour of the top bar for an exported design system: thematiq's header colour where it has one, else the primary.
+function barColour(set) {
+  const header = set.vocabulary && set.vocabulary["color-header-background"];
+  return /^#[0-9a-f]{6}$/i.test(header || "") ? header : set.tokens.primary;
+}
+
 // The id of the design system that is active now: the checked radio button of the picker.
 async function activeSetId(page) {
   await page.goto(PICKER);
@@ -147,4 +159,4 @@ async function watchCsp(context) {
   });
 }
 
-module.exports = { REPO, PICKER, rgb, activeSetId, applySet, exported, customIds, createCustom, deleteCustom, snapshot, restore, flash, png, watchProblems, watchCsp };
+module.exports = { REPO, PICKER, rgb, primaryOf, barColour, activeSetId, applySet, exported, customIds, createCustom, deleteCustom, snapshot, restore, flash, png, watchProblems, watchCsp };

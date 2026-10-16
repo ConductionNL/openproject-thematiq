@@ -38,6 +38,16 @@
   <%= t("thematiq.admin.active_now_html", name: active.name) %>
 </p>
 <p><%= link_to t("thematiq.history.link"), admin_thematiq_history_path, data: { test_selector: "thematiq-history-link" } %></p>
+<p><%= link_to t("thematiq.gallery.link"), admin_thematiq_gallery_path, data: { test_selector: "thematiq-gallery-link" } %></p>
+<% if (gallery_notice = @store.gallery_notice) %>
+  <%= render(Primer::Alpha::Banner.new(scheme: :default, icon: :info, mb: 3, data: { test_selector: "thematiq-gallery-notice" })) do %>
+    <%= t("thematiq.gallery.notice", published: gallery_notice["generated_from"], mine: @store.catalogue.generated_from, count: gallery_notice["new"].to_i) %>
+    <%= form_with(url: admin_thematiq_gallery_path, method: :post, data: { turbo: false }, class: "thematiq-inline-form") do %>
+      <input type="hidden" name="dismiss" value="1">
+      <%= render(Primer::Beta::Button.new(type: :submit, size: :small)) { t("thematiq.gallery.dismiss") } %>
+    <% end %>
+  <% end %>
+<% end %>
 
 <% assets = OpenProject::Thematiq::Assets.bundled %>
 <% named_font = assets.named_family(active) %>
@@ -138,6 +148,7 @@
                 <%= render(Primer::Beta::Label.new(scheme: :accent, ml: 1)) { t("thematiq.admin.badge_active") } %>
               <% end %>
               <span class="thematiq-picker__meta"><%= t("thematiq.admin.ships_with_plugin") %></span>
+              <span class="thematiq-picker__meta" data-test-selector="thematiq-completeness"><%= t("thematiq.admin.completeness", filled: token_set.vocabulary.size, total: OpenProject::Thematiq::Tokens::Vocabulary.keys.size, dark: token_set.dark? ? t("thematiq.admin.completeness_dark") : t("thematiq.admin.completeness_no_dark")) %></span>
               <% low = OpenProject::Thematiq::Contrast.failures(token_set) %>
               <% if low.any? %>
                 <span class="thematiq-picker__meta" data-test-selector="thematiq-low-contrast">
@@ -233,6 +244,7 @@ end %>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_bundle_path, data: { test_selector: "thematiq-bundle-download" })) { t("thematiq.bundle.download") } %>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_history_export_path, scheme: :invisible)) { t("thematiq.history.download") } %>
   <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_compliance_path, scheme: :invisible, data: { test_selector: "thematiq-compliance-link" })) { t("thematiq.compliance.link") } %>
+  <%= render(Primer::Beta::Button.new(tag: :a, href: admin_thematiq_playground_path, scheme: :invisible, data: { test_selector: "thematiq-playground-link" })) { t("thematiq.playground.link") } %>
 </p>
 <%= form_with(url: admin_thematiq_bundle_path, method: :post, multipart: true, data: { turbo: false }, id: "thematiq-bundle-form",
               class: "thematiq-picker__import") do %>
@@ -262,7 +274,7 @@ end %>
 <% row = OpenProject::Thematiq::Shell::AppRow %>
 <% top_mode, top_keys = @store.top_bar_apps %>
 <% offered = row::KNOWN | top_keys %>
-<% slots = top_mode == "custom" ? top_keys : (top_mode == "default" ? row::DEFAULT : []) %>
+<% slots = top_mode == "custom" ? top_keys : row::OPHEADER %>
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium, id: "thematiq-top-bar") { t("thematiq.shell.top_bar.title") }
 end %>
@@ -552,6 +564,9 @@ end %>
       <% end %>
     </select>
   </div>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="marianne_entitled" value="1"> <%= t("thematiq.uploads.marianne_entitled") %>
+  </label>
   <%= render(Primer::Beta::Button.new(type: :submit, name: "upload", value: "1")) { t("thematiq.library.upload") } %>
 <% end %>
 
@@ -600,4 +615,85 @@ end %>
     </div>
   <% end %>
   <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.footer.save") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-email") { t("thematiq.email.title") }
+end %>
+<%= form_with(url: admin_thematiq_email_path, method: :post, data: { turbo: false }, id: "thematiq-email-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.email.hint") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="email_styled" value="1" id="thematiq-email-styled" <%= "checked" if @store.email_styled? %>>
+    <%= t("thematiq.email.styled") %>
+  </label>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-email-footer"><%= t("thematiq.email.footer") %></label>
+    <textarea name="email_footer" id="thematiq-email-footer" class="FormControl-textarea" rows="4" maxlength="<%= OpenProject::Thematiq::Email::MAX_FOOTER %>"
+              aria-describedby="thematiq-email-footer-hint"><%= @store.email_footer %></textarea>
+    <p class="thematiq-editor__hint" id="thematiq-email-footer-hint"><%= t("thematiq.email.footer_hint", count: OpenProject::Thematiq::Email::MAX_FOOTER) %></p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit)) { t("thematiq.email.save") } %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-icons") { t("thematiq.icons.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.icons.hint") %></p>
+<table class="thematiq-history" data-test-selector="thematiq-icon-sets">
+  <thead><tr><th scope="col"><%= t("thematiq.icons.set") %></th><th scope="col"><%= t("thematiq.icons.count") %></th>
+    <th scope="col"><%= t("thematiq.icons.licence") %></th><th scope="col"><%= t("thematiq.icons.sample") %></th></tr></thead>
+  <tbody>
+    <% OpenProject::Thematiq::Icons.sets.each do |set, entry| %>
+      <tr>
+        <td><code><%= set %></code><br><span class="color-fg-muted"><%= entry["source"] %></span></td>
+        <td><%= entry["count"] %></td>
+        <td><%= entry["licence"] %></td>
+        <td class="thematiq-icons__sample">
+          <% entry["names"].first(8).each do |name| %>
+            <img src="<%= OpenProject::Thematiq::Icons.url(set, name, root: OpenProject::Configuration["rails_relative_url_root"].to_s) %>" alt="<%= name %>" width="24" height="24" loading="lazy">
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-appearance") { t("thematiq.appearance.title") }
+end %>
+<%= form_with(url: admin_thematiq_appearance_path, method: :post, data: { turbo: false }, id: "thematiq-appearance-form", class: "thematiq-short-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.appearance.hint", example: "#{thematiq_appearance_url(mode: 'dark')}&return_to=/") %></p>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="appearance_link_enabled" value="1" id="thematiq-appearance-enabled" <%= "checked" if @store.appearance_link_enabled? %>>
+    <%= t("thematiq.appearance.enabled") %>
+  </label>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.appearance.save") } %>
+<% end %>
+
+<% chosen_groups = @store.group_choices %>
+<% all_groups = Group.order(:lastname).limit(500).pluck(:id, :lastname) %>
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-groups") { t("thematiq.groups.title") }
+end %>
+<%= form_with(url: admin_thematiq_groups_path, method: :post, data: { turbo: false }, id: "thematiq-groups-form") do %>
+  <p class="thematiq-editor__hint"><%= t("thematiq.groups.hint") %></p>
+  <% if all_groups.empty? %>
+    <p class="color-fg-muted"><%= t("thematiq.groups.none") %></p>
+  <% else %>
+    <ol class="thematiq-top-bar__list">
+      <% (chosen_groups + [{}] * 3).first([chosen_groups.size + 3, 10].max).each_with_index do |entry, index| %>
+        <li class="thematiq-top-bar__place">
+          <label class="thematiq-editor__label" for="thematiq-group-<%= index %>"><%= t("thematiq.groups.place", number: index + 1) %></label>
+          <select name="groups[][group_id]" id="thematiq-group-<%= index %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.groups.no_group"), ""]] + all_groups.map { |id, name| [name, id] }, entry["group_id"]) %>
+          </select>
+          <label class="sr-only" for="thematiq-group-set-<%= index %>"><%= t("thematiq.groups.design_system", number: index + 1) %></label>
+          <select name="groups[][design_system_id]" id="thematiq-group-set-<%= index %>" class="FormControl-select FormControl-medium">
+            <%= options_for_select([[t("thematiq.groups.none_chosen"), ""]] + every_option, entry["design_system_id"]) %>
+          </select>
+        </li>
+      <% end %>
+    </ol>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.groups.save") } %>
 <% end %>

@@ -11,9 +11,45 @@ module OpenProject
       # When OpenProject changes one of these files, the check fails and the helper overrides
       # switch themselves off. Read the new core file, adjust the shell, then update the checksum.
       module CoreGuard
-        CORE_VERSION = "17.9.1"
+        # The checksums are those of 17.9.1; 17.9.2 has the same 37 files, byte for byte.
+        CORE_VERSION = "17.9.1 and 17.9.2"
 
         FILES = {
+          # CreateDialog sends the create actions to core's create dialog: this controller answers
+          # /projects/:id/work_packages/dialog/new with the dialog, saves, and redirects back on success.
+          "app/controllers/work_packages/dialogs_controller.rb" =>
+            "1067f09f6b88890710bbafa756ba5f7efed1e2fc15442e0b67b9505c50fdd27a",
+          # The dialog's id, title and footer, and the form's id and fields, which the script and
+          # stylesheets/shell/70-create-modal.css name.
+          "app/components/work_packages/dialogs/create_dialog_component.html.erb" =>
+            "8dab61203a263c1cfa982b6703e71317213e804c8649ee607eb3f56350a6f9df",
+          "app/components/work_packages/dialogs/create_form_component.html.erb" =>
+            "a4bf04e4779bf93fed8a69b614c8b3e49c845c7d0781ffbf815d8e6fdb95b718",
+          "app/forms/work_packages/dialogs/create_form.rb" =>
+            "d9150197884c933d48637ddf306d0ffe440b929c798a20ae030e52f5044c2a85",
+          # CreateDialogFields prepends render_custom_fields, which core's form calls after the description,
+          "app/forms/custom_fields/custom_field_rendering.rb" =>
+            "72ce5cfb1c12d9cad3244903b8dce3ffcf4d347fe2c4d6233312c8ed39d70f8f",
+          # adds its fields with core's form inputs (the work package and user autocompleters),
+          "lib/primer/open_project/forms/dsl/input_methods.rb" =>
+            "7ed07ed88e2ef1697d4deff1e116f6bc0e426e4a1b1fc810519ba4a073b418b5",
+          "lib/primer/open_project/forms/autocompleter.rb" =>
+            "a1cad1193919706e17f53586199f58dcbb3f4f1bac2e1e973214eab3edbca9fb",
+          # and relies on core permitting parent, assignee, priority and the dates of a new work package.
+          "app/models/permitted_params.rb" =>
+            "ce96f03a2b2d57780424887ca2a3f8a9f82baf61ef697dabf635147bb22dae72",
+          # How core itself fetches that dialog: a GET with the Turbo stream type, rendered with renderStreamMessage.
+          "frontend/src/stimulus/controllers/async-dialog.controller.ts" =>
+            "075bf2b2ffb5b75ba32533defcba1e85a5e8d8eed97fdb5e95d63122a6dcff65",
+          # The create links it recognises: the quick add menu's /projects/:id/work_packages/new?type=,
+          "lib/redmine/menu_manager/top_menu/quick_add_menu.rb" =>
+            "69d5ca873112ea33454f47747defe233b3866d98ee7cac070dba48364c83fd6f",
+          # the page's Create button, button.add-work-package,
+          "frontend/src/app/features/work-packages/components/wp-buttons/wp-create-button/wp-create-button.html" =>
+            "a218269fdbd7be0a67417332e3da6c34509dfdd028ef81ff9c6ca5960b7c298b",
+          # and the list of types under it, links to .../create_new?type=.
+          "frontend/src/app/shared/components/op-context-menu/handlers/op-types-context-menu.directive.ts" =>
+            "9b614916f565f35335f398ef9fd3b0d2344991d93a316af856e4be8471032358",
           # TopBar overrides top_menu_left_menu_items and render_logo.
           "lib/redmine/menu_manager/top_menu_helper.rb" =>
             "3e221f320def6117811289a99dc8afce9e9797b7c2dcc46c8b64d65ead23cb59",
@@ -67,11 +103,57 @@ module OpenProject
           # Scopes read the module of a page from current_menu_item. When it moves, a module's design system stops
           # applying (the lookup rescues and the page keeps its project's or the instance's), and this check says why.
           "lib/redmine/menu_manager/menu_controller.rb" =>
-            "d44bf6153135f83c807d2831b841def1e0a5c1728d32113e697fa715751fccf5"
+            "d44bf6153135f83c807d2831b841def1e0a5c1728d32113e697fa715751fccf5",
+          # Shell::Gantt reads the follower and the one it follows from the classes of core's dependency lines,
+          # and hides those lines: they are drawn for rows of 40 px.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline-relations.directive.ts" =>
+            "dd52210cd565e7dc2b6bf6549a087f6bea50fdf1cd630cbbf0f67b3765f4c4e8",
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/timeline-relation-element.ts" =>
+            "963f361527b3d040b6d3d588725e889e06a8912fbf4e4e56834a8737b05e450f",
+          # The header rows it relabels, found by their top offset, and the zoom level on the header.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/header/wp-timeline-header.directive.ts" =>
+            "f31d936957885915764fb8f5c07b45fae28143b2143373c7526dc59c957772db",
+          # The grid lines and the class of a non-working day.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/grid/wp-timeline-grid.directive.ts" =>
+            "1dd0e0a7e080f1925ac742e29093c3e3e649e019405789b77b9a6ab44b4ea8f7",
+          # The left of the today line, which the dates under the header are read from.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline.today-line.ts" =>
+            "82d7a32a8ef598da94e8fa875a969987e21393f83ee1ac0f5fdb9da67448931a",
+          # The markup of a bar, its labels and a milestone.
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-cell-renderer.ts" =>
+            "5b89a9750e5fe72971eee330f06f4aafd6adde235317eb495bbd0b830406acb7",
+          "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-milestone-cell-renderer.ts" =>
+            "a2a35d355a423e51fce875d0f9d25231bce99a23c474f5675e268181954b27a3",
+          # The zoom list presses core's zoom buttons by their ids.
+          "frontend/src/app/features/work-packages/components/wp-buttons/wp-timeline-toggle-button/wp-timeline-toggle-button.html" =>
+            "d0747905731ece91ee77063763de11f56bcae900b3f783d1186cecff04115b6e",
+          # Export PDF opens the entry "Export" of core's "More actions" menu.
+          "frontend/src/app/shared/components/op-context-menu/handlers/op-settings-dropdown-menu.directive.ts" =>
+            "7daf1b6d320d380084a41e0d8a81b586f04f383e0ab7c5d675fa596facd10f0c",
+          # The chips are core's two default Gantt views.
+          "modules/gantt/app/services/gantt/default_query_generator_service.rb" =>
+            "fb8abe768c97a0719f2513d5b22e1e7069eff27d356c8f6ded7ae36bb1331e37",
+          # The timeline cells and the containers the stylesheet and the lines are placed in.
+          "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass" =>
+            "7c7c5185bf36be6d6ae8193812e5ab9908fe59311762135184d6acc1a482a589"
         }.freeze
 
         # The files each set of overrides leans on. One set can stay on while the other is off.
         PARTS = {
+          create_dialog: [
+            "app/controllers/work_packages/dialogs_controller.rb",
+            "app/components/work_packages/dialogs/create_dialog_component.html.erb",
+            "app/components/work_packages/dialogs/create_form_component.html.erb",
+            "app/forms/work_packages/dialogs/create_form.rb",
+            "app/forms/custom_fields/custom_field_rendering.rb",
+            "lib/primer/open_project/forms/dsl/input_methods.rb",
+            "lib/primer/open_project/forms/autocompleter.rb",
+            "app/models/permitted_params.rb",
+            "frontend/src/stimulus/controllers/async-dialog.controller.ts",
+            "lib/redmine/menu_manager/top_menu/quick_add_menu.rb",
+            "frontend/src/app/features/work-packages/components/wp-buttons/wp-create-button/wp-create-button.html",
+            "frontend/src/app/shared/components/op-context-menu/handlers/op-types-context-menu.directive.ts"
+          ],
           top_bar: [
             "lib/redmine/menu_manager/top_menu_helper.rb",
             "lib/redmine/menu_manager/top_menu/user_menu.rb",
@@ -99,6 +181,19 @@ module OpenProject
           scopes: [
             "lib/redmine/menu_manager/menu_controller.rb",
             "app/views/layouts/base.html.erb"
+          ],
+          gantt: [
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline-relations.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/timeline-relation-element.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/header/wp-timeline-header.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/grid/wp-timeline-grid.directive.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/global-elements/wp-timeline.today-line.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-cell-renderer.ts",
+            "frontend/src/app/features/work-packages/components/wp-table/timeline/cells/timeline-milestone-cell-renderer.ts",
+            "frontend/src/app/features/work-packages/components/wp-buttons/wp-timeline-toggle-button/wp-timeline-toggle-button.html",
+            "frontend/src/app/shared/components/op-context-menu/handlers/op-settings-dropdown-menu.directive.ts",
+            "modules/gantt/app/services/gantt/default_query_generator_service.rb",
+            "frontend/src/global_styles/content/work_packages/timelines/_timelines.sass"
           ]
         }.freeze
 

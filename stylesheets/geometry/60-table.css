@@ -31,9 +31,9 @@ table.work-package-table thead th .generic-table--sort-header span {
   text-transform: none; line-height: 20px;
 }
 
-/* row: 48 px high for one line, 1 px line on top, 14 px text with a 20 px line */
+/* row: 44 px high for one line, as Nextcloud, 1 px line on top, 14 px text with a 20 px line */
 table.work-package-table tbody tr.wp-table--row, table.work-package-table tbody tr.wp--row {
-  height: 48px; border-top: 1px solid var(--thematiq-v-table-line, var(--thematiq-line)); border-bottom: 0;
+  height: 44px; border-top: 1px solid var(--thematiq-v-table-line, var(--thematiq-line)); border-bottom: 0;
 }
 table.work-package-table tbody td { font-size: 14px; line-height: 20px; }
 

@@ -61,6 +61,7 @@ class TopBarAppsSettingTest < Minitest::Test
   def test_every_offered_key_is_a_valid_key_and_the_default_is_offered
     AppRow::KNOWN.each { |key| assert_match AppRow::KEY, key }
     assert_empty AppRow::DEFAULT - AppRow::KNOWN
+    assert_empty AppRow::OPHEADER - AppRow::KNOWN
     assert_equal AppRow::KNOWN.uniq, AppRow::KNOWN
   end
 

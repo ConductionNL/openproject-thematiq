@@ -1,0 +1,93 @@
+/* Core's create dialog in the sizes of the OpCreateWorkPackage board: 640 px wide, a header of 20 px above and
+ * 24 px at the sides with the project as a line above the title, fields of 40 px with their labels above, and a
+ * footer with a line on top. Every rule needs the class "thematiq-create-dialog" on the body, which only
+ * Shell::CreateDialog's script sets, and only while the guarded core files are those of OpenProject 17.9.1. */
+
+body.thematiq-create-dialog #create-work-package-dialog {
+  width: min(640px, calc(100vw - 32px)); max-width: 640px; border-radius: var(--thematiq-radius-lg);
+  box-shadow: 0 16px 48px color-mix(in srgb, var(--thematiq-ink) 28%, transparent);
+  font-family: var(--thematiq-font); color: var(--thematiq-ink);
+}
+body.thematiq-create-dialog #create-work-package-dialog::backdrop { background: color-mix(in srgb, var(--thematiq-ink) 45%, transparent); }
+
+/* header */
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-header { padding: 20px 24px; box-shadow: none; }
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-headerContentWrap { align-items: flex-start; gap: 16px; }
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-titleWrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+body.thematiq-create-dialog #create-work-package-dialog .thematiq-create__project {
+  margin: 0; font-size: 13px; font-weight: 600; line-height: 1.4; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--thematiq-primary-deep);
+}
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-title { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.3; }
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-closeButton {
+  width: 40px; height: 40px; margin: 0; border-radius: var(--thematiq-radius); color: var(--thematiq-text);
+}
+
+/* the form */
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-body { padding: 0 24px 8px; }
+/* The board's grid: Type and Parent, then Subject and Description across, then Assignee and Priority, then the
+ * two dates, then the Nextcloud line and core's custom fields. Each field is found by its input, so a field core or
+ * the plugin leaves out leaves no hole. */
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > * { grid-column: 1 / -1; order: 10; min-width: 0; margin: 0; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(label[for="work_package_type_id"]) { grid-column: auto; order: 1; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="parent"]) { grid-column: auto; order: 2; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(#work_package_subject) { order: 3; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(#work_package_description) { order: 4; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="assignee"]) { grid-column: auto; order: 5; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(select#work_package_priority_id) { grid-column: auto; order: 6; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(input#work_package_start_date) { grid-column: auto; order: 7; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(input#work_package_due_date) { grid-column: auto; order: 8; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="nextcloud"]) { order: 9; }
+/* The type as the board draws it: the name in the ink of the other fields, not core's coloured capitals. */
+body.thematiq-create-dialog #create-work-package-form .ng-select .ng-value-label,
+body.thematiq-create-dialog #create-work-package-form .ng-select .ng-value {
+  color: var(--thematiq-ink) !important; text-transform: none; font-weight: 400; letter-spacing: normal;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-select { height: 40px; border: 1px solid var(--thematiq-field); border-radius: var(--thematiq-radius-lg); font-size: 15px; }
+/* The Nextcloud line: a box the plugin cannot act on, drawn disabled with a note that says why. */
+body.thematiq-create-dialog .thematiq-create__check { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 14px; font-weight: 400; color: var(--thematiq-muted); }
+body.thematiq-create-dialog .thematiq-create__check input { width: 18px; height: 18px; margin: 0; }
+body.thematiq-create-dialog .thematiq-create__note { margin: 4px 0 0 28px; font-size: 13px; color: var(--thematiq-muted); }
+body.thematiq-create-dialog #create-work-package-form .FormControl { gap: 6px; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-label { font-size: 14px; font-weight: 600; color: var(--thematiq-ink); }
+/* Core hides the label of the type field from sight; the board shows it like the others. */
+body.thematiq-create-dialog #create-work-package-form label.sr-only[for="work_package_type_id"] {
+  position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; clip-path: none; white-space: normal;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-input-wrap { max-width: none; width: 100%; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-input,
+body.thematiq-create-dialog #create-work-package-form .ng-select .ng-select-container {
+  min-height: 40px; box-sizing: border-box; border: 1px solid var(--thematiq-field); border-radius: var(--thematiq-radius-lg);
+  background: var(--thematiq-surface); color: var(--thematiq-ink); font-size: 15px; font-weight: 400;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-input { height: 40px; padding: 0 12px; }
+body.thematiq-create-dialog #create-work-package-form .ck.ck-editor__main > .ck-editor__editable,
+body.thematiq-create-dialog #create-work-package-form .ck.ck-toolbar {
+  border-color: var(--thematiq-field);
+}
+body.thematiq-create-dialog #create-work-package-form .op-ckeditor--wrapper,
+body.thematiq-create-dialog #create-work-package-form .ck.ck-editor { border-radius: var(--thematiq-radius-lg); }
+body.thematiq-create-dialog #create-work-package-form .FormControl-input:focus-visible,
+body.thematiq-create-dialog #create-work-package-form .ng-select.ng-select-focused .ng-select-container {
+  outline: 2px solid var(--thematiq-action); outline-offset: 0; border-color: var(--thematiq-action);
+}
+
+/* footer */
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-footer {
+  gap: 10px; padding: 16px 24px; border-top: 1px solid var(--thematiq-soft); box-shadow: none;
+}
+body.thematiq-create-dialog #create-work-package-dialog .Overlay-footer .Button {
+  height: 40px; padding: 0 14px; border-radius: var(--thematiq-radius); font-size: 14px; font-weight: 600;
+}
+
+/* A phone: the dialog takes the width less a gutter of 16 px on each side. */
+@media (max-width: 543px) {
+  body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper { grid-template-columns: minmax(0, 1fr); }
+  body.thematiq-create-dialog #create-work-package-dialog { width: calc(100vw - 32px); }
+  body.thematiq-create-dialog #create-work-package-dialog .Overlay-header,
+  body.thematiq-create-dialog #create-work-package-dialog .Overlay-footer { padding-left: 16px; padding-right: 16px; }
+  body.thematiq-create-dialog #create-work-package-dialog .Overlay-body { padding: 0 16px 8px; }
+}

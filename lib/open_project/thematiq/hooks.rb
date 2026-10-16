@@ -2,6 +2,12 @@
 
 module OpenProject
   module Thematiq
+    # Every create action of a project opens core's create dialog. See Shell::CreateDialog.
+    # A listener has one method per hook, so this addition to the end of the body is a listener of its own.
+    class CreateDialogHooks < OpenProject::Hook::ViewListener
+      render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/create_dialog"
+    end
+
     # OpenProject has two places to add to the head:
     #
     #   view_layouts_base_html_meta  in the shared head partial, so in layouts/base and layouts/only_logo.
@@ -20,8 +26,22 @@ module OpenProject
       # it comes from OpenProject's menu and permission helpers.
       render_on :module_menu_dialog_content_before, partial: "thematiq/shell/app_switcher_nextcloud"
 
+      # E-mail in the house style, when an admin turned it on: a band before the content and a block after it.
+      render_on :view_layouts_mailer_html_before_content, partial: "thematiq/hooks/mail_header"
+      render_on :view_layouts_mailer_html_after_content, partial: "thematiq/hooks/mail_footer"
+
       # The end of the body: the script of the two-layer project menu.
       render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/body_bottom"
+
+      # The sign-in page as Nextcloud draws it: the logo above the card and the lines around it. See Shell::SignIn.
+      render_on :view_account_login_top, partial: "thematiq/shell/sign_in_top"
+      render_on :view_account_login_bottom, partial: "thematiq/shell/sign_in_bottom"
+    end
+
+    # A listener has one method per hook, so each addition to the end of the body is a listener of its own.
+    # The Gantt page as the OpGantt board draws it: the script and its texts, on a project's Gantt page only.
+    class GanttHooks < OpenProject::Hook::ViewListener
+      render_on :view_layouts_base_body_bottom, partial: "thematiq/shell/gantt"
     end
   end
 end

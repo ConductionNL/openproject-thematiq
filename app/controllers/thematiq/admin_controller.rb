@@ -12,6 +12,8 @@ module Thematiq
 
     # The picker: every design system, a search field and the active one.
     def show
+      # The catalogue notice checks once a day, on this page, when an administrator turned the gallery on.
+      check_gallery if @store.gallery_enabled? && OpenProject::Thematiq::Gallery.due?(@store.gallery_status["checked_at"])
       @query = params[:q].to_s.strip.first(100)
       @sets = @store.catalogue.search(@query)
       @customs = @store.custom_drafts(@query)
@@ -226,6 +228,17 @@ module Thematiq
         end
       end
       redirect_to action: :show, anchor: "thematiq-schedule"
+    end
+
+    # E-mail in the house style, and the organisation's text under every e-mail.
+    def update_email
+      if @store.save_email_settings(styled: params[:email_styled] == "1", footer: params[:email_footer].to_s.first(OpenProject::Thematiq::Email::MAX_FOOTER + 1))
+        record_change("email")
+        flash[:notice] = t("thematiq.email.notice_saved")
+      else
+        flash[:error] = t("thematiq.email.error_invalid", count: OpenProject::Thematiq::Email::MAX_FOOTER)
+      end
+      redirect_to action: :show, anchor: "thematiq-email"
     end
 
     # The footer's legal links.
@@ -487,6 +500,84 @@ module Thematiq
       render json: report, status: report["status"] == "ok" ? :ok : :service_unavailable
     end
 
+    # The playground (app-component-playground): OpenProject's own Primer components in each state, in the content area,
+    # drawn with a chosen design system. Only the content area changes; the top bar and the menu keep the one in use.
+    def playground
+      @playground_set = @store.find_set(params[:set_id].to_s) || @store.active_token_set
+      active = @store.active_token_set
+      thematiq = OpenProject::Thematiq
+      source = thematiq::Scopes::Source.new(kind: :module)
+      RequestStore.store[:thematiq_page_scope] = thematiq::PageScope::Result.new(
+        page_set: active, content_set: @playground_set, module_name: nil,
+        resolution: thematiq::Scopes::Resolution.new(page: [nil, thematiq::Scopes::INSTANCE],
+                                                    content: [@playground_set.id == active.id ? nil : @playground_set.id, source])
+      )
+    end
+
+    # Your own component in a design system (aut-component-preview): HTML and CSS you paste, drawn in a sandboxed frame
+    # with the design system's style sheet. Nothing is stored. The frame runs no script and has an origin of its own;
+    # the CSS goes through CustomCss first, so a url() or an import cannot fetch anything.
+    def component_preview
+      @playground_set = @store.find_set(params[:set_id].to_s) || @store.active_token_set
+      @preview_html = params[:html].to_s.first(20_000)
+      css = OpenProject::Thematiq::CustomCss.check(params[:css].to_s)
+      @preview_css_errors = css.errors
+      root = OpenProject::Configuration["rails_relative_url_root"].to_s
+      own = css.ok? ? css.css : ""
+      sheet = [OpenProject::Thematiq::Stylesheet.css(@playground_set), OpenProject::Thematiq::Assets.bundled.font_face_css(@playground_set, root:), own].join("\n")
+      @srcdoc = "<!doctype html><html><head><meta charset=\"utf-8\"><style>#{sheet.gsub(%r{</style}i, '')}</style></head>" \
+                "<body data-color-mode=\"light\" data-light-theme=\"light\" style=\"padding: 16px\">#{@preview_html}</body></html>"
+      playground
+      render :playground
+    end
+
+    # A design system per group, in priority order: the rows of the form, top first.
+    def update_groups
+      rows = Array(params[:groups]).first(OpenProject::Thematiq::Store::MAX_GROUP_CHOICES + 1).map do |row|
+        row.respond_to?(:permit) ? row.permit(:group_id, :design_system_id).to_h.values_at("group_id", "design_system_id") : []
+      end
+      if @store.save_group_choices(rows)
+        record_change("groups")
+        flash[:notice] = t("thematiq.groups.notice_saved")
+      else
+        flash[:error] = t("thematiq.groups.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-groups"
+    end
+
+    # The shared light or dark choice: whether another product may link a person here to set it.
+    def update_appearance
+      @store.save_appearance_link(params[:appearance_link_enabled] == "1")
+      record_change("appearance")
+      flash[:notice] = t("thematiq.appearance.notice_saved")
+      redirect_to action: :show, anchor: "thematiq-appearance"
+    end
+
+    # --- the gallery: thematiq's design systems from one https address, when an administrator turned it on ---
+
+    def gallery; end
+
+    # One form, several buttons: save the switch and the address, check now, add one set, dismiss the notice.
+    def update_gallery
+      if params[:save].present?
+        if @store.save_gallery_settings(enabled: params[:gallery_enabled] == "1", url: params[:gallery_url])
+          record_change("gallery")
+          flash[:notice] = t("thematiq.gallery.notice_saved")
+        else
+          flash[:error] = t("thematiq.gallery.errors.url")
+        end
+      elsif params[:dismiss].present?
+        @store.dismiss_gallery_notice
+        return redirect_to action: :show
+      elsif params[:add].present?
+        return add_from_gallery(params[:add].to_s)
+      elsif params[:check].present?
+        @gallery_sets = check_gallery
+        return render :gallery
+      end
+      redirect_to action: :gallery
+    end
+
     # Evidence of contrast for an audit: every design system in use, light and dark. HTML to read or print, JSON to keep.
     def compliance
       @report = OpenProject::Thematiq::Compliance.report(design_systems_in_use, generated_at: Time.current.utc.iso8601)
@@ -585,6 +676,38 @@ module Thematiq
       end
     end
 
+    # Fetches the gallery, keeps what it found, and returns the sets that are new or changed. [] when it failed.
+    def check_gallery
+      gallery = OpenProject::Thematiq::Gallery.read(OpenProject::Thematiq::Gallery::Client.fetch(@store.gallery_url, enabled: @store.gallery_enabled?))
+      fresh = OpenProject::Thematiq::Gallery.new_or_changed(gallery, @store.catalogue)
+      @store.record_gallery_status("checked_at" => Time.now.to_i, "generated_from" => gallery.generated_from, "sets" => gallery.sets.size,
+                                   "new" => fresh.size, "error" => nil)
+      fresh
+    rescue OpenProject::Thematiq::Gallery::Off
+      []
+    rescue OpenProject::Thematiq::Gallery::Refused => e
+      @store.record_gallery_status("checked_at" => Time.now.to_i, "error" => e.code.to_s.first(60))
+      []
+    end
+
+    # One set of the gallery as a new custom design system, read and checked like an imported file.
+    def add_from_gallery(id)
+      token_set = check_gallery.find { |candidate| candidate.id == id }
+      new_id = @store.next_custom_id
+      if token_set && new_id
+        draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: token_set.name.first(80), overrides: token_set.tokens, id: new_id,
+                                                       dark: token_set.dark_tokens, vocabulary: token_set.vocabulary,
+                                                       dark_vocabulary: token_set.dark_vocabulary)
+        if save_draft(draft, new: true)
+          record_change("import", draft.name)
+          flash[:notice] = t("thematiq.gallery.notice_added", name: draft.name)
+          return redirect_to action: :show
+        end
+      end
+      flash[:error] = t(new_id ? "thematiq.gallery.errors.add" : "thematiq.transfer.errors.too_many")
+      redirect_to action: :gallery
+    end
+
     # The id of the design system in use: a custom one, else the catalogue's.
     def current_id
       @store.active_custom_id || @store.active_token_set.id
@@ -625,7 +748,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches footer_links].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
@@ -706,13 +829,19 @@ module Thematiq
                OpenProject::Thematiq::Uploads::FontFace.clean(family: params[:font_family], weight: params[:font_weight],
                                                               style: params[:font_style])
              end
+      # The French State's Marianne typeface is reserved for its administrations (typ-marianne-gated): the uploader
+      # confirms the entitlement first.
+      if face && OpenProject::Thematiq::Uploads::FontFace.gated?(face.family) && params[:marianne_entitled] != "1"
+        raise OpenProject::Thematiq::Uploads::Refused, "font_not_entitled"
+      end
       result = OpenProject::Thematiq::Uploads::Inspector.inspect_upload(kind.name, bytes)
       Thematiq::Upload.store!(set_id:, result:, face:, label: file.respond_to?(:original_filename) ? file.original_filename.to_s : nil)
       result
     end
 
     UPLOAD_ERRORS = %w[empty too_large unknown_type wrong_type broken too_small too_wide svg_declares svg_not_svg svg_too_complex
-                       font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind].freeze
+                       font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind
+                       font_not_entitled].freeze
 
     def upload_error_key(code)
       UPLOAD_ERRORS.include?(code) ? code : "broken"

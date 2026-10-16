@@ -31,11 +31,22 @@ rescue StandardError => e
   $failures << label
 end
 
+# OpenProject bans a user name for 30 minutes after 20 sign-in attempts in a minute (RateLimiting::Login). The check
+# signs the same people in many times, because a refused CSRF token signs a session out. It keeps under the limit.
+$logins = Hash.new { |hash, key| hash[key] = [] }
+
+def wait_for_login_room(login)
+  recent = $logins[login].select { |time| time > Time.now - 61 }
+  sleep(recent.first + 62 - Time.now) if recent.size >= 15
+  $logins[login] = $logins[login].select { |time| time > Time.now - 61 } << Time.now
+end
+
 def session_for(login = nil, password = nil)
   session = ActionDispatch::Integration::Session.new(Rails.application)
   session.host! HOST
   return session unless login
 
+  wait_for_login_room(login)
   session.get "/login"
   token = session.response.body[/name="authenticity_token" value="([^"]+)"/, 1]
   session.post "/login", params: { username: login, password:, authenticity_token: CGI.unescapeHTML(token.to_s) }
@@ -538,7 +549,8 @@ begin
     %w[logo logo-inverse logo-mobile favicon touch-icon font].all? { |kind| body.include?(%(id="thematiq-file-#{kind}-form")) }
   end
   check("each field states its limits") { body.include?("At most 512 KB") && body.include?("2000 by 1000 px") && body.include?("12 files per design system") }
-  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 6 }
+  # Seven since the sign-in background joined the six (#87).
+  check("each upload form has a named upload button") { body.scan(/<button[^>]*name="upload"/).size == 7 }
 
   body = send_file.call("logo", UploadSamples.svg("clean-logo"), "logo.txt")
   logo = of_kind.call("logo")
@@ -568,9 +580,10 @@ begin
   check("the replaced file's address is gone") { anonymous.response.status == 404 }
 
   send_file.call("logo_inverse", UploadSamples.png(300, 80), "inverse.png")
-  check("the logo for the coloured bar wins in the top bar") do
+  # The set is based on Cunningham, whose header colour is white: the bar is light, so the plain logo wins there.
+  check("the logo for the light bar wins in the top bar") do
     admin.get "/admin/thematiq"
-    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo_inverse').url}"); }))
+    admin.response.body.include?(%(.op-logo--link:not(.op-logo--link_high_contrast) { background-image: url("#{of_kind.call('logo').url}"); }))
   end
   send_file.call("logo_mobile", UploadSamples.webp(64, 64), "mobile.webp")
   check("the mobile logo gets its rule on the element narrow screens show") do
@@ -592,7 +605,7 @@ begin
   check("the page head links the uploaded touch icon") { touch && page.include?(%(href="#{touch.url}")) && page.include?('rel="apple-touch-icon"') }
   admin.get "/this-page-does-not-exist-#{SecureRandom.hex(4)}"
   check("an error page links the uploaded icons and logo as well") do
-    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo_inverse").url)
+    admin.response.status == 404 && admin.response.body.include?(favicon.url) && admin.response.body.include?(of_kind.call("logo").url)
   end
 
   body = send_file.call("font", UploadSamples.woff2, "check.woff2", { font_family: "Check Sans", font_weight: "400", font_style: "normal" })
@@ -1059,6 +1072,38 @@ begin
   check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
+  # The member is a plain member again for the sections below: they check what someone without the permission gets.
+  global_member.destroy
+  design_role.destroy
+
+  # Create work package as a dialog (Shell::CreateDialog): the script on the pages, and core's own dialog behind it.
+  dialog_admin = session_for("admin", ADMIN_PASSWORD)
+  dialog_admin.get "/projects/demo-project/work_packages"
+  check("a project page carries the create dialog script") { dialog_admin.response.body.include?("window.thematiqCreateDialog") }
+  dialog_admin.get "/projects/demo-project/work_packages/dialog/new", params: { type_id: Type.first.id },
+                                                                      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+  check("core answers the create dialog as a Turbo stream") do
+    dialog_admin.response.status == 200 && dialog_admin.response.media_type == "text/vnd.turbo-stream.html" &&
+      dialog_admin.response.body.include?('id="create-work-package-dialog"') && dialog_admin.response.body.include?('id="create-work-package-form"')
+  end
+  check("the dialog has the board's fields, each sent once") do
+    body = dialog_admin.response.body
+    %w[parent assignee].all? { |field| body.include?(%(data-thematiq-field="#{field}")) } &&
+      %w[priority_id start_date due_date].all? { |name| body.scan(%(name="work_package[#{name}]")).size == 1 }
+  end
+  manager_session.get "/projects/demo-project/work_packages/dialog/new", headers: { "Accept" => "text/vnd.turbo-stream.html" }
+  check("a user who may not add work packages there gets no dialog") do
+    manager_session.response.status != 200 && !manager_session.response.body.include?("create-work-package-form")
+  end
+
+  # 18b. The top bar is the dossiq bar: the brand block, no row of tiles by default
+  bar_view = session_for("admin", ADMIN_PASSWORD)
+  bar_view.get "/projects"
+  check("the top bar has the brand block and no row of tiles") do
+    body = bar_view.response.body
+    # The class also names rules of the inlined stylesheet, so the check looks for the element.
+    bar_view.response.status == 200 && body.include?('data-test-selector="thematiq-brand"') && !body.include?('<ul class="thematiq-app-row"')
+  end
 
   # 19. Metrics: off without THEMATIQ_METRICS_TOKEN, else only with it
   scraper = session_for
@@ -1070,6 +1115,28 @@ begin
   else
     check("metrics are off without THEMATIQ_METRICS_TOKEN") { scraper.response.status == 404 }
   end
+
+  # 19b. The account menu: a dropdown with core's entries instead of core's sheet
+  menu_admin = session_for("admin", ADMIN_PASSWORD)
+  menu_admin.get "/projects"
+  admin_panel = menu_admin.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  check("the account menu is the plugin's dropdown with core's entries") do
+    body = menu_admin.response.body
+    body.include?('id="thematiq-account-button"') && !body.include?('id="op-app-header--user-menu-list"') &&
+      admin_panel.include?('/admin"') && admin_panel.include?('data-turbo="false"')
+  end
+  menu_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  menu_member.get "/my/account"
+  member_panel = menu_member.response.body[%r{<nav id="thematiq-account-panel".*?</nav>}m].to_s
+  # Administration shows exactly when core would show it: the member holds a global role by now in this check.
+  menu_user = User.find_by(login: MEMBER_LOGIN)
+  may_admin = menu_user.allowed_globally?({ controller: "/admin", action: "index" })
+  check("a member's account menu has Administration only as core allows it") do
+    member_panel.include?("/my/account") && member_panel.include?('/admin"') == may_admin
+  end
+  signed_out = session_for
+  signed_out.get "/thematiq-check-no-such-page"
+  check("signed out, core's sign-in menu renders") { !signed_out.response.body.include?('id="thematiq-account-button"') }
 
   # 20. A CSS file of design tokens
   css_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
@@ -1186,11 +1253,115 @@ begin
   footer_view.get "/login"
   check("the legal links show on the sign-in page") { footer_view.response.body.include?('href="https://example.org/imprint"') }
   OpenProject::Thematiq::Store.new.save_footer_links({})
+
+  # 27. E-mail in the house style
+  mail_admin = User.find_by(login: "admin")
+  plain_mail = UserMailer.test_mail(mail_admin).html_part.body.to_s
+  check("e-mail keeps OpenProject's look while the switch is off") { !plain_mail.include?("thematiq-mail-header") }
+  OpenProject::Thematiq::Store.new.save_email_settings(styled: true, footer: "Check town\nPostbus 1 & co")
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  styled_mail = UserMailer.test_mail(mail_admin).html_part.body.to_s
+  check("with the switch on, e-mail has the band and the organisation's text") do
+    styled_mail.include?("thematiq-mail-header") && styled_mail.include?("background: #{catalogue.find('zuiddrecht')['primary']};") &&
+      styled_mail.include?("Check town<br>Postbus 1 &amp; co")
+  end
+  OpenProject::Thematiq::Store.new.save_email_settings(styled: false, footer: "")
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+
+  # 28. The playground
+  play_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  play_member.get "/admin/thematiq/playground"
+  check("a non-admin cannot open the playground") { play_member.response.status == 403 }
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  admin.get "/admin/thematiq/playground", params: { set_id: "zuiddrecht" }
+  check("the playground draws the chosen design system in the content area only") do
+    body = admin.response.body
+    admin.response.status == 200 && body.include?('<style id="openproject-thematiq-content"') &&
+      head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") &&
+      OpenProject::Thematiq::Store.new.active_token_set.id == "cunningham"
+  end
+
+  # 29. The icon library
+  icon_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  icon_member.get "/thematiq/api/v1/icons", headers: { "Accept" => "application/json" }
+  icon_list = JSON.parse(icon_member.response.body) rescue {}
+  check("a member reads the icon library") { icon_member.response.status == 200 && icon_list["sets"].to_h.key?("rvo") }
+  icon_view = session_for
+  icon_view.get "/thematiq/icons/rvo/#{icon_list.dig('sets', 'rvo', 'names')&.first}.svg"
+  check("an icon is a static file without a session") { icon_view.response.status == 200 && icon_view.response.media_type == "image/svg+xml" }
+  icon_view.get "/thematiq/icons/../../config/database.yml"
+  check("the icon path does not leave its folder") { icon_view.response.status != 200 || !icon_view.response.body.include?("adapter") }
+
+  # 30. The gallery: off by default, https only; and the shared light or dark choice
+  check("the gallery is off by default and opens nothing") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  gallery_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  gallery_member.get "/admin/thematiq/gallery"
+  check("a non-admin cannot open the gallery") { gallery_member.response.status == 403 }
+  gallery_token = form_token(admin, "/admin/thematiq/gallery", "thematiq-gallery-form")
+  admin.post "/admin/thematiq/gallery", params: { save: "1", gallery_enabled: "1", gallery_url: "http://169.254.169.254/latest", authenticity_token: gallery_token }
+  check("a gallery address that is not https is refused") { !OpenProject::Thematiq::Store.new.gallery_enabled? }
+  appearance_member = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "/" }
+  check("the appearance link answers 404 while it is off") { appearance_member.response.status == 404 }
+  OpenProject::Thematiq::Store.new.save_appearance_link(true)
+  appearance_member.get "/thematiq/appearance", params: { mode: "dark", return_to: "https://evil.example/" }
+  check("the appearance link sets the person's choice and only goes back to a safe place") do
+    appearance_member.response.redirect? && !appearance_member.response.location.include?("evil.example") && member.reload.pref.theme == "dark"
+  end
+  appearance_member.get "/thematiq/appearance", params: { mode: "light", return_to: "/projects" }
+  check("light, and back to a path here") { appearance_member.response.location.end_with?("/projects") && member.reload.pref.theme == "light" }
+  OpenProject::Thematiq::Store.new.save_appearance_link(false)
+
+  # 31. A design system per group
+  check_group = Group.create!(lastname: "Thematiq check group #{SecureRandom.hex(3)}")
+  check_group.group_users.create!(user_id: member.id)
+  OpenProject::Thematiq::Store.new.activate("cunningham")
+  groups_token = form_token(admin, "/admin/thematiq", "thematiq-groups-form")
+  admin.post "/admin/thematiq/groups", params: { groups: [{ group_id: check_group.id.to_s, design_system_id: "zuiddrecht" }], authenticity_token: groups_token }
+  check("the design system of a group is saved") { OpenProject::Thematiq::Store.new.group_choices.first.to_h["group_id"] == check_group.id }
+  group_session = session_for(MEMBER_LOGIN, MEMBER_PASSWORD)
+  group_session.get "/my/account"
+  check("a member of the group sees its design system") { head_style(group_session).include?("--header-bg-color: #{catalogue.find('zuiddrecht')['primary']};") }
+  admin.get "/my/account"
+  check("someone outside the group keeps the instance's") { head_style(admin).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  group_view = session_for
+  group_view.get "/login"
+  check("the sign-in page keeps the instance's") { head_style(group_view).include?("--header-bg-color: #{catalogue.find('cunningham')['primary']};") }
+  OpenProject::Thematiq::Store.new.save_group_choices([])
+  check_group.destroy
+
+  # The Gantt page as the OpGantt board draws it (Shell::Gantt): the script and its chips on a project's Gantt page only.
+  gantt_admin = session_for("admin", ADMIN_PASSWORD)
+  gantt_admin.get "/projects/demo-project/gantt"
+  # Core sends the bare address on to its default view.
+  3.times { gantt_admin.response.redirect? ? gantt_admin.follow_redirect! : break }
+  check("the Gantt page carries the Gantt script with core's default views as chips") do
+    body = gantt_admin.response.body
+    gantt_admin.response.status == 200 && body.include?("window.thematiqGantt") && body.include?(%("key":"all_open")) &&
+      body.include?("/projects/demo-project/gantt?")
+  end
+  gantt_admin.get "/projects/demo-project/work_packages"
+  check("the work package page does not") { gantt_admin.response.status == 200 && !gantt_admin.response.body.include?("window.thematiqGantt") }
+
+  # 32. The sign-in page of Nextcloud Zuiddrecht: the brand above core's own form, a line under the heading
+  sign_in_view = session_for
+  sign_in_view.get "/login"
+  check("the sign-in page has the brand block above core's own form") do
+    body = sign_in_view.response.body
+    body.include?('data-test-selector="thematiq-sign-in-brand"') && body.include?('id="login-form"') && body.include?('id="username"')
+  end
+  OpenProject::Thematiq::Store.new.activate("zuiddrecht")
+  sign_in_view.get "/login"
+  check("for an organisation the page names it and shows its emblem") do
+    body = sign_in_view.response.body
+    body.include?("For the staff of Gemeente Zuiddrecht.") && body.include?("/thematiq/logos/zuiddrecht-emblem.svg")
+  end
+  OpenProject::Thematiq::Store.new.activate("cunningham")
 ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
   end
-  design_role&.destroy if defined?(design_role)
+  GlobalRole.where(id: design_role.id).destroy_all if defined?(design_role) && design_role
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
     Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }
