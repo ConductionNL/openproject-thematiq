@@ -33,6 +33,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `library.spec.js` | A font in the library loads for a design system that names its family |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `metrics.spec.js` | `/thematiq/metrics` answers 404 without `THEMATIQ_METRICS_TOKEN`; with it, 401 without the token and the text format with it. Set `THEMATIQ_E2E_METRICS_TOKEN` to check the second |
+| `federated-share.spec.js` | **Share the setup**: serving is off by default (404), then answers only to its key (403 without it, 200 with the file, `no-store`), a new key stops the old one; pulling is off by default and refuses an http address; a pull that cannot reach the other instance changes nothing. Set `THEMATIQ_E2E_SHARE_URL` to an https address that reaches this instance's `/thematiq/api/v1/setup` to run the pull and its preview |
 | `narrow.spec.js` | At 390 px wide the work package toolbar stays on the screen and the sign-in card fits |
 | `quality.spec.js` | No console errors or content security policy violations on the main pages; an accessibility pass with axe on the picker, the editor, the work package page and the sign-in page |
 | `wave1.spec.js` | Each shipped design system says how much of the vocabulary it fills; a font named Marianne waits for the entitlement |
