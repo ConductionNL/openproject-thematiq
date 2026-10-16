@@ -12,6 +12,7 @@ test.describe("icon library", () => {
     const icon = await visitor.request.get(list.url_template.replace("{set}", "rvo").replace("{name}", name));
     expect(icon.status()).toBe(200);
     expect(icon.headers()["content-type"]).toContain("image/svg+xml");
+    expect(await icon.text()).toMatch(/^<\?xml[^>]*\?>\s*<svg[\s>]/);
     await visitor.close();
   });
 });
