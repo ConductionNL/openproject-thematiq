@@ -11,7 +11,8 @@ module OpenProject
       # When OpenProject changes one of these files, the check fails and the helper overrides
       # switch themselves off. Read the new core file, adjust the shell, then update the checksum.
       module CoreGuard
-        CORE_VERSION = "17.9.1"
+        # The checksums are those of 17.9.1; 17.9.2 has the same 37 files, byte for byte.
+        CORE_VERSION = "17.9.1 and 17.9.2"
 
         FILES = {
           # CreateDialog sends the create actions to core's create dialog: this controller answers
