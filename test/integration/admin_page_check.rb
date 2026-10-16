@@ -31,11 +31,22 @@ rescue StandardError => e
   $failures << label
 end
 
+# OpenProject bans a user name for 30 minutes after 20 sign-in attempts in a minute (RateLimiting::Login). The check
+# signs the same people in many times, because a refused CSRF token signs a session out. It keeps under the limit.
+$logins = Hash.new { |hash, key| hash[key] = [] }
+
+def wait_for_login_room(login)
+  recent = $logins[login].select { |time| time > Time.now - 61 }
+  sleep(recent.first + 62 - Time.now) if recent.size >= 15
+  $logins[login] = $logins[login].select { |time| time > Time.now - 61 } << Time.now
+end
+
 def session_for(login = nil, password = nil)
   session = ActionDispatch::Integration::Session.new(Rails.application)
   session.host! HOST
   return session unless login
 
+  wait_for_login_room(login)
   session.get "/login"
   token = session.response.body[/name="authenticity_token" value="([^"]+)"/, 1]
   session.post "/login", params: { username: login, password:, authenticity_token: CGI.unescapeHTML(token.to_s) }
@@ -1061,6 +1072,9 @@ begin
   check("the permission opens nothing else of the administration") { manager_session.response.status == 403 }
   manager_session.get "/admin/settings/general"
   check("not the general settings either") { manager_session.response.status == 403 }
+  # The member is a plain member again for the sections below: they check what someone without the permission gets.
+  global_member.destroy
+  design_role.destroy
 
   # Create work package as a dialog (Shell::CreateDialog): the script on the pages, and core's own dialog behind it.
   dialog_admin = session_for("admin", ADMIN_PASSWORD)
@@ -1347,7 +1361,7 @@ ensure
   if defined?(global_member) && global_member&.persisted?
     global_member.destroy
   end
-  design_role&.destroy if defined?(design_role)
+  GlobalRole.where(id: design_role.id).destroy_all if defined?(design_role) && design_role
   if defined?(Thematiq::Scope) && Thematiq::Scope.ready?
     Thematiq::Scope.delete_all
     Array(scopes_before).each { |attributes| Thematiq::Scope.create!(attributes) }
