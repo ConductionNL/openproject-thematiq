@@ -55,6 +55,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 ### PDF export
 
 - The files of PDF exports per custom design system: a logo, a cover picture, a footer picture and four TrueType font cuts, on the editor page; and the value "Cover text" for the text colour of the cover page.
+- PDF exports carry the design system of the exported project: prepended readers on OpenProject's four exporter files answer from the plugin and leave core's reader in charge of what the plugin does not have. A new part `pdf_export` of the core guard turns only this off when one of the four files changes; they are the same in 17.9.1 and 17.9.2.
 
 ### OpenProject 17.9.2
 

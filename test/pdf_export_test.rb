@@ -161,6 +161,23 @@ class PDFExportTest < Minitest::Test
     end
   end
 
+  # Rails sets a default internal encoding, which a file opened in text mode converts to.
+  def test_binary_bytes_are_written_as_they_are_under_rails_encodings
+    bytes = "\x89PNG\r\n\x1A\n\xFF\x00".b
+    logo = record("export_logo", "png", "a", bytes:)
+    internal = Encoding.default_internal
+    Encoding.default_internal = Encoding::UTF_8
+
+    with_directory do |directory|
+      path = PDFExport.file_path(logo, bytes: ->(_) { bytes }, directory:)
+
+      assert_equal bytes, File.binread(path)
+      assert_empty Dir.children(directory).grep(/\.tmp\z/)
+    end
+  ensure
+    Encoding.default_internal = internal
+  end
+
   def test_a_font_keeps_the_extension_prawn_reads_its_type_from
     font = record("export_font_regular", "ttf", "a", bytes: "font".b)
     jpeg = record("export_cover", "jpeg", "b", bytes: "jpeg".b)

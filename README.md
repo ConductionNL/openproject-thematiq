@@ -134,7 +134,7 @@ The plugin lives in your image, so a new OpenProject needs a new image.
 2. Build the image again with the command from step 3.
 3. Start OpenProject on the new image.
 
-The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar, the project menu and the home page also lean on 17 files of OpenProject itself; when one of them changed, the plugin turns those parts off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) tells you what to do then.
+The plugin styles OpenProject by class names that can change between OpenProject versions. After an upgrade, look at the top bar, the sidebar and the work package table before you let users in. The top bar, the project menu and the home page also lean on files of OpenProject itself, and PDF export styling on four more; when one of them changed, the plugin turns that part off and says so in the log. [docs/shell-structure.md](docs/shell-structure.md#when-an-openproject-upgrade-breaks-this) and [docs/enterprise-parity.md](docs/enterprise-parity.md#when-an-openproject-upgrade-changes-a-file) tell you what to do then.
 
 ### Remove the plugin
 
@@ -162,7 +162,7 @@ This was tested on the Docker route with OpenProject 17.9.1, on the compose inst
 
 ### What is not supported yet
 
-The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system. PDF exports keep OpenProject's look; [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
+The plugin is early work. It styles the light and the dark theme. In OpenProject's high contrast themes OpenProject's own colours stay; in OpenProject 17.9.1 you switch to them with **Increase contrast** under **My account**, **Interface**. E-mail keeps OpenProject's look unless you turn on [e-mail in the house style](#e-mail-in-the-house-style). Error pages get the colours and the font, not the sizes. A logo ships for 15 of the 64 design systems and a font for 52; the rest keep OpenProject's logo and fall back to a font on the reader's device. You can upload a logo, icons and fonts for a custom design system, and the files of PDF exports; the catalogue's design systems bring none for PDF, so their exports keep OpenProject's look. [docs/enterprise-parity.md](docs/enterprise-parity.md) has the full comparison with OpenProject's Enterprise design page. The `-slim` image, the packaged installation and the Enterprise edition are untested. Only English is translated.
 
 ## Usage
 
@@ -263,6 +263,16 @@ A custom design system can carry your own files.
 4. The file is in use at once. **Replace** swaps it, **Remove** takes it away after you confirm.
 
 You can upload a logo, a logo for the coloured top bar, a mobile logo, a favicon, a touch icon and up to 12 font files. For a font, type its family name and pick its weight and style. Then name the same family in the value **Font**.
+
+### Style PDF exports
+
+PDF exports of work packages, reports and meetings carry the design system of the exported project.
+
+1. In the editor of a custom design system, under **PDF export**, upload a PDF logo, a cover picture and a footer picture as PNG or JPEG, and the regular cut of a TrueType font. Bold, italic and bold italic are optional.
+2. In the group **PDF export** of the values, give **Cover text** a colour for the text on the cover page, and save.
+3. Export a work package as PDF. It carries the logo, the footer picture and the font; a report with a cover also the cover picture and its colour.
+
+A value you leave empty keeps OpenProject's own. The plugin patches four of OpenProject's exporter files for this and turns the patch off when one of them changes; [docs/enterprise-parity.md](docs/enterprise-parity.md#pdf-export-styling) says how.
 
 The plugin checks every file by its content and refuses what it does not know. It rebuilds an SVG file without script. [docs/uploads.md](docs/uploads.md) has the limits and the checks.
 

@@ -108,10 +108,11 @@ module OpenProject
         return nil unless data.is_a?(String) && data.bytesize == record.byte_size && Digest::SHA256.hexdigest(data) == record.sha256
 
         temporary = "#{path}.#{SecureRandom.hex(8)}.tmp"
-        File.open(temporary, File::WRONLY | File::CREAT | File::EXCL, 0o600) { |file| file.write(data.b) }
+        File.open(temporary, File::WRONLY | File::CREAT | File::EXCL, 0o600, binmode: true) { |file| file.write(data.b) }
         File.rename(temporary, path)
         path
-      rescue SystemCallError, IOError
+      rescue SystemCallError, IOError, EncodingError
+        File.delete(temporary) if temporary && File.exist?(temporary)
         nil
       end
 
