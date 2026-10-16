@@ -46,6 +46,7 @@ All notable changes to the plugin. The numbers follow [semantic versioning](http
 
 ### Small things
 
+- The icon library serves real SVG files again: the vendoring script wrote the sanitiser's result object instead of its text, so all 2,526 icons were unreadable.
 - The picker says how much of thematiq's vocabulary each shipped design system fills; the contrast report measures the status colours; selected text takes the brand colour; an upload of the Marianne typeface asks for the entitlement first (#98).
 
 ### The shell follows Nextcloud
