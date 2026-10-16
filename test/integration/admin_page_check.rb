@@ -1086,6 +1086,11 @@ begin
     dialog_admin.response.status == 200 && dialog_admin.response.media_type == "text/vnd.turbo-stream.html" &&
       dialog_admin.response.body.include?('id="create-work-package-dialog"') && dialog_admin.response.body.include?('id="create-work-package-form"')
   end
+  check("the dialog has the board's fields, each sent once") do
+    body = dialog_admin.response.body
+    %w[parent assignee].all? { |field| body.include?(%(data-thematiq-field="#{field}")) } &&
+      %w[priority_id start_date due_date].all? { |name| body.scan(%(name="work_package[#{name}]")).size == 1 }
+  end
   manager_session.get "/projects/demo-project/work_packages/dialog/new", headers: { "Accept" => "text/vnd.turbo-stream.html" }
   check("a user who may not add work packages there gets no dialog") do
     manager_session.response.status != 200 && !manager_session.response.body.include?("create-work-package-form")

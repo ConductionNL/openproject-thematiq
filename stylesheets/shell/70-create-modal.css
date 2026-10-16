@@ -25,8 +25,32 @@ body.thematiq-create-dialog #create-work-package-dialog .Overlay-closeButton {
 
 /* the form */
 body.thematiq-create-dialog #create-work-package-dialog .Overlay-body { padding: 0 24px 8px; }
-body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper { display: flex; flex-direction: column; gap: 16px; }
-body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > * { margin: 0; }
+/* The board's grid: Type and Parent, then Subject and Description across, then Assignee and Priority, then the
+ * two dates, then the Nextcloud line and core's custom fields. Each field is found by its input, so a field core or
+ * the plugin leaves out leaves no hole. */
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > * { grid-column: 1 / -1; order: 10; min-width: 0; margin: 0; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(label[for="work_package_type_id"]) { grid-column: auto; order: 1; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="parent"]) { grid-column: auto; order: 2; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(#work_package_subject) { order: 3; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(#work_package_description) { order: 4; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="assignee"]) { grid-column: auto; order: 5; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(select#work_package_priority_id) { grid-column: auto; order: 6; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(input#work_package_start_date) { grid-column: auto; order: 7; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has(input#work_package_due_date) { grid-column: auto; order: 8; }
+body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper > :has([data-thematiq-field="nextcloud"]) { order: 9; }
+/* The type as the board draws it: the name in the ink of the other fields, not core's coloured capitals. */
+body.thematiq-create-dialog #create-work-package-form .ng-select .ng-value-label,
+body.thematiq-create-dialog #create-work-package-form .ng-select .ng-value {
+  color: var(--thematiq-ink) !important; text-transform: none; font-weight: 400; letter-spacing: normal;
+}
+body.thematiq-create-dialog #create-work-package-form .FormControl-select { height: 40px; border: 1px solid var(--thematiq-field); border-radius: var(--thematiq-radius-lg); font-size: 15px; }
+/* The Nextcloud line: a box the plugin cannot act on, drawn disabled with a note that says why. */
+body.thematiq-create-dialog .thematiq-create__check { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 14px; font-weight: 400; color: var(--thematiq-muted); }
+body.thematiq-create-dialog .thematiq-create__check input { width: 18px; height: 18px; margin: 0; }
+body.thematiq-create-dialog .thematiq-create__note { margin: 4px 0 0 28px; font-size: 13px; color: var(--thematiq-muted); }
 body.thematiq-create-dialog #create-work-package-form .FormControl { gap: 6px; }
 body.thematiq-create-dialog #create-work-package-form .FormControl-label { font-size: 14px; font-weight: 600; color: var(--thematiq-ink); }
 /* Core hides the label of the type field from sight; the board shows it like the others. */
@@ -61,6 +85,7 @@ body.thematiq-create-dialog #create-work-package-dialog .Overlay-footer .Button 
 
 /* A phone: the dialog takes the width less a gutter of 16 px on each side. */
 @media (max-width: 543px) {
+  body.thematiq-create-dialog #create-work-package-form .FormControl-spacingWrapper { grid-template-columns: minmax(0, 1fr); }
   body.thematiq-create-dialog #create-work-package-dialog { width: calc(100vw - 32px); }
   body.thematiq-create-dialog #create-work-package-dialog .Overlay-header,
   body.thematiq-create-dialog #create-work-package-dialog .Overlay-footer { padding-left: 16px; padding-right: 16px; }

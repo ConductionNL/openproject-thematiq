@@ -172,3 +172,12 @@ namespace :thematiq do
     end
   end
 end
+
+# A fresh database: OpenProject 17.9.2's Docker image loads core's schema (db:schema:load) instead of migrating, and its
+# seeder then refuses to run with this plugin's migrations pending. They run right after the schema is loaded.
+if Rake::Task.task_defined?("db:schema:load")
+  Rake::Task["db:schema:load"].enhance do
+    Rake::Task["db:migrate"].reenable
+    Rake::Task["db:migrate"].invoke
+  end
+end

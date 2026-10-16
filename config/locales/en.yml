@@ -1209,6 +1209,8 @@ en:
       create_dialog:
         title: "Create work package"
         submit: "Create work package"
+        nextcloud_folder: "Link the project folder in Nextcloud"
+        nextcloud_folder_note: "Not available here. An administrator links a Nextcloud folder to the project as a file storage in the project settings."
       home:
         greeting: "Hello %{name}"
         welcome: "Welcome message"

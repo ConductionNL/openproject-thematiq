@@ -89,7 +89,7 @@ test.describe("Gantt page", () => {
     const diamond = page.locator(".timeline-element.milestone .diamond").first();
     expect(await diamond.evaluate((node) => node.offsetWidth)).toBe(14);
 
-    // Core's lines are drawn for rows of 40 px and hidden; the plugin's follow the bars of 48 px rows.
+    // Core's lines are drawn for rows of 40 px and hidden; the plugin's follow the bars at the table's row height.
     await expect(page.locator(".thematiq-gantt__relations path").first()).toBeAttached();
     expect(await page.locator(".relation-line").first().evaluate((node) => getComputedStyle(node).visibility)).toBe("hidden");
 

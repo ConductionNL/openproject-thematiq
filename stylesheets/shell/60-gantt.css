@@ -1,6 +1,6 @@
 /* The Gantt page as the OpGantt board draws it. Every rule needs the class "thematiq-gantt" on the body, which only
  * Shell::Gantt's script sets, and only while the guarded core files are those of OpenProject 17.9.1. Without it,
- * core's own Gantt shows. Sizes are the board's: rows of 48 px (geometry/10-variables.css), a header of 44 px in
+ * core's own Gantt shows. Sizes are the board's: the row height of the table (--table-timeline--row-height in geometry/10-variables.css), a header of 44 px in
  * two rows of 22, bars of 20 px with a radius of 4, a 14 px milestone, lines of 1.75 px. */
 
 /* ---- the row under the title: chips, Today, zoom, view switch ---- */
