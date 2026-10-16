@@ -24,7 +24,7 @@
     pack loads whole and the module draws it from the start. %>
 <% icon_pack_payload = OpenProject::Thematiq.icon_pack_payload %>
 <% if icon_pack_payload %>
-<script type="application/json" id="thematiq-icon-pack" data-turbo-track="reload"><%= raw ERB::Util.json_escape(icon_pack_payload) %></script>
+<script type="application/json" id="thematiq-icon-pack-data" data-turbo-track="reload"><%= raw ERB::Util.json_escape(icon_pack_payload) %></script>
 <% end %>
 <%# The sign-in page's background, when the design system has one uploaded. %>
 <% login_background = (OpenProject::Thematiq::Assets.bundled.login_background_css(OpenProject::Thematiq.active_token_set, root: OpenProject::Configuration["rails_relative_url_root"].to_s) rescue "") %>

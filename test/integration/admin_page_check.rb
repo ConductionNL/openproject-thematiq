@@ -1312,7 +1312,7 @@ begin
   end
   linked = OpenProject::Thematiq::FrontendBuild.status.linked?
   check("the page carries the pack's drawing only on the frontend route (#{linked ? 'frontend' : 'default'})") do
-    admin.response.body.include?('<script type="application/json" id="thematiq-icon-pack"') == linked
+    admin.response.body.include?('<script type="application/json" id="thematiq-icon-pack-data"') == linked
   end
   pack_token = form_token(admin, "/admin/thematiq", "thematiq-icon-pack-form")
   admin.post "/admin/thematiq/icon_pack", params: { icon_pack: "", authenticity_token: pack_token }

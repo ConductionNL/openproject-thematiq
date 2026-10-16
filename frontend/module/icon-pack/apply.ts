@@ -17,7 +17,7 @@ export interface Pack {
 }
 
 // The element the head hook renders, with the pack as JSON (IconPacks.payload).
-export const PACK_ELEMENT_ID = 'thematiq-icon-pack';
+export const PACK_ELEMENT_ID = 'thematiq-icon-pack-data';
 // On <html> once the pack is drawn, and on each server rendered icon the module redrew.
 export const DRAWN_ATTRIBUTE = 'data-thematiq-icon-pack';
 

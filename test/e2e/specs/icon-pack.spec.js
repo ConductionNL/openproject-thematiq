@@ -13,7 +13,7 @@ async function choose(page, value) {
 // Every mapped icon on the page, Angular (svg[<name>-icon]) and server rendered (svg.octicon-<name>), with its paths.
 async function drawnIcons(page) {
   return page.evaluate(() => {
-    const element = document.getElementById("thematiq-icon-pack");
+    const element = document.getElementById("thematiq-icon-pack-data");
     const pack = element ? JSON.parse(element.textContent) : null;
     if (!pack) return { pack: null, angular: [], server: [] };
     const paths = (svg) => Array.from(svg.querySelectorAll("path")).map((path) => path.getAttribute("d"));
@@ -41,7 +41,7 @@ test.describe("icon pack", () => {
 
     if (!config.frontendRoute) {
       await expect(indicator).toContainText("this instance runs the default route");
-      await expect(page.locator("#thematiq-icon-pack")).toHaveCount(0);
+      await expect(page.locator("#thematiq-icon-pack-data")).toHaveCount(0);
       return;
     }
     await expect(indicator).not.toContainText("default route");
@@ -65,7 +65,7 @@ test.describe("icon pack", () => {
     await expect(page.locator('[data-test-selector="thematiq-icon-pack-indicator"]')).toContainText("You chose no icon pack");
     await page.goto(`/projects/${config.project}/work_packages`);
     await expect(page.locator("table.work-package-table tbody tr").first()).toBeVisible();
-    await expect(page.locator("#thematiq-icon-pack")).toHaveCount(0);
+    await expect(page.locator("#thematiq-icon-pack-data")).toHaveCount(0);
     expect(await page.locator("html").getAttribute("data-thematiq-icon-pack")).toBeNull();
   });
 });
