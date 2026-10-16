@@ -2,7 +2,7 @@
 
 An OpenProject plugin that gives OpenProject the same shell as a Nextcloud themed with [thematiq](https://github.com/ConductionNL/thematiq). A user who moves from one product to the other sees the same top bar, navigation, buttons, inputs and tables.
 
-The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests unless an administrator turns on the [gallery](#the-gallery-and-the-catalogue-notice), which is off by default. The design systems ship inside the plugin.
+The plugin works on its own. It needs no Nextcloud and no thematiq, and it makes no network requests unless an administrator turns on the [gallery](#the-gallery-and-the-catalogue-notice) or the [pull of another instance's setup](#share-the-setup-with-another-instance), both off by default. The design systems ship inside the plugin.
 
 **Status: early work.** A spike proved the route on OpenProject 17.9.1 community edition. The plugin itself is being built on the `development` branch.
 
@@ -228,7 +228,7 @@ On the [frontend route](#with-docker-the-frontend-route), OpenProject's own icon
 
 ### The gallery and the catalogue notice
 
-thematiq publishes its catalogue of design systems. Under **Gallery**, a link on **Thematiq design**, turn on **Read the gallery from the address below**: the plugin then reads that one https address (thematiq's own on GitHub, or one you give). **Check now** lists the design systems this plugin does not have, or has with other values, and **Add** makes one a custom design system. The picker checks once a day and says when thematiq published a newer catalogue; **Dismiss** hides that until the next one. This is the plugin's only network connection, and it is off until you turn it on. A nightly workflow in this repository proposes the newer catalogue as a pull request.
+thematiq publishes its catalogue of design systems. Under **Gallery**, a link on **Thematiq design**, turn on **Read the gallery from the address below**: the plugin then reads that one https address (thematiq's own on GitHub, or one you give). **Check now** lists the design systems this plugin does not have, or has with other values, and **Add** makes one a custom design system. The picker checks once a day and says when thematiq published a newer catalogue; **Dismiss** hides that until the next one. Together with the pull of **Share the setup**, this is the plugin's only network connection, and each is off until you turn it on. A nightly workflow in this repository proposes the newer catalogue as a pull request.
 
 ### A shared light or dark choice
 
@@ -326,6 +326,16 @@ An import never replaces a design system that is there. Uploaded files do not tr
 ### Move the whole setup
 
 **The whole setup** on Thematiq design downloads one file with everything: the design system in use, the custom design systems, the rules for projects, the Nextcloud address, the tiles of the top bar and the choices per project and module. Read it on the other OpenProject under the same heading: a page shows what it changes, and nothing changes until you select **Import this setup**. Projects are matched by identifier. Uploaded logos, icons and fonts are not in the file.
+
+### Share the setup with another instance
+
+Two instances can keep the same setup without moving a file by hand. Both sides are off until an administrator turns them on, each on its own instance. Only an administrator sees **Share the setup with another instance**, under **The whole setup**; a brand manager does not.
+
+1. On the instance that serves: turn on **Let one other instance read this setup with the key** and select **Save**. Give the **Address to give the other instance** and the **Share key** to the administrator of the other instance.
+2. On the instance that pulls: turn on **Read the setup from the address below**, paste the address and the key, and select **Save**.
+3. Select **Pull now**. You see what the setup changes, as for a file you upload. Nothing changes until you select **Import this setup**.
+
+The pull reads one https address only, with a timeout of 5 seconds, at most 2 MB, and it follows no redirect. The file goes through the same checks as a file you upload. The serving side only reads, answers 404 while it is off and 403 to a wrong key. **Make a new key** stops the old key at once. The key and these settings are never part of the setup file. [docs/api.md](docs/api.md) has the details.
 
 ### The history for an auditor
 

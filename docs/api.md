@@ -22,3 +22,15 @@ An unknown id answers 404.
 ## Without a session: thematiq's shell-tokens
 
 `GET /thematiq/api/shell-tokens` answers the design system in use in the shape thematiq answers at `/apps/thematiq/api/shell-tokens`: `version` 1, `id`, `name`, `revision`, the eighteen roles in `tokens` and the logo as absolute `url` and `inverse_url`, or `null`. A product that reads one reads the other. It needs no session, like thematiq's: the values are what every visitor of the sign-in page already gets as CSS. It is cached for a minute. A trial or a project's own design system is never answered.
+
+## With a share key: the setup for one other instance
+
+`GET /thematiq/api/v1/setup` answers the configuration file, the same file **Download the setup** gives, to another instance that pulls it (**Share the setup**, gov-federated-share). It is off until an administrator turns on **Serve this setup**, and it only reads. The caller sends the share key in the `X-Thematiq-Share-Key` header; it needs no session.
+
+| Answer | When |
+|---|---|
+| 404 | Serving is off. The address answers as if it did not exist. |
+| 403 | Serving is on, and the key is missing or wrong. |
+| 200 | The key is right: the file as JSON, with `Cache-Control: no-store`. |
+
+The share key and the pull settings are never part of the file. **Make a new key** stops the old one at once.

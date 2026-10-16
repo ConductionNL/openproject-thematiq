@@ -286,6 +286,9 @@ end %>
   <p class="thematiq-editor__hint" id="thematiq-bundle-file-hint"><%= t("thematiq.bundle.file_hint") %></p>
   <%= render(Primer::Beta::Button.new(type: :submit, mt: 2)) { t("thematiq.bundle.upload") } %>
 <% end %>
+<% if User.current.admin? %>
+  <p><%= link_to t("thematiq.share.link"), admin_thematiq_share_path, data: { test_selector: "thematiq-share-link" } %></p>
+<% end %>
 
 <%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
   component.with_heading(tag: :h3, size: :medium) { t("thematiq.shell.settings.title") }

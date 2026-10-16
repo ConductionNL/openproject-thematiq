@@ -2,8 +2,8 @@
 
 require "test_helper"
 
-# The plugin is standalone. Nothing in it may open a connection, apart from the gallery's client, which an
-# administrator must turn on and which is off by default (see GalleryTest).
+# The plugin is standalone. Nothing in it may open a connection, apart from the gallery's client, which the gallery and
+# the pull of Federation use. An administrator must turn each on, and both are off by default (GalleryTest, FederationTest).
 class NoNetworkTest < Minitest::Test
   CLIENT = File.expand_path("../lib/open_project/thematiq/gallery/client.rb", __dir__)
   FILES = (Dir[File.expand_path("../{lib,app,config}/**/*.{rb,erb}", __dir__)] - [CLIENT]).sort

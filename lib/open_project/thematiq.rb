@@ -50,6 +50,7 @@ module OpenProject
     require "open_project/thematiq/design_systems"
     require "open_project/thematiq/gallery"
     require "open_project/thematiq/gallery/client"
+    require "open_project/thematiq/federation"
 
     # The token set the page being drawn is styled with: the page's own when the head hooks worked it out
     # (PageScope, a design system per project), else the instance's.
