@@ -690,6 +690,10 @@ en:
         warning-on-white: "warning text on white"
         success-on-ground: "success text on the page background"
         success-on-white: "success text on white"
+    frontend_build:
+      absent: "OpenProject runs its own prebuilt frontend, without the plugin's module (the default route)."
+      current: "OpenProject's frontend was rebuilt with the plugin's own module (the frontend route)."
+      stale: "OpenProject's frontend was rebuilt with an older version of the plugin's module. Build the image again to bring it in step."
     fonts:
       loaded: "The font %{family} comes with the plugin."
       uploaded: "The font %{family} is an uploaded file of this design system."

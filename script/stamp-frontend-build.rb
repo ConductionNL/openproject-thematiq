@@ -14,10 +14,11 @@ manifest = "/app/config/frontend_assets.manifest.json"
 abort "The plugin's frontend module is not linked at #{linked}" unless File.symlink?(linked)
 abort "OpenProject's frontend manifest is missing at #{manifest}" unless File.file?(manifest)
 
-require File.join(plugin, "lib/open_project/thematiq/frontend_build")
+$LOAD_PATH.unshift File.join(plugin, "lib")
+require "open_project/thematiq/frontend_build"
 
 stamp = {
-  "plugin_version" => File.read(File.join(plugin, "lib/open_project/thematiq/version.rb"))[/VERSION = "([^"]+)"/, 1],
+  "plugin_version" => OpenProject::Thematiq::VERSION,
   "openproject_version" => File.read("/app/PRODUCT_VERSION").strip,
   "module_digest" => OpenProject::Thematiq::FrontendBuild.module_digest(File.join(plugin, "frontend/module")),
   "built_at" => Time.now.utc.iso8601

@@ -22,12 +22,16 @@ ARG THEMATIQ_NODE_MEMORY_MB=6144
 
 # The steps of OpenProject's assets:angular task, with the heap set here instead of in core's npm script.
 RUN cd /app/frontend && npm ci --no-audit --no-fund
-RUN SECRET_KEY_BASE="$(openssl rand -hex 64)" DATABASE_URL=nulldb://db \
+# The image's schema cache names PostgreSQL classes the null database cannot load. This stage is thrown away,
+# so the cache only goes from here, not from the image.
+RUN rm -f /app/db/schema_cache.yml \
+ && SECRET_KEY_BASE="$(openssl rand -hex 64)" DATABASE_URL=nulldb://db \
     bin/rails openproject:plugins:register_frontend assets:export_locales
 RUN rm -rf /app/public/assets/frontend \
  && cd /app/frontend \
  && node --max-old-space-size="${THEMATIQ_NODE_MEMORY_MB}" ./node_modules/@angular/cli/bin/ng build \
-      --configuration production --named-chunks --source-map
+      --configuration production --named-chunks --source-map \
+ && echo "Peak memory of the frontend build: $(( $(cat /sys/fs/cgroup/memory.peak 2>/dev/null || echo 0) / 1048576 )) MB"
 RUN SECRET_KEY_BASE="$(openssl rand -hex 64)" DATABASE_URL=nulldb://db bin/rails assets:rebuild_manifest \
  && ruby /app/custom-plugins/openproject-thematiq/script/stamp-frontend-build.rb
 
@@ -42,5 +46,5 @@ COPY --chown=app:app --from=frontend-build /app/custom-plugins/openproject-thema
 # The default route. It stays the last stage, so a build without --target gives this image.
 FROM plugin AS default
 
-# OpenProject's docs also run ./docker/prod/setup/precompile-assets.sh here. On this image that step
-# does nothing for a plugin without a frontend, so the plugin inlines its CSS through a view hook instead.
+# OpenProject's docs also run ./docker/prod/setup/precompile-assets.sh here. On this image that step reuses the
+# prebuilt frontend (its manifest is in the image), so the plugin inlines its CSS through a view hook instead.
