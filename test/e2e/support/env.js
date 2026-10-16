@@ -5,6 +5,8 @@ const config = {
   password: process.env.THEMATIQ_E2E_PASSWORD,
   initialPassword: process.env.THEMATIQ_E2E_INITIAL_PASSWORD ?? "admin",
   project: process.env.THEMATIQ_E2E_PROJECT || "demo-project",
+  // "1" when the instance runs the frontend route (docker/Dockerfile --target frontend).
+  frontendRoute: process.env.THEMATIQ_E2E_FRONTEND === "1",
 };
 
 // Each run makes its own member: OpenProject deletes a user in a background job, so the name of the last run's

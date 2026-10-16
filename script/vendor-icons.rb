@@ -34,7 +34,7 @@ SETS.each do |set, meta|
     next left_out << "#{set}/#{name}: name" unless NAME.match?(name)
 
     begin
-      clean, = OpenProject::Thematiq::Uploads::Svg.sanitise(File.binread(path))
+      clean = OpenProject::Thematiq::Uploads::Svg.sanitise(File.binread(path)).text
     rescue OpenProject::Thematiq::Uploads::Refused => e
       next left_out << "#{set}/#{name}: #{e.code}"
     end

@@ -45,6 +45,7 @@ module OpenProject
     require "open_project/thematiq/nlds_converter"
     require "open_project/thematiq/email"
     require "open_project/thematiq/icons"
+    require "open_project/thematiq/frontend_build"
     require "open_project/thematiq/gallery"
     require "open_project/thematiq/gallery/client"
 
