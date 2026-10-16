@@ -35,6 +35,18 @@
     </div>
 
     <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-documentation-url"><%= t("thematiq.editor.documentation_url.label") %></label>
+      <input type="url" name="documentation_url" id="thematiq-documentation-url" class="FormControl-input FormControl-medium" maxlength="500"
+             value="<%= @draft.documentation_field_value %>" placeholder="https://"
+             aria-describedby="thematiq-documentation-url-hint<%= " thematiq-documentation-url-error" if @draft.error?("documentation_url") %>"
+             <% if @draft.error?("documentation_url") %>aria-invalid="true"<% end %>>
+      <p class="thematiq-editor__hint" id="thematiq-documentation-url-hint"><%= t("thematiq.editor.documentation_url.hint") %></p>
+      <% if @draft.error?("documentation_url") %>
+        <p class="thematiq-editor__error" id="thematiq-documentation-url-error"><%= t("thematiq.editor.documentation_url.error") %></p>
+      <% end %>
+    </div>
+
+    <div class="thematiq-editor__field">
       <label class="thematiq-editor__label" for="thematiq-based-on"><%= t("thematiq.editor.based_on") %></label>
       <select name="based_on" id="thematiq-based-on" class="FormControl-select FormControl-medium" aria-describedby="thematiq-based-on-hint">
         <% @store.catalogue.sets.each do |token_set| %>

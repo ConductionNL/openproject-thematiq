@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "uri"
+
 module OpenProject
   module Thematiq
     module Tokens
@@ -181,6 +183,20 @@ module OpenProject
           return nil unless value.is_a?(String) && FILE_REFERENCE.match?(value) && !value.include?("..")
 
           File.basename(value)
+        end
+
+        # A web address to link to, such as the documentation of a design system. Only http and https, with a host and
+        # no user name or password, at most +max+ characters and no space or control character in it. Never written into CSS.
+        def web_address(value, max: 500)
+          return nil unless value.is_a?(String)
+
+          text = value.strip
+          return nil if text.empty? || text.length > max || text.match?(/[[:space:][:cntrl:]"'<>\\]/)
+
+          uri = URI.parse(text)
+          uri.is_a?(URI::HTTP) && !uri.host.to_s.empty? && uri.userinfo.nil? ? text : nil
+        rescue URI::InvalidURIError
+          nil
         end
 
         # Plain text shown on the admin page. Never written into CSS.

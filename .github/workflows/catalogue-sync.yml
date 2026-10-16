@@ -50,6 +50,32 @@ jobs:
           text = text.replace(old, '"generated_from": ' + json.dumps(f"thematiq development {os.environ['COMMIT']} {published}"))
           open(path, "w", encoding="utf-8").write(text)
           PY
+      # The documentation address of each design system ("documentation_url" in thematiq's design-systems.json) goes to
+      # data/catalogue/design-systems.json. Only http and https addresses are kept; the plugin checks them again on load.
+      - name: Read thematiq's design systems
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --silent --show-error --max-time 60 --proto '=https' \
+            https://raw.githubusercontent.com/ConductionNL/thematiq/development/design-systems.json -o /tmp/thematiq-design-systems.json
+          commit=$(gh api "repos/ConductionNL/thematiq/commits?path=design-systems.json&sha=development&per_page=1" --jq '.[0].sha[0:8]')
+          echo "$commit" | grep -Eq '^[0-9a-f]{8}$'
+          COMMIT="$commit" python3 - <<'PY'
+          import json, os, re
+          systems = json.load(open("/tmp/thematiq-design-systems.json", encoding="utf-8"))
+          assert isinstance(systems, list) and systems, "not a list of design systems"
+          docs = {}
+          for entry in systems:
+              url = entry.get("documentation_url") if isinstance(entry, dict) else None
+              if isinstance(url, str) and re.fullmatch(r"https?://[^\s\"'<>\\]{1,490}", url) and isinstance(entry.get("id"), str):
+                  docs[entry["id"]] = url
+          old = json.load(open("data/catalogue/design-systems.json", encoding="utf-8"))
+          if old.get("documentation") == docs:
+              raise SystemExit(0)
+          document = {"generated_from": f"thematiq development {os.environ['COMMIT']}: design-systems.json", "documentation": docs}
+          with open("data/catalogue/design-systems.json", "w", encoding="utf-8") as handle:
+              handle.write(json.dumps(document, indent=2) + "\n")
+          PY
       - name: Compare
         id: compare
         run: |
@@ -57,7 +83,12 @@ jobs:
           new=$(python3 -c "import json; print(json.load(open('/tmp/catalogue.json')).get('generated_from',''))")
           old=$(python3 -c "import json; print(json.load(open('data/catalogue/shell-catalogue.json')).get('generated_from',''))")
           echo "new=$new" >> "$GITHUB_OUTPUT"
-          if [ "${new##* }" = "${old##* }" ]; then echo "same=true" >> "$GITHUB_OUTPUT"; else echo "same=false" >> "$GITHUB_OUTPUT"; fi
+          # A changed documentation address alone proposes a pull request as well.
+          if [ "${new##* }" = "${old##* }" ] && git diff --quiet -- data/catalogue/design-systems.json; then
+            echo "same=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "same=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Open a pull request
         if: steps.compare.outputs.same == 'false'
         env:
@@ -70,7 +101,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add data/catalogue/shell-catalogue.json
+          git add data/catalogue/shell-catalogue.json data/catalogue/design-systems.json
           git commit -m "chore(catalogue): thematiq's catalogue of ${GENERATED_FROM}"
           git push origin "$branch"
           gh pr create --base development --head "$branch" --title "chore(catalogue): thematiq's catalogue of ${GENERATED_FROM}" \

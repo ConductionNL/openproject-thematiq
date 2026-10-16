@@ -1,0 +1,81 @@
+<% title = t("thematiq.share.title") %>
+<% html_title t(:label_administration), t("thematiq.admin.title"), title %>
+<% status = @store.share_pull_status %>
+<% address = "#{request.base_url}#{OpenProject::Configuration['rails_relative_url_root']}#{OpenProject::Thematiq::Federation::SERVE_PATH}" %>
+
+<%=
+  render(Primer::OpenProject::PageHeader.new) do |header|
+    header.with_title { title }
+    header.with_breadcrumbs(
+      [{ href: admin_index_path, text: t(:label_administration) },
+       { href: admin_thematiq_path, text: t("thematiq.admin.title") },
+       title]
+    )
+    header.with_description { t("thematiq.share.description") }
+  end
+%>
+
+<%= render(Primer::Beta::Subhead.new) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-share-serve") { t("thematiq.share.serve.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.share.serve.hint") %></p>
+<%= form_with(url: admin_thematiq_share_path, method: :post, data: { turbo: false }, id: "thematiq-share-serve-form", class: "thematiq-short-form") do %>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="share_serving_enabled" value="1" id="thematiq-share-serving-enabled" <%= "checked" if @store.share_serving_enabled? %>>
+    <%= t("thematiq.share.serve.enabled") %>
+  </label>
+  <% if @store.share_serving_enabled? %>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-share-address"><%= t("thematiq.share.serve.address") %></label>
+      <input type="text" id="thematiq-share-address" class="FormControl-input FormControl-medium" readonly value="<%= address %>">
+    </div>
+    <div class="thematiq-editor__field">
+      <label class="thematiq-editor__label" for="thematiq-share-key"><%= t("thematiq.share.serve.key") %></label>
+      <input type="text" id="thematiq-share-key" class="FormControl-input FormControl-medium" readonly autocomplete="off" value="<%= @store.share_key %>"
+             aria-describedby="thematiq-share-key-hint">
+      <p class="thematiq-editor__hint" id="thematiq-share-key-hint"><%= t("thematiq.share.serve.key_hint") %></p>
+    </div>
+  <% end %>
+  <%= render(Primer::Beta::Button.new(type: :submit, name: "serve", value: "1")) { t("thematiq.share.save") } %>
+  <% if @store.share_serving_enabled? %>
+    <%= render(Primer::Beta::Button.new(type: :submit, name: "new_key", value: "1", ml: 2)) { t("thematiq.share.serve.new_key") } %>
+  <% end %>
+<% end %>
+
+<%= render(Primer::Beta::Subhead.new(mt: 5)) do |component|
+  component.with_heading(tag: :h3, size: :medium, id: "thematiq-share-pull") { t("thematiq.share.pull.title") }
+end %>
+<p class="thematiq-editor__hint"><%= t("thematiq.share.pull.hint") %></p>
+<%= form_with(url: admin_thematiq_share_path, method: :post, data: { turbo: false }, id: "thematiq-share-pull-form", class: "thematiq-short-form") do %>
+  <label class="thematiq-editor__toggle">
+    <input type="checkbox" name="share_pull_enabled" value="1" id="thematiq-share-pull-enabled" <%= "checked" if @store.share_pull_enabled? %>>
+    <%= t("thematiq.share.pull.enabled") %>
+  </label>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-share-pull-url"><%= t("thematiq.share.pull.url") %></label>
+    <input type="url" name="share_pull_url" id="thematiq-share-pull-url" class="FormControl-input FormControl-medium" maxlength="500"
+           value="<%= @store.share_pull_url %>" placeholder="https://" aria-describedby="thematiq-share-pull-url-hint">
+    <p class="thematiq-editor__hint" id="thematiq-share-pull-url-hint"><%= t("thematiq.share.pull.url_hint") %></p>
+  </div>
+  <div class="thematiq-editor__field">
+    <label class="thematiq-editor__label" for="thematiq-share-pull-key"><%= t("thematiq.share.pull.key") %></label>
+    <input type="password" name="share_pull_key" id="thematiq-share-pull-key" class="FormControl-input FormControl-medium" maxlength="128"
+           autocomplete="off" aria-describedby="thematiq-share-pull-key-hint">
+    <p class="thematiq-editor__hint" id="thematiq-share-pull-key-hint">
+      <%= t(@store.share_pull_key ? "thematiq.share.pull.key_kept" : "thematiq.share.pull.key_hint") %>
+    </p>
+  </div>
+  <%= render(Primer::Beta::Button.new(type: :submit, name: "save_pull", value: "1")) { t("thematiq.share.save") } %>
+  <% if @store.share_pull_enabled? %>
+    <%= render(Primer::Beta::Button.new(type: :submit, name: "pull", value: "1", ml: 2)) { t("thematiq.share.pull.now") } %>
+  <% end %>
+<% end %>
+
+<p data-test-selector="thematiq-share-status">
+  <% if status["pulled_at"] %>
+    <%= t(status["error"] ? "thematiq.share.pull.status_error" : "thematiq.share.pull.status_read",
+          time: format_time(Time.at(status["pulled_at"].to_i)), code: status["error"]) %>
+  <% else %>
+    <%= t("thematiq.share.pull.status_never") %>
+  <% end %>
+</p>

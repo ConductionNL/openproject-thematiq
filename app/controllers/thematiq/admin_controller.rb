@@ -382,7 +382,8 @@ module Thematiq
       draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: imported.name.first(80),
                                                      overrides: imported.tokens, id: new_id, dark: imported.dark_tokens,
                                                      vocabulary: imported.vocabulary, dark_vocabulary: imported.dark_vocabulary,
-                                                     logo: { "file" => imported.logo_file, "inverse_file" => imported.logo_inverse_file })
+                                                     logo: { "file" => imported.logo_file, "inverse_file" => imported.logo_inverse_file },
+                                                     documentation_url: imported.documentation_url)
       raise OpenProject::Thematiq::Transfer::Refused, "token_invalid" unless save_draft(draft, new: true)
 
       record_change("import", draft.name)
@@ -715,7 +716,7 @@ module Thematiq
       if token_set && new_id
         draft = OpenProject::Thematiq::CustomDraft.new(base: @store.catalogue.default, name: token_set.name.first(80), overrides: token_set.tokens, id: new_id,
                                                        dark: token_set.dark_tokens, vocabulary: token_set.vocabulary,
-                                                       dark_vocabulary: token_set.dark_vocabulary)
+                                                       dark_vocabulary: token_set.dark_vocabulary, documentation_url: token_set.documentation_url)
         if save_draft(draft, new: true)
           record_change("import", draft.name)
           flash[:notice] = t("thematiq.gallery.notice_added", name: draft.name)
@@ -758,7 +759,8 @@ module Thematiq
       draft = OpenProject::Thematiq::CustomDraft.new(base:, name: t("thematiq.compare.kept_name", name: token_set.name).first(80),
                                                      overrides: overrides.merge(light), id: new_id,
                                                      dark: (chosen ? chosen.dark : {}).merge(roles),
-                                                     dark_vocabulary: (chosen ? chosen.dark_vocabulary : {}).merge(dark.except(*roles.keys)))
+                                                     dark_vocabulary: (chosen ? chosen.dark_vocabulary : {}).merge(dark.except(*roles.keys)),
+                                                     documentation_url: chosen&.documentation_url)
       return nil unless save_draft(draft, new: true)
 
       @store.activate(new_id)
@@ -875,7 +877,7 @@ module Thematiq
     end
 
     def import_error_key(code)
-      %w[empty too_large invalid_json unknown_keys token_invalid name_invalid too_many].include?(code) ? code : "not_a_set"
+      %w[empty too_large invalid_json unknown_keys token_invalid name_invalid documentation_url_invalid too_many].include?(code) ? code : "not_a_set"
     end
 
     def new_draft(base)
@@ -951,7 +953,8 @@ module Thematiq
                                              dark:, dark_errors: true,
                                              # The editor has dark fields for colours only. Other dark values an import brought stay.
                                              dark_vocabulary: kept_dark_vocabulary(stored).merge(dark),
-                                             lock_primary: params[:lock_primary] == "1")
+                                             lock_primary: params[:lock_primary] == "1",
+                                             documentation_url: params[:documentation_url].to_s.first(600))
     end
 
     # The dark fields: one per colour, roles and vocabulary in one list. Reset clears the dark value with the light one.

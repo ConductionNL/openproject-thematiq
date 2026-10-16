@@ -2,7 +2,7 @@
 
 This page maps what thematiq does against what this plugin does, so the work to make them equal can be planned. The rule from the owner: both must offer the same, by adding to the side that lacks something, never by removing. The plugin must also do everything OpenProject's Enterprise design page does.
 
-First read on 12 October 2026. Brought up to date on 14 October 2026 from:
+First read on 12 October 2026. Brought up to date on 14 October 2026, and for the last three rows on 16 October 2026, from:
 
 - This repository: the pull requests merged into `development`, #1 to #91, and the open pull requests #92 to #100, which name themselves in the rows they build. Each pull request updates the rows it builds.
 - thematiq `development`, for the reverse table only. thematiq's capability list was not read again: it is the one of 26 September (`openspec/parity/capabilities.json`).
@@ -16,11 +16,11 @@ A row that says "in plugin" names the pull request or the file that built it. Si
 
 | Status | Rows |
 |---|---|
-| in plugin | 156 |
+| in plugin | 158 |
 | being built | 0 |
-| to build, as is | 1 |
-| to build, adapted | 2 |
-| no counterpart | 6 |
+| to build, as is | 0 |
+| to build, adapted | 0 |
+| no counterpart | 7 |
 | Total | 165 |
 
 On 12 October it was 20 in plugin, 34 being built, 51 to build as is, 57 to build adapted and 3 without a counterpart.
@@ -49,11 +49,11 @@ The seven missing items are all PDF export styling, which OpenProject reads from
 
 ### What to know before you set a budget
 
-1. **8 of 165 rows still have to be built, and 2 are in open pull requests.** The icon pack and its indicator are being built on the frontend route (#116, on #115). The 6 rows left to build are sized 3 S and 3 M.
-2. **Everything that needs no frontend build of OpenProject and no shell work is done** (#68 to #100), and the frontend route (#115, [design](design/frontend-build-variant.md)) unlocks the two rows that need one: the icon pack and its indicator. Left, each with its reason in its row, none of them the frontend: the choice of whole design systems and the workplace cards (shell work), a documentation link (no data), mobile clients (nothing to read yet), a live federated share (a connection), and PDF export styling (stopped by the owner). The status per wave is under [Proposed order](#proposed-order).
+1. **No row is left to build.** Of the 165 rows, 158 are in the plugin and 7 have no counterpart in OpenProject.
+2. **Everything is done, the frontend route included** (#68 to #126; the route is #115, [design](design/frontend-build-variant.md)). The one gap is PDF export styling, stopped by the owner and counted under the Enterprise design page. The status per wave is under [Proposed order](#proposed-order).
 3. **The plugin knows thematiq's full vocabulary since #54.** 185 values, of which the plugin draws the ones OpenProject has a place for. No L row is left once the icon pack is in.
 4. **PDF export styling is blocked by OpenProject itself**, not by work: the exporters read `CustomStyle` only.
-5. **Only 3 rows have no counterpart.** 4 of the "in plugin" rows are things OpenProject core already does, just as Nextcloud core does them for thematiq.
+5. **Only 7 rows have no counterpart.** 4 of the "in plugin" rows are things OpenProject core already does, just as Nextcloud core does them for thematiq.
 
 thematiq's list has 190 rows. thematiq has 161 of them, 18 of those in part. The other 29 are things thematiq decided not to build, so they are not capabilities and are left out here. Four capabilities are newer than the list and are added at the end of their group.
 
@@ -77,7 +77,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `cat-stock-option` | Switch back to stock Nextcloud styling with one choice, removing every added stylesheet | `specs/theming-sync` | in plugin | #24: pick "OpenProject (default)" for OpenProject's own colours. The shared shell's layout stays: taking it away too is what removing the plugin does |  |
 | `cat-completeness-badge` | See how complete a house style's token vocabulary is before you rely on it | `changes/archive/2026-10-09-token-set-vocabulary-audit` | in plugin | #98: each shipped design system says how many of thematiq's 185 vocabulary values it fills, and whether it has a dark block |  |
 | `cat-design-system-choice` | Choose between whole design systems (NL Design System, La Suite, high contrast, a soft light theme), not only colour sets | `specs/css-architecture` | in plugin | #121: each set in the picker names its design system, as thematiq's dropdown does with `data-design-system`, and **Design system** narrows the picker to one of them (thematiq's six, from its `token-sets.json`). It is an administrator's choice, as in thematiq, which has no choice per user. Adapted: a design system brings no shell layer of its own; its icon pack comes with `ast-icon-pack` (#116) | M |
-| `cat-design-system-docs` | Follow a link from the settings page to the design system's own documentation (thematiq has this in part) | `specs/admin-settings` | to build, as is | Left: the catalogue carries no address of a design system's own documentation, so there is nothing to link to yet. The frontend route does not change that: the reason is data | S |
+| `cat-design-system-docs` | Follow a link from the settings page to the design system's own documentation (thematiq has this in part) | `specs/admin-settings` | in plugin | #125: thematiq's `documentation_url` per design system (`design-systems.json`) is kept in `data/catalogue/design-systems.json` by the nightly sync. The picker links each design system that has one, and the settings page links the one in use, in a new tab with `rel="noopener noreferrer"`. A custom design system can name its own address in the editor; it travels in the export and the setup file. Only http and https, checked on the server. Unlike thematiq, a design system without documentation shows no link rather than the app's own docs |  |
 | `cat-community-sets` | Use community-maintained brand sets for organisations that are not a municipality | `specs/extended-token-sets` | in plugin | The same catalogue (#13) |  |
 | `cat-starter-templates` | Start from a ready-made template or example theme and adapt it instead of starting blank | `specs/admin-settings` | in plugin | #8: "Customise" takes any set as the base. #71 adds "Start from your colours" |  |
 | `cat-marketplace` | Download additional themes from a marketplace or gallery maintained by the vendor or community | `specs/upstream-freshness` | in plugin | #95: a gallery of thematiq's published catalogue, read from one https address an admin turns on (off by default); new or changed design systems are added as custom ones |  |
@@ -187,7 +187,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `sur-nc-variable-mapping` | Map every Nextcloud colour variable to a design token, so no stock colour leaks through | `specs/nextcloud-variable-mapping` | in plugin | `lib/open_project/thematiq/variables/generator.rb` maps the roles and the vocabulary onto OpenProject's and Primer's variables, light and dark (#27, #57 to #66) |  |
 | `sur-error-contrast` | Keep error and status messages readable in every house style | `specs/css-architecture` | in plugin | #98: the contrast report measures a set's error, warning and success colours on its page background and on white |  |
 | `sur-status-tokens` | Colour success, warning and error states from the house style's status tokens | `specs/css-architecture` | in plugin | #57: the status colours of the vocabulary reach Primer's danger, success and attention |  |
-| `sur-mobile-desktop-clients` | Carry the brand into the desktop and mobile sync clients (thematiq has this in part) | Nextcloud core theming capability | to build, adapted | Left: not checked whether OpenProject's mobile app reads any theme value; nothing to build until it does. The frontend route rebuilds the web bundle only, not another app | M |
+| `sur-mobile-desktop-clients` | Carry the brand into the desktop and mobile sync clients (thematiq has this in part) | Nextcloud core theming capability | no counterpart | OpenProject has no desktop client, and its beta mobile app (closed source) takes only OAuth and data from the server: `/api/v3` gives `instanceName` (`Setting.app_title`, already set by `sur-web-app-name`) and no colour or logo field (checked in the 17.9.1 image: `root_representer.rb`, `configuration_representer.rb`, `user_preference_representer.rb`); the app's theme is a local light, dark or system choice. |  |
 | `sur-custom-domain` | Serve the branded workspace on the organisation's own domain name | Nextcloud core | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (host name setting) |  |
 | `sur-footer-links` | Add legal links (privacy statement, imprint, accessibility statement) to the footer and login page | Nextcloud core Theming page | in plugin | #87: a privacy statement, an imprint and an accessibility statement as links at the end of every page and on the sign-in page |  |
 | `sur-web-app-name` | Change the product name, slogan and web address shown to users | Nextcloud core Theming page | in plugin | OpenProject core does this, as Nextcloud core does for thematiq (`Setting.app_title`). Since #29 the top bar shows app tiles instead of the name |  |
@@ -242,7 +242,7 @@ Size is for the work still to do: S is under a day of agent work, M is a few day
 | `gov-audit-append-only` | Rely on the audit log not being editable after the fact | `specs/prometheus-metrics` | in plugin | #69: the model refuses an update or a delete. Only the setup of rows older than the newest 50 is cleared |  |
 | `gov-otap-bundle` | Promote the complete theme configuration from test to acceptance to production as one file | `specs/config-portability` | in plugin | #72: the whole setup as one file, projects by identifier; reading it shows what it changes first |  |
 | `gov-otap-cli` | Export and import that configuration bundle from the command line for scripted deployments | `specs/config-portability` | in plugin | #73: `rake thematiq:bundle:export` and `thematiq:bundle:import`, with `DRY_RUN=1` |  |
-| `gov-federated-share` | Share the theme configuration with other instances through federated configuration sharing (thematiq has this in part) | `specs/federated-config-sharing` | to build, adapted | Left: the configuration file moves by hand (#72); a live share between instances would need a connection beyond the gallery's one address. The reason is a connection, not the frontend: an admin-enabled pull from one other instance, off by default like the gallery, would be a server change | S |
+| `gov-federated-share` | Share the theme configuration with other instances through federated configuration sharing (thematiq has this in part) | `specs/federated-config-sharing` | in plugin | #126, adapted: **Share the setup**, for administrators only. One instance serves its configuration file (#72) read only at `/thematiq/api/v1/setup` to a share key, off by default (404 while off). Another pulls it from one https address, off by default like the gallery: 5 second timeout, at most 2 MB, no redirect followed. The pull shows what it changes, as a hand import does, and goes through the same checks; nothing changes before the confirm. The key never travels in the file |  |
 | `gov-config-as-code` | Declare the theme in deployment configuration (for example Helm values) so it is versioned with the infrastructure | `specs/theme-as-code` | in plugin | #73: `THEMATIQ_DESIGN_SYSTEM` names the design system and wins over the admin page |  |
 | `gov-app-store-install` | Install and update the theming from the platform's app store | `appinfo/info.xml` | in plugin | OpenProject has no plugin store. #74 prepares version 0.2.0 with a changelog; publishing the gem and an image is the owner's step |  |
 | `gov-open-source` | Use, inspect and change the theming software under an open source licence | `specs/claim-accuracy` | in plugin | `LICENSE` (EUPL-1.2) |  |
@@ -352,7 +352,7 @@ Each wave can be built and released without the next one. Sizes count the rows o
 | 7. Keep both products in step | A nightly regenerated catalogue, upstream notices, a gallery, a shared light or dark choice, OpenProject's own design values. | 11 | 8 S, 2 M, 1 L | Questions 1, 2 and 6. Do not start this wave before they are answered. |
 | T. thematiq catches up | The reverse table: touch icon, mobile logo, the set file, the canon check, the app switcher column, the pixel-diff check, the picker search | 7 | 5 S, 2 M | Runs beside any wave. The set file comes first: it is what lets a set move between the products without a link. |
 
-**Status on 15 October 2026.** Wave 0: done, apart from PDF export styling (stopped by the owner) and the cards of `x-workplace-layout` (being built, #120). Wave 1: done, apart from `cat-design-system-docs` (no data) (#24, #47, #48, #98). Wave 2: done (#68 to #71, #76). Wave 3: done (#83 to #85, #100). Wave 4: done (#69, #72 to #82). Wave 5: done (#67, #86, #99). Wave 6: done apart from the icon pack and its indicator (a frontend build) and `cat-design-system-choice` (shell work) (#87, #91 to #94). Wave 7: done apart from `sur-mobile-desktop-clients` and `gov-federated-share`; `app-reset-core` and the two `syn-nc-theming` rows have no counterpart, since the plugin never touches `CustomStyle` (#95).
+**Status on 16 October 2026.** Wave 0: done, apart from PDF export styling (stopped by the owner). Wave 1: done (#24, #47, #48, #98, #125). Wave 2: done (#68 to #71, #76). Wave 3: done (#83 to #85, #100). Wave 4: done (#69, #72 to #82). Wave 5: done (#67, #86, #99). Wave 6: done (#87, #91 to #94, #116, #121). Wave 7: done (#95, #126); `app-reset-core` and the two `syn-nc-theming` rows have no counterpart, since the plugin never touches `CustomStyle`, and `sur-mobile-desktop-clients` has none, since OpenProject's mobile app reads no colour or logo from the server.
 
 **Wave 0, finish what is started:** `cat-rijkshuisstijl`, `cat-municipal-sets`, `cat-bigcity-systems`, `cat-vng`, `cat-lasuite`, `cat-searchable-picker`, `cat-swatch-preview`, `cat-community-sets`, `cat-starter-templates`, `cat-provincial-sets`, `app-one-click`, `app-live-preview-shell`, `app-runtime-no-deploy`, `app-simple-theme-switch`, `aut-upload-validate`, `aut-custom-list-delete`, `aut-custom-export`, `aut-token-editor`, `aut-token-reset`, `aut-overrides-persist`, `aut-overrides-import-export`, `aut-multi-brand-themes`, `aut-git-sync`, `typ-air-gapped`, `ast-logo-sync`, `ast-upload-logo`, `ast-favicon`, `ast-org-logos`, `ast-dark-logo`, `acc-high-contrast-set`, `gov-licence-clarity`, `syn-upstream-generated`, `sur-generated-documents`, `gov-no-public-cdn`, `x-workplace-layout`
 
