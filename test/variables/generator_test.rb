@@ -202,6 +202,16 @@ class GeneratorTest < Minitest::Test
     assert_includes menu, "  --thematiq-primary-deep: #ffffff;", "the selected item's text is white on the blue item"
   end
 
+  def test_a_sets_own_selected_entry_is_drawn_on_its_menu_colour_when_it_reads
+    nav = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000" }
+    on_white = Generator.new(TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL.merge("menu" => "#ffffff"), "vocabulary" => nav })).css
+    on_navy = Generator.new(TokenSet.from_set({ "id" => "t", "name" => "T", "tokens" => FULL.merge("menu" => "#0e2045"), "vocabulary" => nav })).css
+
+    assert_includes on_white, "  --thematiq-v-nav-active-ink: #a30000;"
+    assert_includes on_white, "--thematiq-v-nav-active-wash: color-mix(in srgb, #cc0000 16%, var(--thematiq-surface));"
+    refute_includes on_navy, "--thematiq-v-nav-active", "dark red does not read on navy, so the contrast rule decides"
+  end
+
   def test_a_light_header_gets_dark_text
     light = blocks(Generator.new(set(FULL.merge("primary" => "#fafafa"))).css)[Generator::LIGHT_SCOPE]
 

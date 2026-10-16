@@ -19,7 +19,7 @@ The plugin puts text on a design system's colours. `OpenProject::Thematiq::Contr
 
 White on `primary` and white on `action` reach 4.5 to 1 in all 64.
 
-No other pair is under 4.5 to 1. Until the catalogue of 16 October 2026 three were: the selected menu item of `haarlemmermeer` (4.23), `noordoostpolder` (4.30) and `vught` (4.35), their `primary-deep` on `primary-light`. Since then every set carries a menu colour (thematiq #1300), and a set with a menu colour gets the plugin's rule for the selected item: its own `primary-deep` when it reads, else white or near black, whichever reads. For these three that is near black, 15 to 1. The other 61 keep their own `primary-deep`.
+No other pair is under 4.5 to 1. Until the catalogue of 16 October 2026 three were: the selected menu item of `haarlemmermeer` (4.23), `noordoostpolder` (4.30) and `vught` (4.35), their `primary-deep` on `primary-light`. Since then every set carries a menu colour (thematiq #1300), and a set with a menu colour gets the plugin's rule for the selected item: its own `primary-deep` when it reads, else white or near black, whichever reads. For these three that is near black, 15 to 1. Five sets bring thematiq's own selected entry, a wash of their colour with their own text: `esdoornveen`, `vaartveld`, `warmtepompacademie`, `wilgenboom` and `zuiddrecht`. The plugin draws it as thematiq does, on the menu colour too, as long as it reads there at 4.5 to 1; it does in both themes for all five (5.79 to 7.36 light). The contrast report measures the selected entry as it is drawn.
 
 The text on the main menu follows the same rule, the set's ink when it reads on the menu. Every menu is white except `noordwijk` (`#f2f7fa`, black text, 19.5 to 1).
 

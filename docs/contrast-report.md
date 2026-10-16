@@ -12,12 +12,12 @@ Each column is a pair of text and background the shell draws, measured as WCAG 2
 | (EXAMPLE) Gemeente (`example-gemeente`) | 8.80 | 8.80 | 17.39 | 7.87 | 8.80 | 11.19 | 17.39 | all pass |
 | (EXAMPLE) Opleider (`example-opleider`) | 9.40 | 9.40 | 15.18 | 7.65 | 9.40 | 10.69 | 15.18 | all pass |
 | (EXAMPLE) Voortgezet onderwijs (`example-voortgezet`) | 7.67 | 7.67 | 14.97 | 7.62 | 7.67 | 8.72 | 14.97 | all pass |
-| Basisschool De Wilgenboom (`wilgenboom`) | 6.32 | 6.32 | 15.78 | 5.74 | 6.32 | 8.73 | 17.07 | all pass |
+| Basisschool De Wilgenboom (`wilgenboom`) | 6.32 | 6.32 | 15.78 | 5.74 | 6.32 | 7.36 | 17.07 | all pass |
 | Conduction (`conduction`) | 9.08 | 9.08 | 12.63 | 5.42 | 9.08 | 11.34 | 12.63 | all pass |
 | Conduction 2026 (`conduction-new`) | 9.08 | 9.08 | 9.08 | 5.42 | 9.08 | 9.79 | 9.08 | all pass |
 | Demodam (`demodam`) | 4.56 | 4.56 | 16.10 | 16.10 | 15.74 | 7.02 | 16.10 | all pass |
 | Duo (`duo`) | 7.93 | 7.93 | 14.16 | 14.16 | 4.51 | 7.67 | 14.16 | all pass |
-| Esdoornveen, mbo college (`esdoornveen`) | 9.36 | 9.36 | 15.78 | 5.74 | 9.36 | 10.67 | 17.07 | all pass |
+| Esdoornveen, mbo college (`esdoornveen`) | 9.36 | 9.36 | 15.78 | 5.74 | 9.36 | 6.07 | 17.07 | all pass |
 | Gemeente Amsterdam (`amsterdam`) | 8.99 | 8.99 | 16.29 | 4.54 | 8.99 | 10.17 | 16.29 | all pass |
 | Gemeente Bodegraven-Reeuwijk (`bodegraven-reeuwijk`) | 5.57 | 5.57 | 16.88 | 12.63 | 5.57 | 5.65 | 16.88 | all pass |
 | Gemeente Borne (`borne`) | 13.16 | 13.16 | 13.88 | 21.00 | 13.88 | 11.74 | 13.88 | all pass |
@@ -51,7 +51,7 @@ Each column is a pair of text and background the shell draws, measured as WCAG 2
 | Gemeente Westervoort (`westervoort`) | 11.30 | 11.30 | 21.00 | 21.00 | 8.55 | 10.39 | 21.00 | all pass |
 | Gemeente Zaanstad (`zaanstad`) | 5.23 | 5.23 | 12.63 | 5.74 | 5.23 | 7.49 | 12.63 | all pass |
 | Gemeente Zevenaar (`zevenaar`) | 5.70 | 5.70 | 21.00 | 21.00 | 9.17 | 5.84 | 21.00 | all pass |
-| Gemeente Zuiddrecht (`zuiddrecht`) | 5.64 | 5.64 | 15.78 | 5.74 | 5.64 | 7.88 | 17.07 | all pass |
+| Gemeente Zuiddrecht (`zuiddrecht`) | 5.64 | 5.64 | 15.78 | 5.74 | 5.64 | 6.08 | 17.07 | all pass |
 | Gemeente Zwolle (`zwolle`) | 5.06 | 5.06 | 21.00 | 5.33 | 5.06 | 5.83 | 21.00 | all pass |
 | Hoog contrast (WCAG AAA) (`hoog-contrast`) | 21.00 | 21.00 | 21.00 | 17.40 | 21.00 | 21.00 | 21.00 | all pass |
 | La Frankendesk (`frankendesk`) | 7.76 | 7.76 | 17.11 | 4.50 | 7.76 | 9.57 | 17.11 | all pass |
@@ -69,7 +69,7 @@ Each column is a pair of text and background the shell draws, measured as WCAG 2
 | Ridderkerk (`ridderkerk`) | 4.53 | 4.53 | 14.16 | 14.16 | 4.53 | 4.74 | 14.16 | all pass |
 | Rijkshuisstijl (`rijkshuisstijl`) | 10.20 | 10.20 | 17.85 | 5.49 | 6.08 | 11.73 | 17.85 | all pass |
 | Summer Breeze (`summer-breeze`) | 9.08 | 9.08 | 16.95 | 5.11 | 9.08 | 9.79 | 18.15 | all pass |
-| Vaartveld College (`vaartveld`) | 6.63 | 6.63 | 15.78 | 5.74 | 6.63 | 9.51 | 17.07 | all pass |
+| Vaartveld College (`vaartveld`) | 6.63 | 6.63 | 15.78 | 5.74 | 6.63 | 6.23 | 17.07 | all pass |
 | VNG Vereniging Nederlandse Gemeenten (`vng`) | 11.98 | 11.98 | 12.63 | 5.20 | 9.62 | 13.75 | 12.63 | all pass |
-| Warmtepompacademie (`warmtepompacademie`) | 5.96 | 5.96 | 15.78 | 5.74 | 5.96 | 7.99 | 17.07 | all pass |
+| Warmtepompacademie (`warmtepompacademie`) | 5.96 | 5.96 | 15.78 | 5.74 | 5.96 | 5.79 | 17.07 | all pass |
 | xxllnc (`xxllnc`) | 14.16 | 14.16 | 14.68 | 4.54 | 7.86 | 13.86 | 14.68 | all pass |

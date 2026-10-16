@@ -96,6 +96,29 @@ class ContrastTest < Minitest::Test
     assert_equal SELECTED_TEXT_REPLACED, replaced.sort
   end
 
+  # The sets that bring thematiq's own selected entry keep it on their menu colour, in both themes: each reads there.
+  def test_the_sets_with_their_own_selected_entry_keep_it_on_their_menu
+    own = Catalogue.bundled.sets.select { |token_set| Contrast.nav_selected(token_set.vocabulary, token_set) }
+
+    assert_equal %w[esdoornveen vaartveld warmtepompacademie wilgenboom zuiddrecht], own.map(&:id).sort
+    own.each do |token_set|
+      assert Contrast.nav_drawn?(token_set.vocabulary, token_set), token_set.id
+      assert Contrast.nav_drawn?(token_set.dark_vocabulary, token_set.dark_tokens), "#{token_set.id}, dark"
+    end
+    zuiddrecht = Catalogue.bundled.find("zuiddrecht")
+    assert_equal ["#a30000", "#f7d6d6"], Contrast.nav_selected(zuiddrecht.vocabulary, zuiddrecht)
+    assert_equal 6.08, Contrast.report(zuiddrecht)["primary-deep-on-primary-light"]
+  end
+
+  def test_an_own_selected_entry_that_does_not_read_on_the_menu_gives_way_to_the_rule
+    vocabulary = { "component-navigation-active-background-color" => "#cc0000", "component-navigation-active-color" => "#a30000" }
+
+    assert Contrast.nav_drawn?(vocabulary, { "menu" => "#ffffff" })
+    refute Contrast.nav_drawn?(vocabulary, { "menu" => "#0e2045" }), "dark red on a navy menu"
+    assert Contrast.nav_drawn?(vocabulary, {}), "without a menu colour it is drawn, as before the role existed"
+    refute Contrast.nav_drawn?({}, { "menu" => "#ffffff" })
+  end
+
   def test_the_text_on_every_menu_reads_in_both_themes
     Catalogue.bundled.sets.each do |token_set|
       assert_operator Contrast.report(token_set)["text-on-menu"], :>=, Contrast::MINIMUM, token_set.id

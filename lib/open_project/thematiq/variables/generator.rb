@@ -354,12 +354,20 @@ module OpenProject
           return nil unless value
           return "rgb(#{value})" if key == "color-focus-rgb"
           return nil if key == "color-focus" && Contrast.rgba(value)&.last != 1.0
-          # A set with a menu colour has the plugin's contrast rule for the text on it. The navigation colours of
-          # thematiq are chosen for a white menu, so they stay off a coloured one.
-          return nil if NAV_KEYS.include?(key) && @token_set["menu"]
+          # thematiq's selected entry is drawn as thematiq draws it, also on a menu colour, unless it does not read
+          # there: then the plugin's contrast rule for the selected item decides. See Contrast.nav_drawn?.
+          if NAV_KEYS.include?(key)
+            tokens = nav_tokens(source)
+            return nil if Contrast.nav_selected(source, tokens) && !Contrast.nav_drawn?(source, tokens)
+          end
           return "color-mix(in srgb, #{value} #{NAV_WASH}%, var(--thematiq-surface))" if key == "component-navigation-active-background-color"
 
           value
+        end
+
+        # The tokens a vocabulary is drawn with: the dark block for the dark vocabulary, else the set.
+        def nav_tokens(source)
+          source.equal?(@token_set.dark_vocabulary) ? @token_set.dark_tokens : @token_set
         end
 
         # The role lines without the variables the vocabulary fills, so each variable is written once.

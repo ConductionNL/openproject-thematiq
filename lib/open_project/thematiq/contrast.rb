@@ -57,6 +57,45 @@ module OpenProject
         best_on(token_set["primary-light"], [token_set["primary-deep"], "#ffffff", "#1b1c1d"])
       end
 
+      NAV_KEYS = %w[component-navigation-active-background-color component-navigation-active-color].freeze
+      # thematiq draws its selected entry as a 16% wash of its colour over the menu, as Variables::Generator does.
+      NAV_WASH = 0.16
+
+      # thematiq's own selected entry, from a vocabulary on the menu of tokens (a token set or a dark block):
+      # [text, background], or nil when the vocabulary names neither colour.
+      def nav_selected(vocabulary, tokens)
+        background, text = NAV_KEYS.map { |key| vocabulary[key] }
+        return nil unless background || text
+
+        surface = tokens["menu"] || "#ffffff"
+        [text || tokens["primary-deep"], background ? mix(background, surface, NAV_WASH) : tokens["primary-light"]]
+      end
+
+      # Whether the set's own selected entry is drawn: always without a menu colour, as before the role existed;
+      # with one only when it reads on that menu. Otherwise the contrast rule of #on_selected decides.
+      def nav_drawn?(vocabulary, tokens)
+        pair = nav_selected(vocabulary, tokens)
+        return false unless pair
+        return true unless tokens["menu"]
+
+        value = ratio(*pair)
+        !value.nil? && value >= MINIMUM
+      end
+
+      # The selected entry as the plugin draws it: [text, background].
+      def selected_pair(vocabulary, tokens, rule)
+        nav_drawn?(vocabulary, tokens) ? nav_selected(vocabulary, tokens) : [rule, tokens["primary-light"]]
+      end
+
+      # A share of one opaque colour over another, as a hex colour. nil when either cannot be read.
+      def mix(color, over, share)
+        top = rgba(color)
+        bottom = rgba(over)
+        return nil unless top && bottom
+
+        "##{top.first(3).zip(bottom.first(3)).map { |t, b| format('%02x', ((t * share) + (b * (1 - share))).round) }.join}"
+      end
+
       # The text colour the plugin puts on a set's main menu: its ink, or white when ink does not read on it.
       def on_menu(token_set)
         best_on(token_set["menu"], [token_set["ink"], "#ffffff", "#1b1c1d"])
@@ -69,7 +108,7 @@ module OpenProject
         end
         result["on-primary"] = ratio(on(token_set, "primary"), token_set["primary"])
         result["on-action"] = ratio(on(token_set, "action"), token_set["action"])
-        result["primary-deep-on-primary-light"] = ratio(on_selected(token_set), token_set["primary-light"])
+        result["primary-deep-on-primary-light"] = ratio(*selected_pair(token_set.vocabulary, token_set, on_selected(token_set)))
         result["text-on-menu"] = ratio(on_menu(token_set), token_set["menu"]) if token_set["menu"]
         result
       end
@@ -101,7 +140,7 @@ module OpenProject
                    "ink-on-ground" => ratio(dark["ink"], dark["ground"]),
                    "muted-on-ground" => ratio(dark["muted"], dark["ground"]),
                    "link-on-ground" => ratio(dark["link"], dark["ground"]),
-                   "primary-deep-on-primary-light" => ratio(dark_on_selected(dark), dark["primary-light"]) }
+                   "primary-deep-on-primary-light" => ratio(*selected_pair(token_set.dark_vocabulary, dark, dark_on_selected(dark))) }
         # A dark block with a menu colour gets the text on it measured, as the light theme does.
         report["text-on-menu"] = ratio(on_menu(dark), dark["menu"]) if dark["menu"]
         report
