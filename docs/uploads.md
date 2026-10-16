@@ -12,8 +12,14 @@ An administrator can give a custom design system its own logo, icons and fonts. 
 | Favicon | The browser tab | PNG, ICO, SVG | 128 KB | 16 px to 512 by 512 px |
 | Touch icon | The home screen of a phone | PNG | 512 KB | 120 px to 1024 by 1024 px |
 | Font | All text that names its family | WOFF2, WOFF, TTF, OTF | 2 MB | |
+| PDF logo | The top of each page of a PDF export, and its cover | PNG, JPEG | 512 KB | 16 px to 2000 by 1000 px |
+| PDF cover picture | The background of the cover page of a PDF export | PNG, JPEG | 2 MB | 200 px to 4000 by 4000 px |
+| PDF footer picture | The bottom of each page of a PDF export | PNG, JPEG | 256 KB | 8 px to 2000 by 500 px |
+| PDF font, regular, bold, italic and bold italic | All text of a PDF export | TTF | 2 MB each | |
 
 A design system holds one file of each kind and up to 12 font files. The picture sizes apply to PNG, JPEG, WebP and ICO. An SVG file has no pixel size.
+
+The PDF files are what OpenProject's PDF exporter can embed: PNG without interlacing, JPEG and TrueType. A PDF font needs the regular cut; a missing bold or italic cut takes the regular one, and a missing bold italic takes the bold, then the italic. The text colour of the cover page is the value "Cover text" of the design system, not a file. [enterprise-parity.md](enterprise-parity.md) says how the files reach an export.
 
 The limits live in `lib/open_project/thematiq/uploads.rb`. The admin page reads them from there.
 
@@ -59,6 +65,7 @@ The page tells you when parts were left out, a processing instruction included. 
 | Mobile logo | A rule of the same shape for the element OpenProject shows below 850 px |
 | Favicon, touch icon | `link` elements in the page head, on every layout the plugin reaches. [layouts.md](layouts.md) says where they sit |
 | Font | One `@font-face` rule per file, with `font-display: swap` |
+| PDF logo, pictures and fonts | PDF exports of a project with this design system, through `PDFExport`. See [enterprise-parity.md](enterprise-parity.md#pdf-export-styling) |
 
 Only a custom design system has uploads. A design system of the catalogue keeps its bundled files. An upload on a custom design system wins over the files of its base.
 
@@ -81,7 +88,7 @@ Why the database and not OpenProject's attachment storage:
 - **Several servers.** Every server reads the same database. A second web server shows the logo without a shared folder or an S3 bucket.
 - **Backup.** A database backup holds the files. You need no second step.
 - **No sign in.** The favicon and the sign in page need the file before anyone signed in. OpenProject's attachments belong to a container with permissions, and with S3 they answer with a signed address that expires.
-- **Small.** One design system holds at most about 26 MB. Most hold under 1 MB.
+- **Small.** One design system holds at most about 39 MB, 24 MB of it in twelve font files and 8 MB in the four PDF fonts. Most hold under 1 MB.
 - **Ours alone.** The plugin writes to no table of OpenProject. The plugin does not touch the `CustomStyle` record of the Enterprise design page.
 
 What it costs: the database serves the file. A file is read once per browser, because its address can be cached for a year. A browser that asks again with the file's tag gets a short answer, and the bytes stay in the database.

@@ -22,8 +22,8 @@ module UploadSamples
   end
 
   # A PNG file that declares the given size. The picture data is one pixel: nothing here decodes it.
-  def png(width = 64, height = 64)
-    "\x89PNG\r\n\x1A\n".b + png_chunk("IHDR", [width, height, 8, 6, 0, 0, 0].pack("NNCCCCC")) +
+  def png(width = 64, height = 64, interlace: 0)
+    "\x89PNG\r\n\x1A\n".b + png_chunk("IHDR", [width, height, 8, 6, 0, 0, interlace].pack("NNCCCCC")) +
       png_chunk("IDAT", Zlib.deflate("\x00\x00\x00\x00\x00".b)) + png_chunk("IEND", "".b)
   end
 
@@ -47,6 +47,14 @@ module UploadSamples
   end
 
   def otf = ttf("OTTO".b)
+
+  # A whole PNG file in one colour, RGB without alpha, that Prawn can embed. hex: "rrggbb".
+  def solid_png(width, height, hex)
+    rgb = [hex].pack("H*")
+    rows = ("\x00".b + (rgb * width)) * height
+    "\x89PNG\r\n\x1A\n".b + png_chunk("IHDR", [width, height, 8, 2, 0, 0, 0].pack("NNCCCCC")) +
+      png_chunk("IDAT", Zlib.deflate(rows)) + png_chunk("IEND", "".b)
+  end
 
   def woff
     header = "wOFF".b + "\x00\x01\x00\x00".b + [64, 1, 0].pack("Nnn") + ("\x00".b * 28)

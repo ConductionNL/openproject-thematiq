@@ -1,6 +1,6 @@
 # Request to OpenProject: an extension point for PDF export styling
 
-**Status: a draft for Ruben to read. It has not been sent, and no issue has been opened anywhere.**
+**Status: not sent, and superseded.** The product owner chose to patch the four exporter files instead; [enterprise-parity.md](../enterprise-parity.md#pdf-export-styling) describes the patch. No issue was opened anywhere. The text is kept for the day an extension point is worth asking for again.
 
 This is the text we would put to the OpenProject team. It describes one small change in OpenProject's core that lets a plugin supply the styling of PDF exports.
 
@@ -66,7 +66,4 @@ We can write the pull request, with specs, if the team tells us which shape it p
 ## Notes for us, not part of the request
 
 - The exporters themselves carry no licence check. The check sits on the page that fills the record (`guard_enterprise_feature(:define_custom_style, ...)` in `custom_styles_controller.rb`). The request leaves that as it is.
-- Until core has such a place, the plugin leaves PDF exports alone. `docs/enterprise-parity.md` lists the options we decided against and why.
-- If OpenProject declines, the fallback is the prepend route, as its own decision with its own upkeep.
-
-To send this, Ruben reads it first and decides where it goes: an issue on `opf/openproject`, the community forum, or a direct contact.
+- The plugin now takes the prepend route, guarded by checksums of the four files. Were core to add such a place, the patch could go.

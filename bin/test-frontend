@@ -1,0 +1,7 @@
+#!/bin/sh
+# Runs the unit tests of the frontend module (test/frontend) with the Node of the OpenProject image. They need no
+# Angular and no build: the logic they test is kept free of imports.
+set -e
+cd "$(dirname "$0")/.."
+exec docker run --rm -v "$PWD":/plugin:ro -w /plugin --entrypoint node "${OPENPROJECT_IMAGE:-openproject/openproject:17.9.1@sha256:1931b0bcdceb07c38293c3afafa7fe3da09e9fa76144604b92813d6c6d05c695}" \
+  --test 'test/frontend/**/*.test.ts'

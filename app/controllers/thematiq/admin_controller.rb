@@ -17,6 +17,13 @@ module Thematiq
       @query = params[:q].to_s.strip.first(100)
       @sets = @store.catalogue.search(@query)
       @customs = @store.custom_drafts(@query)
+      # A whole design system narrows the list to its sets (cat-design-system-choice).
+      @design_system = OpenProject::Thematiq::DesignSystems.known?(params[:ds]) ? params[:ds].to_s : nil
+      if @design_system
+        systems = OpenProject::Thematiq::DesignSystems
+        @sets = @sets.select { |set| systems.for_set(set.id) == @design_system }
+        @customs = @customs.select { |custom| systems.for_set(custom.id, base_id: custom.base.id) == @design_system }
+      end
       @total = @store.catalogue.sets.size + @store.custom_drafts.size
     end
 
@@ -177,6 +184,17 @@ module Thematiq
         flash[:error] = t("thematiq.shell.top_bar.error_invalid", max: OpenProject::Thematiq::Shell::AppRow::MAX)
       end
       redirect_to action: :show, anchor: "thematiq-top-bar"
+    end
+
+    # The icon pack: follow the design system, none, or one pack for every design system.
+    def update_icon_pack
+      if @store.save_icon_pack_choice(params[:icon_pack])
+        record_change("icon_pack", @store.icon_pack_choice.presence)
+        flash[:notice] = t("thematiq.icon_pack.notice_saved")
+      else
+        flash[:error] = t("thematiq.icon_pack.error_invalid")
+      end
+      redirect_to action: :show, anchor: "thematiq-icon-pack"
     end
 
     # The environment marker: a label on every page, such as "Test", in a colour. Empty clears it.
@@ -748,7 +766,7 @@ module Thematiq
 
     BUNDLE_ERRORS = %w[empty too_large invalid_json not_a_bundle version unknown_keys settings customs custom_invalid active projects
                        nextcloud_url top_bar_apps scopes scope_design_system scope_project cleared environment_marker
-                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups].freeze
+                       deprecations custom_css own_tokens locks planned_switches footer_links email gallery appearance groups icon_pack].freeze
 
     def bundle_error_key(code)
       BUNDLE_ERRORS.include?(code) ? code : "invalid_json"
@@ -841,7 +859,7 @@ module Thematiq
 
     UPLOAD_ERRORS = %w[empty too_large unknown_type wrong_type broken too_small too_wide svg_declares svg_not_svg svg_too_complex
                        font_family_invalid font_weight_invalid font_style_invalid too_many_fonts not_stored not_ready unknown_kind
-                       font_not_entitled].freeze
+                       font_not_entitled interlaced].freeze
 
     def upload_error_key(code)
       UPLOAD_ERRORS.include?(code) ? code : "broken"

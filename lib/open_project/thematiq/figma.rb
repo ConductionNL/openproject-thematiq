@@ -24,7 +24,7 @@ module OpenProject
       PLUGIN_EXTENSION = "nl.conduction.openproject-thematiq"
       FORMATS = %w[dtcg tokens-studio tokens-studio-legacy].freeze
 
-      # The CSS name each role is written under. Sixteen are thematiq's own names. "text" and "menu" have no
+      # The CSS name each role is written under. Sixteen are thematiq's own names. "text", "menu" and "pdf-cover-text" have no
       # counterpart in thematiq's role mapper, so they get names in the plugin's own space. thematiq skips them.
       WRITE_NAMES = {
         "primary" => "--nldesign-color-primary", "primary-deep" => "--nldesign-color-primary-hover",
@@ -35,7 +35,7 @@ module OpenProject
         "soft" => "--nldesign-color-background-dark", "ground" => "--nldesign-color-background",
         "chip" => "--nldesign-color-background-hover", "field" => "--nldesign-color-border-dark",
         "radius" => "--nldesign-border-radius", "radius-lg" => "--nldesign-border-radius-large",
-        "font-family" => "--nldesign-font-family", "menu" => "--thematiq-shell-menu"
+        "font-family" => "--nldesign-font-family", "menu" => "--thematiq-shell-menu", "pdf-cover-text" => "--thematiq-pdf-cover-text"
       }.freeze
 
       # The CSS names each role is read from, first match wins. The lists are thematiq's ShellRoleMapper::SOURCES,
@@ -61,7 +61,8 @@ module OpenProject
         "radius" => %w[--border-radius --summer-radius --nldesign-border-radius],
         "radius-lg" => %w[--border-radius-large --summer-radius-large --nldesign-border-radius-large],
         "font-family" => %w[--font-face --summer-font-family --nldesign-font-family],
-        "menu" => %w[--thematiq-shell-menu]
+        "menu" => %w[--thematiq-shell-menu],
+        "pdf-cover-text" => %w[--thematiq-pdf-cover-text]
       }.freeze
 
       # For a file without the extension: the end of a token's path names the CSS name. The longest end wins.

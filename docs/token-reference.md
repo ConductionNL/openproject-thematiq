@@ -27,6 +27,7 @@ Generated from the code by `script/generate-docs.rb`. Do not edit by hand: `test
 | `radius-lg` | `--thematiq-radius-lg` | length | inputs and panels |
 | `font-family` | `--thematiq-font` | font_family | all text |
 | `menu` | `--thematiq-menu` | color | background of the main menu, white when empty |
+| `pdf-cover-text` | none, PDF export only | color | text on the cover page of a PDF export, a hex or rgb() colour; OpenProject's colour when empty |
 
 ## thematiq's full vocabulary
 

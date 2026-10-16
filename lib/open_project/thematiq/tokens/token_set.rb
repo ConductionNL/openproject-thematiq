@@ -31,15 +31,19 @@ module OpenProject
 
         # Roles a set may have on top of the eighteen. They have no last resort value:
         # a set without one keeps what the plugin did before the role existed.
-        #   menu  the background of the main menu. Without it the menu is white.
-        OPTIONAL_KINDS = { "menu" => :color }.freeze
+        #   menu            the background of the main menu. Without it the menu is white.
+        #   pdf-cover-text  the text on the cover page of a PDF export. Without it the export keeps OpenProject's colour.
+        OPTIONAL_KINDS = { "menu" => :color, "pdf-cover-text" => :color }.freeze
         ALL_KINDS = KINDS.merge(OPTIONAL_KINDS).freeze
+
+        # Roles that only reach a printed page, which has no dark theme.
+        PRINT_KEYS = %w[pdf-cover-text].freeze
 
         # "uploads" is a note an export file carries when the design system had uploaded files. They do not
         # travel in the file. Transfer writes and reads the note. A token set does not keep it.
         SET_KEYS = %w[id name tokens logo dark uploads vocabulary].freeze
         LOGO_KEYS = %w[file inverse_file licence redistributable basis].freeze
-        DARK_KEYS = ALL_KINDS.select { |_key, kind| kind == :color }.keys.freeze
+        DARK_KEYS = (ALL_KINDS.select { |_key, kind| kind == :color }.keys - PRINT_KEYS).freeze
         ID = /\A[A-Za-z0-9][A-Za-z0-9._-]{0,63}\z/
 
         attr_reader :id, :name, :tokens, :dark_tokens, :vocabulary, :dark_vocabulary, :logo_file, :logo_inverse_file, :logo_licence,
