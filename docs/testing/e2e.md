@@ -28,6 +28,7 @@ The end-to-end suite drives a real browser against a running OpenProject with th
 | `icons.spec.js` | The icon library lists its sets and licences; an icon loads without a session |
 | `frontend-build.spec.js` | Which route runs: the plugin's Angular module marks the page only on the frontend route, and the admin page says which frontend runs. Set `THEMATIQ_E2E_FRONTEND=1` against a frontend route instance |
 | `icon-pack.spec.js` | An administrator picks the DSFR pack: the indicator says so; on the frontend route the mapped Angular icons of the work package page and the server rendered icons of the admin page carry the pack's paths, on the default route the page says the route is needed; none keeps OpenProject's icons |
+| `design-system-choice.spec.js` | Each set names its design system; **Design system** narrows the picker to La Suite; an unknown one shows every set |
 | `library.spec.js` | A font in the library loads for a design system that names its family |
 | `member.spec.js` | An ordinary member gets the shell but no admin page and none of its actions |
 | `metrics.spec.js` | `/thematiq/metrics` answers 404 without `THEMATIQ_METRICS_TOKEN`; with it, 401 without the token and the text format with it. Set `THEMATIQ_E2E_METRICS_TOKEN` to check the second |
