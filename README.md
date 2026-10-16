@@ -120,7 +120,33 @@ OpenProject installs a plugin by building your own image on top of theirs. These
 
 5. Sign in as an administrator and open **Administration**. The menu has a new item, **Thematiq design**. **Administration**, **Plugins** lists "Thematiq" with its version.
 
-OpenProject's own instructions for this route are in [Using this container with custom plugins](https://www.openproject.org/docs/installation-and-operations/installation/docker/). They end with an asset precompile step. This plugin does not need it, because it has no frontend code of its own.
+OpenProject's own instructions for this route are in [Using this container with custom plugins](https://www.openproject.org/docs/installation-and-operations/installation/docker/). They end with an asset precompile step. On this image that step reuses OpenProject's prebuilt frontend, and the default route needs nothing more: the plugin's styles and scripts come in through view hooks.
+
+### With Docker, the frontend route
+
+A second route rebuilds OpenProject's Angular frontend with the plugin's own Angular module (`frontend/module/`) linked in. Use it for the parts that live in OpenProject's frontend and are off on the default route; the admin page says which route an instance runs. [docs/design/frontend-build-variant.md](docs/design/frontend-build-variant.md) has how it works and what it costs.
+
+What you need on top of the default route: about 6 GB of memory for the build step (keep 10 GB free), about 1.3 GB of disk for the build cache, and a few minutes. On the machine it was measured on, the whole build took four and a half minutes. The image is 143 MB larger.
+
+1. Build the `frontend` target of the same Dockerfile. Without `--target` you get the default route.
+
+   ```bash
+   docker build -f docker/Dockerfile --target frontend -t openproject-thematiq:frontend .
+   ```
+
+   The build argument `THEMATIQ_NODE_MEMORY_MB` sets the heap of the Angular build in MB, 6144 by default. OpenProject's own build uses 4096.
+
+2. Run `openproject-thematiq:frontend` the way you run the default image. Nothing else changes.
+
+To try it with compose, on port 8081 and with volumes of its own, name the service:
+
+```bash
+docker compose -f docker/compose.yml --profile frontend up -d --build openproject-frontend
+```
+
+Without the service name, `--profile frontend` starts both instances. Put `THEMATIQ_FRONTEND_PORT=8091` in front for another port. The end-to-end tests know the route by `THEMATIQ_E2E_FRONTEND=1`.
+
+Rebuild the image after every update of the plugin or of OpenProject: the bundle holds the plugin's module as it was at build time. When the module on disk differs from the one in the bundle, the admin page says so.
 
 ### With a packaged installation (DEB or RPM)
 
