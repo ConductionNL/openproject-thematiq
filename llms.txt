@@ -1,0 +1,44 @@
+# openproject-thematiq
+
+> An OpenProject plugin (Ruby gem, Rails engine) that gives OpenProject the same shell as a Nextcloud themed with thematiq: one token set, one top bar, project menu, buttons, inputs and tables. It works on its own and ships its design systems inside the plugin.
+
+Start with AGENTS.md for the commands. Everything runs in Docker on the pinned image openproject/openproject:17.9.1.
+
+## Docs
+
+- [AGENTS.md](AGENTS.md): setup, build, test and quality commands, conventions
+- [README.md](README.md): what the plugin does, installation, usage, running it in production
+- [docs/development.md](docs/development.md): build and run the development image, where each part of the code lives
+- [docs/tokens.md](docs/tokens.md): what a design system is and how its tokens reach the CSS
+- [docs/catalogue.md](docs/catalogue.md): the bundled design systems and their file format
+- [docs/admin-page.md](docs/admin-page.md): the administration page
+- [docs/shell-structure.md](docs/shell-structure.md): the shared top bar and project menu
+- [docs/geometry.md](docs/geometry.md): the sizes and spacing layer and its rules
+- [docs/uploads.md](docs/uploads.md): uploaded logos, icons and fonts
+- [docs/figma.md](docs/figma.md): download for Figma and upload from Figma
+- [docs/testing/e2e.md](docs/testing/e2e.md): the Playwright end-to-end suite
+- [CHANGELOG.md](CHANGELOG.md): changes per version
+
+## API
+
+- [docs/api.md](docs/api.md): the read endpoints under /thematiq/api/v1/, the public shell-tokens answer and the setup endpoint for a sharing instance
+- [config/routes.rb](config/routes.rb): every route of the plugin
+
+## Decisions
+
+- [docs/adr/README.md](docs/adr/README.md): numbered architecture decision records
+- [docs/design/](docs/design/): the longer design notes they come from
+
+## Specs
+
+- [openspec/specs/custom-design-systems/spec.md](openspec/specs/custom-design-systems/spec.md): Custom design systems and the style editor
+- [openspec/specs/design-system-catalogue/spec.md](openspec/specs/design-system-catalogue/spec.md): Design system catalogue and picker
+- [openspec/specs/design-system-scopes/spec.md](openspec/specs/design-system-scopes/spec.md): Design systems per project, module and group
+- [openspec/specs/design-system-transfer/spec.md](openspec/specs/design-system-transfer/spec.md): Design system export, import and Figma transfer
+- [openspec/specs/design-tokens-and-css-layer/spec.md](openspec/specs/design-tokens-and-css-layer/spec.md): Design tokens and the CSS variable layer
+- [openspec/specs/federated-share/spec.md](openspec/specs/federated-share/spec.md): Federated share of the setup
+- [openspec/specs/operations/spec.md](openspec/specs/operations/spec.md): Operations: access, health, metrics, environment settings and rake tasks
+- [openspec/specs/read-api/spec.md](openspec/specs/read-api/spec.md): Read API, shell-tokens and the shared appearance link
+- [openspec/specs/setup-bundle-and-history/spec.md](openspec/specs/setup-bundle-and-history/spec.md): Setup bundle, history and restore
+- [openspec/specs/shared-shell/spec.md](openspec/specs/shared-shell/spec.md): Shared shell
+- [openspec/specs/uploads/spec.md](openspec/specs/uploads/spec.md): Uploads: logos, icons, fonts and PDF export files
