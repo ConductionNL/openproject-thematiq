@@ -65,7 +65,7 @@ On a new OpenProject release, run `script/check-core.rb` inside the image (see i
 
 ## Architecture decisions
 
-The design notes, each with what was decided and why, are in [docs/design/](docs/design/).
+Decisions are recorded in [docs/adr/](docs/adr/README.md), one numbered file each. The longer design notes they come from are in [docs/design/](docs/design/).
 
 ## Conventions you can check in the code
 
