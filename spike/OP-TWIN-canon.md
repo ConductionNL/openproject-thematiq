@@ -20,7 +20,7 @@ The contract for every `Op*` board. Geometry is measured from our Nextcloud boar
 | width | 264 px (`flex: 0 0 264px` in the board), `background: #ffffff`, `border-right: 1px solid #e4e6ea`, padding 20px 14px, column gap 20 px |
 | primary action | first in the column, 42 px high, radius `var(--sc-radius, 8px)`, `background: var(--sc-action, #3669a5)`, 1 px border `var(--sc-action-deep, #234a78)`, 15 px weight 600, icon 18 px |
 | project switcher | second, min-height 44 px, padding 4px 10px, `background: #f5f6f8`, 28 px square initials on `#234a78`, label 12 px `#5e6168` over name 14 px weight 600, chevron 16 px |
-| item | min-height 42 px, padding 0 10px, gap 12 px, radius `var(--sc-radius, 8px)`, 15 px weight 500, icon 20 px stroke 1.75 |
+| item | min-height 34 px (thematiq same-shell-every-page decision 2; was 42), padding 0 10px, gap 12 px, radius `var(--sc-radius, 8px)`, 15 px weight 500, icon 20 px stroke 1.75 |
 | active item | `background: #eaf0f7; color: #234a78; font-weight: 600`, `aria-current="page"` |
 | group title | 12 px weight 600, uppercase, letter-spacing 0.06em, `#5e6168`, padding 0 10px 6px |
 | count badge | 22 px high pill, min-width 22 px, 12 px weight 700, `#cc0000` on white only for counts that need attention; `#eaf0f7`/`#234a78` otherwise |

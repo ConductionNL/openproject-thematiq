@@ -100,7 +100,7 @@ test.describe("shell", () => {
     expect((await size(".op-app-header")).height, "top bar").toBe(68);
     expect((await size(".op-logo")).width, "brand block").toBe(237);
     expect((await size("#main-menu")).width, "sidebar").toBe(264);
-    expect((await size("#main-menu .main-item-wrapper")).height, "nav item").toBe(42);
+    expect((await size("#main-menu .main-item-wrapper")).height, "nav item").toBe(34);
     expect((await size("#main-menu .op-submenu--item-action")).height, "level two").toBe(36);
     // The Create button of the work package toolbar, OpenProject's own class for a primary button.
     const create = page.locator("button.button.-primary.add-work-package");

@@ -10,10 +10,10 @@
 /* project switcher: min-height 44 px, soft background, name weight 600 */
 #main-menu .op-project-select--trigger-button { min-height: 44px; background: var(--thematiq-soft); border-radius: var(--thematiq-radius); font-weight: 600; }
 
-/* item: min-height 42 px, padding 0 10px, radius, 15 px weight 500 */
+/* item: min-height 34 px, padding 0 10px, radius, 15 px weight 500 */
 #main-menu .main-menu-item a, #main-menu .op-submenu--item-action, #main-menu .main-menu--parent-node,
 #main-menu .main-menu--children-menu-header {
-  min-height: 42px; height: 42px; line-height: 42px; font-size: 15px; font-weight: 500; border-radius: var(--thematiq-radius);
+  min-height: 34px; height: 34px; line-height: 34px; font-size: 15px; font-weight: 500; border-radius: var(--thematiq-radius);
 }
 #main-menu .op-submenu--item-action { padding: 0 10px; }
 
