@@ -32,7 +32,7 @@ Measured with computed styles at 1440 x 1000 on the work package table of the de
 |---|---|---|---|
 | Top bar height | 68 px | 55 px | 68 px |
 | Sidebar width | 264 px | 280 px | 264 px |
-| Navigation item height | 42 px | 36 px | 42 px |
+| Navigation item height | 34 px | 36 px | 34 px |
 | Primary button height | 48 px | 34 px | 48 px |
 | Table row height | 44 px | 40 px | 44 px |
 | Body text size | 15 px | 14 px | 15 px |
